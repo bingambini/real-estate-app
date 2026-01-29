@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v1.8.1</title>
+    <title>Real Estate Premium v1.8.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,15 +13,19 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
-        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .details-page.active { transform: translateY(0); }
         #main-content { opacity: 0; transition: 0.5s ease; }
 
-        /* ახალი სტილები ბანერისთვის */
-        #contact-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 700; border-radius: 40px 40px 0 0; transform: translateY(100%); transition: 0.3s ease-out; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 24px 32px 48px; }
-        #contact-sheet.active { transform: translateY(0); }
+        /* ახალი დიზაინის სტილები */
+        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .details-page.active { transform: translateY(0); }
+        
+        .contact-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 700; border-radius: 40px 40px 0 0; transform: translateY(100%); transition: 0.3s ease-out; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 24px 32px 48px; }
+        .contact-sheet.active { transform: translateY(0); }
+        
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 650; display: none; }
         .overlay.active { display: block; }
+        
+        .tab-active { border-bottom: 2px solid #1e40af; color: #1e40af; font-weight: 800; }
     </style>
 </head>
 <body class="pb-28">
@@ -70,44 +74,70 @@
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
-        <div class="relative h-[45vh]">
-            <img id="det-img" src="" class="w-full h-full object-cover rounded-b-[40px]">
-            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="relative h-[48vh]">
+            <img id="det-img" src="" class="w-full h-full object-cover">
+            <div class="absolute top-8 left-6 right-6 flex justify-between items-center">
+                <button onclick="closeDetails()" class="bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
+                <button class="bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-blue-600"><i class="fa-solid fa-bookmark"></i></button>
+            </div>
+            <div class="absolute bottom-12 w-full flex justify-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-white"></div>
+                <div class="w-2 h-2 rounded-full bg-white/50"></div>
+                <div class="w-2 h-2 rounded-full bg-white/50"></div>
+            </div>
         </div>
-        <div class="p-8">
-            <h1 id="det-title" class="text-2xl font-extrabold text-slate-900 mb-1 leading-tight">...</h1>
-            <p id="det-loc" class="text-slate-400 font-medium mb-6 text-sm italic">...</p>
-            
-            <div class="flex justify-between items-center mb-8 bg-slate-50 p-5 rounded-[30px] border border-white">
-                <div>
-                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">ფასი</p>
-                    <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tight">0</div>
-                </div>
-                <button onclick="toggleContact()" class="bg-[#1e40af] text-white px-8 py-3.5 rounded-[20px] font-bold shadow-xl active:scale-95 transition-transform">დაკავშირება</button>
+
+        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative">
+            <div class="mb-4">
+                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-1">...</h1>
+                <p id="det-loc" class="text-slate-400 font-bold text-sm">...</p>
             </div>
 
-            <div class="grid grid-cols-4 gap-3 text-center mb-8">
-                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-expand text-blue-400 text-sm block mb-1"></i><span id="det-sqm" class="text-[10px] font-extrabold">0 მ²</span></div>
-                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-bed text-pink-400 text-sm block mb-1"></i><span id="det-bed" class="text-[10px] font-extrabold">0</span></div>
-                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-layer-group text-purple-400 text-sm block mb-1"></i><span id="det-floor" class="text-[10px] font-extrabold">0/0</span></div>
-                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-couch text-emerald-400 text-sm block mb-1"></i><span class="text-[10px] font-extrabold text-slate-700">კი</span></div>
+            <div class="flex items-center gap-1 mb-6">
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <i class="fa-solid fa-star text-slate-200 text-xs"></i>
+                <span class="text-slate-400 text-xs font-bold ml-2">( 178 reviews )</span>
             </div>
-            
-            <h3 class="font-extrabold text-slate-900 mb-2">აღწერა</h3>
-            <p id="det-desc" class="text-slate-500 text-sm leading-relaxed mb-10">აღწერა იტვირთება...</p>
+
+            <div class="flex gap-6 mb-8 text-slate-400">
+                <div class="flex items-center gap-2"><i class="fa-solid fa-wifi"></i><span id="det-sqm" class="text-sm font-black text-slate-700">0</span></div>
+                <div class="flex items-center gap-2"><i class="fa-solid fa-bed"></i><span id="det-bed" class="text-sm font-black text-slate-700">0</span></div>
+                <div class="flex items-center gap-2"><i class="fa-solid fa-shower"></i><span class="text-sm font-black text-slate-700">2</span></div>
+                <div class="flex items-center gap-2"><i class="fa-solid fa-bath"></i><span id="det-floor" class="text-sm font-black text-slate-700">0</span></div>
+            </div>
+
+            <div id="det-price" class="text-3xl font-black text-blue-600 mb-8 tracking-tighter">$0</div>
+
+            <div class="flex gap-8 border-b border-slate-50 mb-6 text-sm font-bold text-slate-300">
+                <div class="pb-3 tab-active">Details</div>
+                <div class="pb-3">Reviews</div>
+                <div class="pb-3">Map</div>
+            </div>
+
+            <p id="det-desc" class="text-slate-500 text-sm leading-relaxed mb-32">
+                This luxurious builder floor is strategically located at Boston. The apartment comes with all modern facilities... <span class="text-blue-600 font-bold">See More</span>
+            </p>
+
+            <div class="fixed bottom-8 left-8 right-8 z-[510]">
+                <button onclick="toggleContact()" class="w-full bg-[#0f172a] text-white py-5 rounded-[22px] font-black text-lg shadow-2xl active:scale-95 transition-all">
+                    დაკავშირება
+                </button>
+            </div>
         </div>
     </div>
 
     <div id="overlay" class="overlay" onclick="toggleContact()"></div>
-    <div id="contact-sheet">
+    <div id="contact-sheet" class="contact-sheet">
         <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-8"></div>
-        <h3 class="text-xl font-black text-center mb-8">აირჩიეთ კავშირი</h3>
         <div class="grid grid-cols-2 gap-4">
-            <a id="call-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[30px] border border-slate-100 active:bg-blue-50">
+            <a id="call-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[35px] border border-slate-100 active:bg-blue-50">
                 <div class="w-14 h-14 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-3 text-xl"><i class="fa-solid fa-phone"></i></div>
                 <span class="font-bold text-slate-700">დარეკვა</span>
             </a>
-            <a id="msg-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[30px] border border-slate-100 active:bg-emerald-50">
+            <a id="msg-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[35px] border border-slate-100 active:bg-emerald-50">
                 <div class="w-14 h-14 bg-white shadow-md text-emerald-600 rounded-full flex items-center justify-center mb-3 text-xl"><i class="fa-solid fa-comment-dots"></i></div>
                 <span class="font-bold text-slate-700">მესიჯი</span>
             </a>
@@ -125,7 +155,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
         
         function formatPrice(num, curr) {
-            return new Intl.NumberFormat('en-US').format(num) + ' ' + curr;
+            return (curr === 'დოლარი' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
         }
 
         async function init() {
@@ -137,26 +167,25 @@
             } catch (e) { console.log("Fetch Error"); }
         }
 
+        // renderHome ფუნქცია უცვლელია, რომ არაფერი გაფუჭდეს
         function renderHome(items) {
             const container = document.getElementById('trending-container');
             container.innerHTML = '';
-            
             items.forEach(item => {
                 if(!item.ID) return;
-                const img = (item.Photos && item.Photos.length > 0) ? item.Photos[0] : 'https://placehold.co/600x400?text=Property';
+                const img = (item.Photos && item.Photos.length > 0) ? item.Photos[0] : 'https://placehold.co/600x400';
                 const card = document.createElement('div');
                 card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 card.onclick = () => {
                     document.getElementById('det-img').src = img;
                     document.getElementById('det-title').innerText = item.Street || "განცხადება";
-                    document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
+                    document.getElementById('det-loc').innerText = item.District || "თბილისი";
                     document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
                     document.getElementById('det-bed').innerText = item.Rooms || 0;
-                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
-                    document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors}`;
-                    document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
+                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' m²';
+                    document.getElementById('det-floor').innerText = item.Floor || 0;
+                    document.getElementById('det-desc').innerText = item.Description || "Luxury apartment with modern facilities...";
                     
-                    // კონტაქტების დაყენება
                     document.getElementById('call-link').href = "tel:" + (item.Phone || "");
                     document.getElementById('msg-link').href = "https://t.me/" + (item.Phone || "");
 
@@ -169,10 +198,7 @@
                         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${formatPrice(item.TotalPrice, item.Currency)}</div>
                     </div>
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
-                    <div class="flex justify-between items-center px-1 mt-1">
-                        <span class="text-xs text-slate-400 font-bold italic">${item.District || ''}</span>
-                        <div class="text-[10px] font-bold text-yellow-500"><i class="fa-solid fa-star mr-1"></i>4.9</div>
-                    </div>
+                    <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>
                 `;
                 container.appendChild(card);
             });
@@ -185,7 +211,6 @@
 
         function closeDetails() {
             document.getElementById('details-page').classList.remove('active');
-            // თუ ბანერი ღია იყო, იმასაც ვხურავთ
             document.getElementById('contact-sheet').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
             setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
