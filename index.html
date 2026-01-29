@@ -3,107 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium App</title>
+    <title>Real Estate Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --main-color: #2563eb; }
-        body { background-color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
-        .property-card { background: white; border-radius: 16px; overflow: hidden; transition: 0.3s; border: 1px solid #e2e8f0; }
-        .feature-tag { background: #f1f5f9; padding: 6px 10px; border-radius: 8px; font-size: 11px; display: flex; align-items: center; gap: 5px; color: #475569; }
-        .price-tag { background: var(--main-color); color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        /* Splash Screen-ის სტილი */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a; /* ფონი, რომელიც შენს სურათს მოუხდება */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-out, visibility 1s;
+        }
+
+        #splash-screen.hidden-splash {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* სურათი იდეალურად შეავსებს ეკრანს */
+        }
+
+        /* მთავარი კონტენტის სტილი */
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
+        .property-card { background: white; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 20px; transition: transform 0.2s; }
+        .property-card:active { transform: scale(0.98); }
+        .price-badge { background: #2563eb; color: white; padding: 5px 15px; border-radius: 12px; font-weight: bold; }
     </style>
 </head>
-<body class="pb-10">
-    <div class="p-4">
-        <header class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">უძრავი ქონება</h1>
-            <p class="text-gray-500 text-sm">იპოვეთ თქვენი ოცნების სახლი</p>
+<body>
+
+    <div id="splash-screen">
+        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="splash-img" alt="Splash">
+    </div>
+
+    <div id="main-content" class="p-4 opacity-0 transition-opacity duration-1000">
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">უძრავი ქონება</h1>
+                <p class="text-gray-500 text-sm">საუკეთესო შემოთავაზებები</p>
+            </div>
+            <i class="fa-solid fa-bell text-xl text-gray-400"></i>
         </header>
 
-        <div class="sticky top-2 z-10 bg-white/80 backdrop-blur p-2 rounded-xl mb-6 shadow-sm flex gap-2 overflow-x-auto">
-            <select id="typeFilter" onchange="filterData()" class="bg-white border rounded-lg px-3 py-2 text-sm outline-none">
-                <option value="">ყველა ტიპი</option>
-                <option value="ბინა">ბინა</option>
-                <option value="კერძო სახლი">კერძო სახლი</option>
-            </select>
-            <select id="districtFilter" onchange="filterData()" class="bg-white border rounded-lg px-3 py-2 text-sm outline-none">
-                <option value="">ყველა უბანი</option>
-            </select>
-        </div>
-
-        <div id="listings" class="space-y-6">
-            <div class="text-center py-20 text-gray-400">მონაცემები იტვირთება...</div>
-        </div>
+        <div id="listings" class="space-y-4">
+            </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxVqyZHxNre6o90D5nhx3qf1uTORViU9KMKmnoL9oQ4xB4SsNokq02yzvGmZPG5DwjwSQ/exec";
-        let allItems = [];
 
         async function init() {
             try {
+                // ვიწყებთ მონაცემების წამოღებას
                 const res = await fetch(API_URL);
-                allItems = await res.json();
-                populateDistricts();
-                render(allItems);
-            } catch (e) { document.getElementById('listings').innerHTML = "შეცდომაა..."; }
-        }
+                const data = await res.json();
+                
+                render(data);
 
-        function populateDistricts() {
-            const districts = [...new Set(allItems.map(i => i.District))];
-            const select = document.getElementById('districtFilter');
-            districts.forEach(d => select.innerHTML += `<option value="${d}">${d}</option>`);
-        }
+                // ვაცდით 2.5 წამს, რომ სქრინი კარგად გამოჩნდეს
+                setTimeout(() => {
+                    document.getElementById('splash-screen').classList.add('hidden-splash');
+                    document.getElementById('main-content').classList.remove('opacity-0');
+                }, 2500);
 
-        function filterData() {
-            const type = document.getElementById('typeFilter').value;
-            const dist = document.getElementById('districtFilter').value;
-            const filtered = allItems.filter(i => (!type || i.PropertyType === type) && (!dist || i.District === dist));
-            render(filtered);
+            } catch (e) {
+                console.error("შეცდომაა:", e);
+                // თუ შეცდომაა, მაინც გავაქროთ სქრინი
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('main-content').classList.remove('opacity-0');
+            }
         }
-
-        const iconMap = {
-            "ინტერნეტი": "fa-wifi", "ავეჯი": "fa-couch", "ლიფტი": "fa-elevator", 
-            "ბუნებრივი აირი": "fa-fire", "კონდიციონერი": "fa-snowflake", "ტელევიზია": "fa-tv",
-            "დაცვა": "fa-shield-halved", "პარკინგი": "fa-car", "აუზი": "fa-person-swimming"
-        };
 
         function render(items) {
             const container = document.getElementById('listings');
-            container.innerHTML = items.length ? '' : '<p class="text-center text-gray-400">განცხადება ვერ მოიძებნა</p>';
+            container.innerHTML = '';
             
             items.forEach(item => {
-                const allFeatures = [...item.Features, ...item.Furniture, ...item.BuildingFeatures];
-                const featureHtml = allFeatures.slice(0, 6).map(f => `
-                    <div class="feature-tag"><i class="fa-solid ${iconMap[f] || 'fa-check'} text-blue-500"></i> ${f}</div>
-                `).join('');
-
                 container.innerHTML += `
                     <div class="property-card shadow-sm">
                         <div class="relative">
-                            <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-56 object-cover">
-                            <div class="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${item.DealType}</div>
-                            <div class="absolute bottom-3 right-3 price-tag shadow-lg">${item.TotalPrice} ${item.Currency}</div>
+                            <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-64 object-cover">
+                            <div class="absolute top-4 left-4 bg-white/90 px-3 py-1 rounded-full text-xs font-bold">${item.PropertyType}</div>
                         </div>
-                        <div class="p-4">
-                            <h3 class="font-bold text-lg text-gray-800">${item.District}, ${item.Street}</h3>
-                            <div class="flex gap-4 my-3 text-sm text-gray-500 border-b pb-3">
-                                <span><i class="fa-solid fa-ruler-combined"></i> ${item.TotalArea} მ²</span>
-                                <span><i class="fa-solid fa-door-open"></i> ${item.Rooms} ოთახი</span>
-                                <span><i class="fa-solid fa-building"></i> ${item.Floor}/${item.TotalFloors}</span>
+                        <div class="p-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold text-xl text-gray-800">${item.District}</h3>
+                                <span class="price-badge">${item.TotalPrice} ${item.Currency}</span>
                             </div>
-                            <div class="flex flex-wrap gap-2 mb-4">${featureHtml}</div>
-                            <button onclick="window.open('tel:${item.Phone}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-phone"></i> დარეკვა
-                            </button>
+                            <p class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-location-dot"></i> ${item.Street}, ${item.HouseNum}</p>
+                            
+                            <div class="flex gap-4 text-sm text-gray-600 border-t pt-4">
+                                <span><i class="fa-solid fa-ruler"></i> ${item.TotalArea} მ²</span>
+                                <span><i class="fa-solid fa-bed"></i> ${item.Rooms} ოთახი</span>
+                                <span><i class="fa-solid fa-building"></i> ${item.Floor} სართ.</span>
+                            </div>
                         </div>
                     </div>
                 `;
             });
         }
+
+        // აპლიკაციის გაშვება
         init();
+        
+        // ტელეგრამის Mini App-ის ინიციალიზაცია
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // აპლიკაციის გაშლა მთელ ეკრანზე
     </script>
 </body>
 </html>
