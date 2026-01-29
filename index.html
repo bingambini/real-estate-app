@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Minimal v2.2</title>
+    <title>Real Estate Minimal v2.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,6 @@
         .hidden-splash { opacity: 0; visibility: hidden; }
         #main-content { opacity: 0; transition: 0.5s ease; }
 
-        /* დეტალური გვერდის სტილი */
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
     </style>
@@ -58,7 +57,7 @@
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
-        <div class="relative h-[50vh]">
+        <div class="relative h-[48vh]">
             <img id="det-img" src="" class="w-full h-full object-cover">
             <button onclick="closeDetails()" class="absolute top-8 left-6 bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -66,12 +65,34 @@
         </div>
 
         <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[50vh]">
-            <div class="mb-4">
+            <div class="mb-8">
                 <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-2 leading-tight">...</h1>
                 <p id="det-loc" class="text-slate-400 font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-location-dot text-blue-500"></i>
+                    <i class="fa-solid fa-location-dot text-blue-500/60"></i>
                     <span id="det-address-text">...</span>
                 </p>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-50/50 p-6 rounded-[30px] border border-slate-100">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-expand text-blue-500 text-lg"></i>
+                    <span id="det-sqm" class="text-[12px] font-black text-slate-700 uppercase">0 მ²</span>
+                </div>
+                <div class="w-[1px] h-8 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-door-open text-blue-500 text-lg"></i>
+                    <span id="det-rooms" class="text-[12px] font-black text-slate-700 uppercase">0 ოთახი</span>
+                </div>
+                <div class="w-[1px] h-8 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-bed text-blue-500 text-lg"></i>
+                    <span id="det-bed" class="text-[12px] font-black text-slate-700 uppercase">0 საძინ.</span>
+                </div>
+                <div class="w-[1px] h-8 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-blue-500 text-lg"></i>
+                    <span id="det-floor" class="text-[12px] font-black text-slate-700 uppercase">0 სართ.</span>
+                </div>
             </div>
         </div>
     </div>
@@ -108,12 +129,15 @@
                 card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 
                 card.onclick = () => {
-                    // სურათი
                     document.getElementById('det-img').src = img;
-                    // ქუჩა
                     document.getElementById('det-title').innerText = item.Street || "ქუჩა არ არის";
-                    // უბანი და ქალაქი (გაერთიანებული)
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
+                    
+                    // მონაცემების შევსება
+                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
+                    document.getElementById('det-rooms').innerText = (item.Rooms || 0) + ' ოთახი';
+                    document.getElementById('det-bed').innerText = (item.Bedrooms || 0) + ' საძინ.';
+                    document.getElementById('det-floor').innerText = (item.Floor || 0) + ' სართ.';
 
                     document.getElementById('details-page').classList.add('active');
                     document.getElementById('bottom-nav').style.display = 'none';
