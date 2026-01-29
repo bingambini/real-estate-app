@@ -138,9 +138,42 @@
                 </div>
             </div>
 
-            <div class="flex gap-6 mb-6 border-b border-slate-50">
+<div class="flex justify-between mb-6 border-b border-slate-50 overflow-x-auto no-scrollbar gap-6">
                 <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
                 <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
+                <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
+                <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
+            </div>
+
+            <div id="tab-desc" class="tab-content active">
+                <div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div>
+            </div>
+
+            <div id="tab-params" class="tab-content">
+                <div class="space-y-4 text-[14px] pb-10">
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">პროექტი</span><span id="p-project" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">გათბობა</span><span id="p-heating" class="text-slate-800 font-black">---</span></div>
+                </div>
+            </div>
+
+            <div id="tab-map" class="tab-content">
+                <div class="w-full h-48 bg-slate-100 rounded-[25px] flex items-center justify-center mb-10 overflow-hidden">
+                    <div id="map-placeholder" class="text-slate-400 text-xs font-bold text-center p-4">
+                        <i class="fa-solid fa-map-location-dot text-2xl mb-2"></i><br>
+                        რუკა მზადდება...
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-contact" class="tab-content pb-10">
+                <div class="bg-slate-50 border border-slate-100 rounded-[30px] p-6 text-center">
+                    <h3 class="text-slate-800 font-black mb-6 italic text-sm">დაუკავშირდით მეპატრონეს</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <a id="btn-call" href="#" class="bg-[#1e293b] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-lg text-sm">დარეკვა</a>
+                        <a id="btn-msg" href="#" class="border-2 border-slate-200 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all text-sm">ტელეგრამი</a>
+                    </div>
+                </div>
             </div>
 
             <div id="tab-desc" class="tab-content active"><div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div></div>
