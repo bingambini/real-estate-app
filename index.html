@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v3.0</title>
+    <title>Real Estate Premium v3.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,27 +24,26 @@
         .slide { min-width: 100%; height: 100%; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
         
+        /* ID და Views ბეიჯის სტილი */
+        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; display: flex; gap: 10px; border: 1px solid rgba(255,255,255,0.1); }
+
         .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
         .dot.active { background: #fff; width: 18px; border-radius: 10px; }
 
-        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 14px; white-space: nowrap; }
         .tab-btn.active { color: #1e40af; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; h: 3px; background: #1e40af; border-radius: 10px; }
-        
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
         .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 30px; padding: 25px; text-align: center; }
     </style>
 </head>
 <body class="pb-10">
 
-    <div id="splash-screen">
-        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
-    </div>
+    <div id="splash-screen"><img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover"></div>
 
     <div id="main-content">
         <header class="pt-6 px-6 pb-2"><h1 class="text-2xl font-extrabold text-slate-900">უძრავი ქონება</h1></header>
@@ -55,13 +54,20 @@
         <div class="slider-container">
             <div id="slider-wrapper" class="slider-wrapper"></div>
             <div id="slider-dots" class="slider-dots"></div>
+            
+            <div class="info-badge">
+                <span>ID: <span id="det-id">---</span></span>
+                <span class="opacity-30">|</span>
+                <span><i class="fa-solid fa-eye mr-1"></i> <span id="det-views">0</span></span>
+            </div>
+
             <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left"></i></button>
         </div>
 
         <div class="px-7 pt-6 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20">
             <div class="mb-2">
                 <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
-                <p id="det-loc" class="text-slate-400 font-bold text-[13px] mt-1 flex items-center gap-1">
+                <p class="text-slate-400 font-bold text-[13px] mt-1 flex items-center gap-1">
                     <i class="fa-solid fa-location-dot text-blue-500/70 text-[11px]"></i>
                     <span id="det-address-text">...</span>
                 </p>
@@ -85,34 +91,20 @@
             </div>
 
             <div id="tab-desc" class="tab-content active"><p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p></div>
-            
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4 text-[13px]">
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 font-black">---</span></div>
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">პროექტის ტიპი</span><span id="p-project" class="text-slate-800 font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">პროექტი</span><span id="p-project" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილი</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
                 </div>
             </div>
-
             <div id="tab-map" class="tab-content text-center py-10 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
-
             <div id="tab-contact" class="tab-content">
                 <div class="contact-card">
-                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fa-solid fa-headset text-blue-600 text-2xl"></i>
-                    </div>
                     <h3 class="text-slate-800 font-black text-lg mb-1">გსურთ დაკავშირება?</h3>
-                    <p class="text-slate-400 text-xs mb-6 font-bold uppercase tracking-widest">აგენტი მზად არის დაგეხმაროთ</p>
-                    
-                    <div class="space-y-3">
-                        <a id="btn-call-final" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">
-                            <i class="fa-solid fa-phone"></i> დარეკვა
-                        </a>
-                        <a id="btn-msg-final" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">
-                            <i class="fa-brands fa-telegram text-blue-500"></i> ტელეგრამი
-                        </a>
+                    <div class="space-y-3 mt-4">
+                        <a id="btn-call" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold">დარეკვა</a>
+                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold">ტელეგრამი</a>
                     </div>
                 </div>
             </div>
@@ -120,22 +112,18 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzifOxjV5ZXz3wrVLOJsjByz3p2y1YlBAio5Zi0uFUnXQ5xWZZFpvGimGYuE9ZjDpn5CA/exec";
         let currentSlide = 0; let totalSlides = 0;
-
-        function formatPrice(num, curr) {
-            return (curr === 'დოლარი' || curr === '$' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
-        }
 
         function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
             const dots = document.getElementById('slider-dots');
             wrapper.innerHTML = ''; dots.innerHTML = ''; currentSlide = 0; wrapper.style.transform = 'translateX(0)';
-            const photoArray = Array.isArray(photos) ? photos : (photos ? photos.split(',') : []);
+            const photoArray = (typeof photos === 'string') ? photos.split(',') : (Array.isArray(photos) ? photos : []);
             totalSlides = photoArray.length;
             photoArray.forEach((url, index) => {
                 const slide = document.createElement('div'); slide.className = 'slide';
-                slide.innerHTML = `<img src="${url.trim()}" alt="ფოტო">`;
+                slide.innerHTML = `<img src="${url.trim()}" alt="img">`;
                 wrapper.appendChild(slide);
                 const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
@@ -165,7 +153,7 @@
         }
 
         async function init() {
-            setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden-splash'); document.getElementById('main-content').style.opacity = '1'; }, 3000);
+            setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden-splash'); document.getElementById('main-content').style.opacity = '1'; }, 2000);
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
@@ -178,42 +166,42 @@
             container.innerHTML = '';
             items.forEach(item => {
                 if(!item.ID) return;
-                const img = (item.Photos && item.Photos.length > 0) ? (Array.isArray(item.Photos) ? item.Photos[0] : item.Photos.split(',')[0]) : 'https://placehold.co/600x400';
+                const photos = item.Photos || "";
+                const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
+                
                 const card = document.createElement('div');
                 card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 card.onclick = () => {
                     buildSlider(item.Photos);
-                    document.getElementById('det-title').innerText = item.Street;
+                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
+                    document.getElementById('det-id').innerText = item.ID;
+                    document.getElementById('det-views').innerText = item.Views || 0;
+                    document.getElementById('det-price').innerText = (item.Currency === '$' ? '$' : '') + item.TotalPrice;
+                    document.getElementById('det-desc').innerText = item.Description || "";
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
-                    document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
-                    document.getElementById('det-desc').innerText = item.Description;
-                    document.getElementById('det-sqm').innerText = item.TotalArea + ' მ²';
-                    document.getElementById('det-rooms').innerText = item.Rooms;
+                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
+                    document.getElementById('det-rooms').innerText = item.Rooms || 0;
                     document.getElementById('det-bed').innerText = item.Bedrooms || 0;
-                    document.getElementById('det-floor').innerText = item.Floor;
-                    document.getElementById('p-status').innerText = item.Status || "ახალი აშენებული";
-                    document.getElementById('p-condition').innerText = item.Condition || "გარემონტებული";
-                    document.getElementById('p-project').innerText = item.Project || "არასტანდარტული";
-                    document.getElementById('p-wc').innerText = item.Bathrooms || "1";
-                    document.getElementById('p-balcony').innerText = item.Balcony ? "კი" : "არა";
+                    document.getElementById('det-floor').innerText = item.Floor || 0;
+                    document.getElementById('p-condition').innerText = item.Condition || "---";
+                    document.getElementById('p-project').innerText = item.ProjectType || "---";
+                    document.getElementById('p-wc').innerText = item.Bathrooms || "---";
+                    document.getElementById('btn-call').href = "tel:" + item.Phone;
+                    document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
 
-                    // კონტაქტის ლინკები
-                    document.getElementById('btn-call-final').href = "tel:" + item.Phone;
-                    document.getElementById('btn-msg-final').href = "https://t.me/" + item.Phone;
+                    // ნახვის დამატება სერვერზე
+                    fetch(`${API_URL}?viewId=${item.ID}`).catch(() => {});
 
                     document.getElementById('details-page').classList.add('active');
                 };
-                card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
-                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street}</h4>
-                    <p class="text-xs text-slate-400 font-bold px-1">${item.District}</p>`;
+                card.innerHTML = `<img src="${firstImg}" class="w-full h-48 object-cover rounded-[28px] mb-4">
+                                  <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
+                                  <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>`;
                 container.appendChild(card);
             });
         }
 
-        function closeDetails() { 
-            document.getElementById('details-page').classList.remove('active');
-            switchTab('tab-desc', document.querySelector('.tab-btn')); // დაბრუნებისას პირველ ტაბზე გადასვლა
-        }
+        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
         init();
     </script>
 </body>
