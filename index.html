@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Real Estate</title>
+    <title>Real Estate App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #fcfcff; font-family: 'Inter', sans-serif; color: #1a1a2e; }
-        .category-card { transition: all 0.3s ease; }
-        .category-card:active { transform: scale(0.9); }
-        .trending-card { min-width: 260px; border-radius: 24px; overflow: hidden; }
-        .bottom-nav { background: #0f172a; border-radius: 24px 24px 0 0; }
+        body { background-color: #fcfcff; font-family: sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         #splash-screen { position: fixed; inset: 0; z-index: 100; background: #fff; transition: 0.8s; }
         .hidden-splash { opacity: 0; visibility: hidden; }
     </style>
@@ -23,63 +20,38 @@
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" class="opacity-0 transition-opacity duration-700">
-        <header class="p-6 flex justify-between items-start">
+    <div id="main-content" class="opacity-0 transition-opacity duration-700 p-6">
+        <header class="flex justify-between items-start mb-8">
             <div>
-                <h2 class="text-3xl font-light text-gray-500">What are you</h2>
-                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight"><span class="text-slate-800">Looking</span> for?</h1>
+                <h2 class="text-2xl text-gray-400">What are you</h2>
+                <h1 class="text-3xl font-bold text-slate-900">Looking for?</h1>
             </div>
-            <button class="bg-white shadow-lg p-3 rounded-2xl text-slate-400">
-                <i class="fa-solid fa-magnifying-glass text-xl"></i>
-            </button>
+            <div class="bg-white shadow-md p-3 rounded-2xl text-gray-400">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
         </header>
 
-        <section class="px-6 grid grid-cols-2 gap-4 mb-8">
-            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
-                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                    <i class="fa-solid fa-house"></i>
-                </div>
-                <span class="font-semibold text-slate-700">House</span>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-gray-50">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-house"></i></div>
+                <span class="font-bold text-sm">House</span>
             </div>
-            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
-                <div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
-                    <i class="fa-solid fa-building-user"></i>
-                </div>
-                <span class="font-semibold text-slate-700">Condo</span>
+            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-gray-50">
+                <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center text-pink-600"><i class="fa-solid fa-building"></i></div>
+                <span class="font-bold text-sm">Condo</span>
             </div>
-            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
-                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
-                    <i class="fa-solid fa-hotel"></i>
-                </div>
-                <span class="font-semibold text-slate-700">Villa</span>
-            </div>
-            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
-                <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-                    <i class="fa-solid fa-city"></i>
-                </div>
-                <span class="font-semibold text-slate-700">Apartment</span>
-            </div>
-        </section>
+        </div>
 
-        <section class="pl-6 mb-8">
-            <div class="flex justify-between items-center pr-6 mb-4">
-                <h3 class="text-xl font-bold text-slate-800">Trending Properties</h3>
-                <a href="#" class="text-blue-600 font-semibold text-sm">See All <i class="fa-solid fa-chevron-right ml-1"></i></a>
+        <h3 class="text-xl font-bold mb-4">Trending Properties</h3>
+        <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar pb-4">
             </div>
-            
-            <div id="trending-container" class="flex gap-6 overflow-x-auto pr-6 pb-4 scroll-smooth no-scrollbar">
-                </div>
-        </section>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bottom-nav p-5 flex justify-around items-center z-50">
-        <button class="text-white relative">
-            <i class="fa-solid fa-house text-xl"></i>
-            <span class="absolute -top-1 -right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
-        </button>
-        <button class="text-slate-400"><i class="fa-solid fa-location-dot text-xl"></i></button>
-        <button class="text-slate-400"><i class="fa-solid fa-bell text-xl"></i></button>
-        <button class="text-slate-400"><i class="fa-solid fa-heart text-xl"></i></button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 p-5 flex justify-around items-center rounded-t-3xl">
+        <i class="fa-solid fa-house text-white text-xl"></i>
+        <i class="fa-solid fa-location-dot text-gray-500 text-xl"></i>
+        <i class="fa-solid fa-bell text-gray-500 text-xl"></i>
+        <i class="fa-solid fa-heart text-gray-500 text-xl"></i>
     </nav>
 
     <script>
@@ -89,37 +61,27 @@
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                renderTrending(data.listings);
                 
+                const container = document.getElementById('trending-container');
+                data.listings.forEach(item => {
+                    container.innerHTML += `
+                        <div class="min-w-[250px] bg-blue-50 p-4 rounded-[2rem] shadow-sm">
+                            <img src="${item.Photos[0]}" class="w-full h-40 object-cover rounded-3xl mb-3">
+                            <h4 class="font-bold text-lg">${item.Street || 'Property'}</h4>
+                            <p class="text-gray-500 text-sm">${item.District}</p>
+                        </div>
+                    `;
+                });
+
                 setTimeout(() => {
                     document.getElementById('splash-screen').classList.add('hidden-splash');
                     document.getElementById('main-content').classList.replace('opacity-0', 'opacity-100');
-                }, data.settings.SplashDuration || 1200);
-            } catch (e) { console.error(e); }
-        }
-
-        function renderTrending(items) {
-            const container = document.getElementById('trending-container');
-            items.forEach((item, index) => {
-                const bgColors = ['bg-pink-100', 'bg-blue-100', 'bg-emerald-100'];
-                const bgColor = bgColors[index % bgColors.length];
-                
-                container.innerHTML += `
-                    <div class="trending-card ${bgColor} p-4 flex-shrink-0 shadow-sm border border-white/50">
-                        <img src="${item.Photos[0]}" class="w-full h-48 object-cover rounded-[2rem] mb-4 shadow-md">
-                        <div class="px-2">
-                            <h4 class="text-xl font-bold text-slate-800 mb-1">${item.Street || 'Elegant Villa'}</h4>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500 font-medium">${item.District}</span>
-                                <div class="flex items-center gap-1">
-                                    <i class="fa-solid fa-star text-slate-800 text-xs"></i>
-                                    <span class="font-bold text-slate-800">4.5</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+                }, data.settings.SplashDuration || 1000);
+            } catch (e) {
+                console.error("შეცდომაა ჩატვირთვისას:", e);
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('main-content').style.opacity = '1';
+            }
         }
         init();
         window.Telegram.WebApp.expand();
