@@ -3,18 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium</title>
+    <title>Real Estate Premium v1.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; transition: 0.8s; }
+        
+        /* Splash Screen */
+        #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
-        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Details Page Animation */
+        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
+        
+        #main-content { opacity: 0; transition: opacity 0.7s ease; }
         .category-icon { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -24,7 +30,7 @@
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" class="opacity-0 transition-opacity duration-700">
+    <div id="main-content">
         <header class="p-6 flex justify-between items-start">
             <div>
                 <h2 class="text-2xl text-gray-400 font-light">What are you</h2>
@@ -47,9 +53,10 @@
         <section class="pl-6">
             <div class="flex justify-between items-center pr-6 mb-4">
                 <h3 class="text-xl font-bold text-slate-800">Trending Properties</h3>
-                <span class="text-blue-600 font-bold text-sm">See All <i class="fa-solid fa-chevron-right ml-1"></i></span>
+                <span class="text-blue-600 font-bold text-sm cursor-pointer">See All <i class="fa-solid fa-chevron-right ml-1"></i></span>
             </div>
-            <div id="trending-container" class="flex gap-6 overflow-x-auto no-scrollbar pr-6 pb-6"></div>
+            <div id="trending-container" class="flex gap-6 overflow-x-auto no-scrollbar pr-6 pb-6">
+                </div>
         </section>
     </div>
 
@@ -61,38 +68,21 @@
                 <button class="bg-white/90 p-3 rounded-full shadow-lg text-purple-500"><i class="fa-solid fa-bookmark"></i></button>
             </div>
         </div>
-
         <div class="p-8">
-            <h1 id="det-title" class="text-3xl font-extrabold text-slate-900 mb-1">Classic Apartment</h1>
-            <p id="det-loc" class="text-gray-400 font-medium mb-4">New Boston</p>
-            
+            <h1 id="det-title" class="text-3xl font-extrabold text-slate-900 mb-1">...</h1>
+            <p id="det-loc" class="text-gray-400 font-medium mb-4">...</p>
             <div class="flex items-center gap-2 mb-6 text-yellow-400">
                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-gray-300"></i>
                 <span class="text-gray-400 text-sm ml-2">( 178 reviews )</span>
             </div>
-
             <div class="grid grid-cols-4 gap-4 mb-8">
                 <div class="text-center"><i class="fa-solid fa-wifi text-gray-400 block mb-1"></i><span class="text-xs font-bold">Free</span></div>
-                <div class="text-center"><i class="fa-solid fa-bed text-gray-400 block mb-1"></i><span id="det-bed" class="text-xs font-bold">2</span></div>
-                <div class="text-center"><i class="fa-solid fa-bath text-gray-400 block mb-1"></i><span id="det-bath" class="text-xs font-bold">2</span></div>
+                <div class="text-center"><i class="fa-solid fa-bed text-gray-400 block mb-1"></i><span id="det-bed" class="text-xs font-bold">0</span></div>
+                <div class="text-center"><i class="fa-solid fa-bath text-gray-400 block mb-1"></i><span id="det-bath" class="text-xs font-bold">0</span></div>
                 <div class="text-center"><i class="fa-solid fa-car text-gray-400 block mb-1"></i><span class="text-xs font-bold">1</span></div>
             </div>
-
-            <div class="text-3xl font-extrabold text-blue-600 mb-6" id="det-price">$1,135.00</div>
-
-            <div class="flex gap-8 border-b border-gray-100 mb-6">
-                <span class="pb-3 border-b-2 border-purple-500 font-bold text-slate-800">Details</span>
-                <span class="pb-3 text-gray-300 font-bold">Reviews</span>
-                <span class="pb-3 text-gray-300 font-bold">Map</span>
-            </div>
-
-            <p class="text-gray-500 leading-relaxed mb-10 text-sm">
-                This luxurious builder floor is strategically located at Boston. The apartment comes with all modern facilities... <span class="text-blue-600 font-bold">See More</span>
-            </p>
-
-            <button onclick="window.open('tel:555555')" class="w-full bg-[#0f172a] text-white py-5 rounded-[24px] font-extrabold text-lg shadow-xl active:scale-95 transition-all">
-                Continue
-            </button>
+            <div id="det-price" class="text-3xl font-extrabold text-blue-600 mb-6">$0</div>
+            <button onclick="window.open('tel:555555')" class="w-full bg-[#0f172a] text-white py-5 rounded-[24px] font-extrabold text-lg shadow-xl active:scale-95 transition-all">Continue</button>
         </div>
     </div>
 
@@ -105,28 +95,47 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbToNunJg58cTeM7jgV3rSbmNavVrc97iB7HCGCnxpJOkhijmVFwkoNt6XSnoM2jpYvXA/exec";
-        let listings = [];
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function showApp() {
+            document.getElementById('splash-screen').classList.add('hidden-splash');
+            document.getElementById('main-content').style.opacity = '1';
+        }
 
         async function init() {
+            const safetyTimeout = setTimeout(showApp, 5000);
+
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                listings = data.listings;
-                renderHome(listings);
-                setTimeout(() => {
-                    document.getElementById('splash-screen').classList.add('hidden-splash');
-                    document.getElementById('main-content').classList.replace('opacity-0', 'opacity-100');
-                }, data.settings.SplashDuration || 1200);
-            } catch (e) { console.error(e); }
+                clearTimeout(safetyTimeout);
+                
+                renderHome(data.listings);
+                setTimeout(showApp, data.settings.SplashDuration || 1200);
+            } catch (e) {
+                console.error("Fetch error:", e);
+                showApp();
+            }
         }
 
         function renderHome(items) {
             const container = document.getElementById('trending-container');
+            container.innerHTML = '';
             const colors = ['bg-pink-100', 'bg-blue-100', 'bg-emerald-100'];
+            
             items.forEach((item, idx) => {
                 const card = document.createElement('div');
-                card.className = `${colors[idx % 3]} p-5 min-w-[280px] rounded-[40px] shadow-sm flex-shrink-0 border border-white/50 cursor-pointer`;
-                card.onclick = () => showDetails(item);
+                card.className = `${colors[idx % 3]} p-5 min-w-[280px] rounded-[40px] shadow-sm flex-shrink-0 border border-white/50 cursor-pointer active:scale-95 transition-all`;
+                card.onclick = () => {
+                    document.getElementById('det-img').src = item.Photos[0] || '';
+                    document.getElementById('det-title').innerText = item.Street || "Apartment";
+                    document.getElementById('det-loc').innerText = item.District || "";
+                    document.getElementById('det-price').innerText = `${item.TotalPrice} ${item.Currency}`;
+                    document.getElementById('det-bed').innerText = item.Rooms || 0;
+                    document.getElementById('details-page').classList.add('active');
+                    document.getElementById('bottom-nav').style.display = 'none';
+                };
                 card.innerHTML = `
                     <img src="${item.Photos[0]}" class="w-full h-52 object-cover rounded-[32px] mb-4 shadow-md">
                     <h4 class="text-xl font-extrabold text-slate-800">${item.Street || 'Villa'}</h4>
@@ -139,23 +148,12 @@
             });
         }
 
-        function showDetails(item) {
-            document.getElementById('det-img').src = item.Photos[0];
-            document.getElementById('det-title').innerText = item.Street || "Apartment";
-            document.getElementById('det-loc').innerText = item.District;
-            document.getElementById('det-price').innerText = `${item.TotalPrice} ${item.Currency}`;
-            document.getElementById('det-bed').innerText = item.Rooms || 0;
-            document.getElementById('details-page').classList.add('active');
-            document.getElementById('bottom-nav').style.display = 'none';
-        }
-
         function closeDetails() {
             document.getElementById('details-page').classList.remove('active');
             setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
         }
 
         init();
-        window.Telegram.WebApp.expand();
     </script>
 </body>
 </html>
