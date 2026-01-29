@@ -2,105 +2,111 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universal Real Estate App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
-        #main-content { opacity: 0; transition: 0.5s ease; }
+        #main-content { opacity: 0; transition: 0.5s ease; width: 100%; }
 
-        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Responsive Details Page */
+        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         .details-page.active { transform: translateY(0); }
 
-        .slider-container { position: relative; height: 45vh; width: 100%; overflow: hidden; }
+        .slider-container { position: relative; height: 40vh; height: [40svh]; width: 100%; overflow: hidden; }
         .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
         .slide { min-width: 100%; height: 100%; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
         
-        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; display: flex; gap: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .info-badge { position: absolute; top: env(safe-area-inset-top, 20px); right: 20px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; display: flex; gap: 10px; }
 
         .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
         .dot.active { background: #fff; width: 18px; border-radius: 10px; }
 
-        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: clamp(12px, 4vw, 14px); white-space: nowrap; }
         .tab-btn.active { color: #1e40af; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; height: 3px; background: #1e40af; border-radius: 10px; }
+        
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .read-more-btn { color: #2563eb; font-weight: 800; font-size: 13px; cursor: pointer; display: inline; margin-left: 4px; }
-        .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 30px; padding: 25px; text-align: center; }
+
+        /* Scroll Snap for smooth scrolling on all devices */
+        .snap-x-container { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .snap-item { scroll-snap-align: center; }
+
+        /* Safe Area for modern phones */
+        nav { padding-bottom: calc(env(safe-area-inset-bottom, 1.5rem) + 1rem) !important; }
     </style>
 </head>
-<body class="pb-28">
+<body class="pb-32">
 
     <div id="splash-screen">
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
     <div id="main-content">
-        <header class="pt-6 px-6 pb-2 flex justify-between items-center">
+        <header class="pt-8 px-6 pb-2 flex justify-between items-center">
             <div>
-                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">რას ეძებთ დღეს?</h1>
             </div>
-            <button class="bg-white shadow-lg w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
+            <button class="bg-white shadow-xl w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
                 <i class="fa-solid fa-magnifying-glass text-lg"></i>
             </button>
         </header>
 
         <section class="px-6 grid grid-cols-2 gap-3 mt-6 mb-8">
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">ბინები</span>
+            <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
+                <span class="font-bold text-slate-700 text-[11px] uppercase">ბინები</span>
             </div>
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">სახლები</span>
+            <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                <div class="flex-shrink-0 w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house"></i></div>
+                <span class="font-bold text-slate-700 text-[11px] uppercase">სახლები</span>
             </div>
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-tree-city"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">აგარაკები</span>
+            <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                <div class="flex-shrink-0 w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-tree-city"></i></div>
+                <span class="font-bold text-slate-700 text-[11px] uppercase">აგარაკები</span>
             </div>
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">ნაკვეთები</span>
+            <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                <div class="flex-shrink-0 w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+                <span class="font-bold text-slate-700 text-[11px] uppercase">ნაკვეთები</span>
             </div>
         </section>
 
-        <section class="pl-6">
-            <div class="flex justify-between items-center pr-6 mb-4">
+        <section>
+            <div class="flex justify-between items-center px-6 mb-4">
                 <h3 class="text-xl font-extrabold text-slate-800">პოპულარული</h3>
                 <button class="text-blue-600 font-bold text-xs flex items-center gap-1">ყველა <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
             </div>
-            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar pr-10 pb-6"></div>
+            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container"></div>
         </section>
     </div>
 
-    <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
+    <div id="details-page" class="details-page no-scrollbar">
         <div class="slider-container">
             <div id="slider-wrapper" class="slider-wrapper"></div>
             <div id="slider-dots" class="slider-dots"></div>
-            
             <div class="info-badge">
                 <span>ID: <span id="det-id">---</span></span>
                 <span class="opacity-30">|</span>
                 <span><i class="fa-solid fa-eye mr-1"></i> <span id="det-views">0</span></span>
             </div>
-
             <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left text-slate-800"></i></button>
         </div>
 
-        <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20">
+        <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
             <div class="mb-2">
                 <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
                 <p id="det-loc" class="text-slate-400 font-bold text-[13px] mt-1 flex items-center gap-1"></p>
@@ -108,10 +114,10 @@
 
             <div class="flex items-center justify-between mb-8 mt-4">
                 <div id="det-price" class="text-3xl font-black text-blue-600 tracking-tighter">0</div>
-                <div class="flex items-center gap-4 text-slate-400">
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-[12px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-[12px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-[12px] font-black text-slate-700">0</span></div>
+                <div class="flex items-center gap-3 text-slate-400">
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-expand text-[10px] mb-1"></i><span id="det-sqm" class="text-[11px] font-black text-slate-700">0</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-door-open text-[10px] mb-1"></i><span id="det-rooms" class="text-[11px] font-black text-slate-700">0</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-layer-group text-[10px] mb-1"></i><span id="det-floor" class="text-[11px] font-black text-slate-700">0</span></div>
                 </div>
             </div>
 
@@ -121,10 +127,7 @@
                 <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
             </div>
 
-            <div id="tab-desc" class="tab-content active">
-                <div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div>
-            </div>
-
+            <div id="tab-desc" class="tab-content active"><div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div></div>
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4 text-[14px] pb-10">
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
@@ -132,13 +135,12 @@
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილი</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
                 </div>
             </div>
-            
             <div id="tab-contact" class="tab-content pb-10">
-                <div class="contact-card">
-                    <h3 class="text-slate-800 font-black mb-1">დაუკავშირდით მეპატრონეს</h3>
-                    <div class="space-y-4 mt-6">
-                        <a id="btn-call" href="#" class="w-full bg-[#1e293b] text-white py-4.5 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-xl">დარეკვა</a>
-                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4.5 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">ტელეგრამი</a>
+                <div class="bg-slate-50 border border-slate-100 rounded-[30px] p-6 text-center">
+                    <h3 class="text-slate-800 font-black mb-6">დაუკავშირდით მეპატრონეს</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <a id="btn-call" href="#" class="bg-[#1e293b] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-lg text-sm italic">დარეკვა</a>
+                        <a id="btn-msg" href="#" class="border-2 border-slate-200 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all text-sm italic">ტელეგრამი</a>
                     </div>
                 </div>
             </div>
@@ -164,7 +166,7 @@
             totalSlides = photoArray.length;
             photoArray.forEach((url, index) => {
                 const slide = document.createElement('div'); slide.className = 'slide';
-                slide.innerHTML = `<img src="${url.trim()}" alt="img">`;
+                slide.innerHTML = `<img src="${url.trim()}" alt="property image">`;
                 wrapper.appendChild(slide);
                 const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
@@ -214,27 +216,22 @@
                 const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
                 
                 const card = document.createElement('div');
-                // აქ შეიცვალა min-w-[260px] -> min-w-[85%]
-                card.className = "bg-white p-3.5 min-w-[85%] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
+                // min-w-[calc(100vw-80px)] უზრუნველყოფს რომ ნებისმიერ ეკრანზე ბარათი იყოს ეკრანის სიგანეზე ოდნავ ნაკლები
+                card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all snap-item";
                 card.onclick = () => {
                     buildSlider(item.Photos);
                     document.getElementById('det-id').innerText = item.ID;
                     document.getElementById('det-views').innerText = item.Views || 0;
                     document.getElementById('det-title').innerText = item.Street || "განცხადება";
                     document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
-                    
                     const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
                     document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
-
                     const fullText = item.Description || "აღწერა არ არის მოცემული.";
                     const descTarget = document.getElementById('desc-container');
                     if (fullText.length > 200) {
                         descTarget.innerHTML = `<span>${fullText.substring(0, 200)}...</span><span id="more-link" class="read-more-btn">მეტის ნახვა</span>`;
-                        document.getElementById('more-link').onclick = () => { descTarget.innerText = fullText; };
-                    } else {
-                        descTarget.innerText = fullText;
-                    }
-
+                        document.getElementById('more-link').onclick = (e) => { e.stopPropagation(); descTarget.innerText = fullText; };
+                    } else { descTarget.innerText = fullText; }
                     document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
                     document.getElementById('det-rooms').innerText = item.Rooms || 0;
                     document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '0'}`;
@@ -243,14 +240,13 @@
                     document.getElementById('p-wc').innerText = item.Bathrooms || "---";
                     document.getElementById('btn-call').href = "tel:" + item.Phone;
                     document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
-
                     fetch(`${API_URL}?viewId=${item.ID}`).catch(() => {});
                     document.getElementById('details-page').classList.add('active');
                     document.getElementById('bottom-nav').style.display = 'none';
                 };
                 card.innerHTML = `
-                    <div class="relative">
-                        <img src="${firstImg}" class="w-full h-48 object-cover rounded-[28px] mb-4">
+                    <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
+                        <img src="${firstImg}" class="w-full h-full object-cover">
                         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${item.TotalPrice} ${(item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾'}</div>
                     </div>
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
