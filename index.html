@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.8</title>
+    <title>Real Estate Premium v2.9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,13 +19,11 @@
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
 
-        /* სლაიდერის სტილები */
         .slider-container { position: relative; height: 40vh; width: 100%; overflow: hidden; }
         .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
         .slide { min-width: 100%; height: 100%; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* სლაიდერის წერტილები (Dots) */
         .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
         .dot.active { background: #fff; width: 18px; border-radius: 10px; }
@@ -39,13 +37,8 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .fab-container { position: fixed; bottom: 30px; right: 25px; z-index: 700; display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
-        .fab-main { width: 60px; height: 60px; background: #0f172a; color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
-        .fab-main.active { transform: rotate(45deg); background: #ef4444; }
-        
-        .fab-options { display: flex; flex-direction: column; gap: 12px; transform: scale(0); opacity: 0; transform-origin: bottom; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .fab-options.show { transform: scale(1); opacity: 1; }
-        .fab-item { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        /* საკონტაქტო ბლოკის სტილი */
+        .contact-box { margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 25px; border: 1px solid #f1f5f9; }
     </style>
 </head>
 <body class="pb-28">
@@ -63,9 +56,7 @@
         <div class="slider-container">
             <div id="slider-wrapper" class="slider-wrapper"></div>
             <div id="slider-dots" class="slider-dots"></div>
-            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
+            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left"></i></button>
         </div>
 
         <div class="px-7 pt-6 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20">
@@ -94,6 +85,7 @@
             </div>
 
             <div id="tab-desc" class="tab-content active"><p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p></div>
+
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4 text-[13px]">
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 font-black">---</span></div>
@@ -102,16 +94,28 @@
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 font-black">---</span></div>
                 </div>
+                
+                <div class="contact-box">
+                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">კონტაქტი</p>
+                    <div class="flex gap-3">
+                        <a id="btn-call-param" href="#" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-blue-200"><i class="fa-solid fa-phone"></i> დარეკვა</a>
+                        <a id="btn-msg-param" href="#" class="flex-1 bg-emerald-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-emerald-200"><i class="fa-solid fa-comment"></i> მესიჯი</a>
+                    </div>
+                </div>
             </div>
-            <div id="tab-map" class="tab-content text-center py-8 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
-        </div>
 
-        <div id="fab-root" class="fab-container hidden">
-            <div id="fab-options" class="fab-options">
-                <a id="fab-call" href="#" class="fab-item bg-[#3b82f6]"><i class="fa-solid fa-phone"></i></a>
-                <a id="fab-msg" href="#" class="fab-item bg-[#10b981]"><i class="fa-solid fa-comment-dots"></i></a>
+            <div id="tab-map" class="tab-content">
+                <div class="w-full h-48 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 italic text-sm mb-6">
+                    <p>რუკა მალე დაემატება...</p>
+                </div>
+                <div class="contact-box">
+                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">კონტაქტი</p>
+                    <div class="flex gap-3">
+                        <a id="btn-call-map" href="#" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg"><i class="fa-solid fa-phone"></i> დარეკვა</a>
+                        <a id="btn-msg-map" href="#" class="flex-1 bg-emerald-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg"><i class="fa-solid fa-comment"></i> მესიჯი</a>
+                    </div>
+                </div>
             </div>
-            <div onclick="toggleFab()" id="fab-main" class="fab-main shadow-2xl"><i class="fa-solid fa-headset text-xl"></i></div>
         </div>
     </div>
 
@@ -127,26 +131,17 @@
         function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
             const dots = document.getElementById('slider-dots');
-            wrapper.innerHTML = '';
-            dots.innerHTML = '';
-            currentSlide = 0;
-            wrapper.style.transform = 'translateX(0)';
-
+            wrapper.innerHTML = ''; dots.innerHTML = '';
+            currentSlide = 0; wrapper.style.transform = 'translateX(0)';
             const photoArray = Array.isArray(photos) ? photos : (photos ? photos.split(',') : []);
             totalSlides = photoArray.length;
-
             photoArray.forEach((url, index) => {
-                const slide = document.createElement('div');
-                slide.className = 'slide';
+                const slide = document.createElement('div'); slide.className = 'slide';
                 slide.innerHTML = `<img src="${url.trim()}" alt="ფოტო ${index + 1}">`;
                 wrapper.appendChild(slide);
-
-                const dot = document.createElement('div');
-                dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
             });
-
-            // Swipe ლოგიკა
             let startX = 0;
             wrapper.ontouchstart = e => startX = e.touches[0].clientX;
             wrapper.ontouchend = e => {
@@ -161,13 +156,7 @@
 
         function updateSlider() {
             document.getElementById('slider-wrapper').style.transform = `translateX(-${currentSlide * 100}%)`;
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
-        }
-
-        function toggleFab() {
-            document.getElementById('fab-options').classList.toggle('show');
-            document.getElementById('fab-main').classList.toggle('active');
+            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
         }
 
         function switchTab(tabId, el) {
@@ -194,7 +183,6 @@
                 const img = (item.Photos && item.Photos.length > 0) ? (Array.isArray(item.Photos) ? item.Photos[0] : item.Photos.split(',')[0]) : 'https://placehold.co/600x400';
                 const card = document.createElement('div');
                 card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
-                
                 card.onclick = () => {
                     buildSlider(item.Photos);
                     document.getElementById('det-title').innerText = item.Street || "განცხადება";
@@ -205,18 +193,20 @@
                     document.getElementById('det-rooms').innerText = item.Rooms;
                     document.getElementById('det-bed').innerText = item.Bedrooms || 0;
                     document.getElementById('det-floor').innerText = item.Floor;
-
                     document.getElementById('p-status').innerText = item.Status || "---";
                     document.getElementById('p-condition').innerText = item.Condition || "---";
                     document.getElementById('p-project').innerText = item.Project || "---";
                     document.getElementById('p-wc').innerText = item.Bathrooms || "1";
                     document.getElementById('p-balcony').innerText = item.Balcony ? "კი" : "არა";
 
-                    document.getElementById('fab-call').href = "tel:" + item.Phone;
-                    document.getElementById('fab-msg').href = "https://t.me/" + item.Phone;
+                    // საკონტაქტო ლინკების განახლება ორივე ტაბში
+                    const phone = item.Phone || "";
+                    document.getElementById('btn-call-param').href = "tel:" + phone;
+                    document.getElementById('btn-msg-param').href = "https://t.me/" + phone;
+                    document.getElementById('btn-call-map').href = "tel:" + phone;
+                    document.getElementById('btn-msg-map').href = "https://t.me/" + phone;
 
                     document.getElementById('details-page').classList.add('active');
-                    document.getElementById('fab-root').classList.remove('hidden');
                 };
                 card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
@@ -225,10 +215,7 @@
             });
         }
 
-        function closeDetails() { 
-            document.getElementById('details-page').classList.remove('active');
-            document.getElementById('fab-root').classList.add('hidden');
-        }
+        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
         init();
     </script>
 </body>
