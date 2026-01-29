@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: var(--tg-theme-bg-color, #ffffff); color: var(--tg-theme-text-color, #000000); }
+        .property-card { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; background: white; }
+        .badge { background: #f0f2f5; padding: 4px 8px; border-radius: 6px; font-size: 12px; margin-right: 5px; }
+        .price { color: #2ecc71; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app">
+        <h1 class="text-xl font-bold mb-4">უძრავი ქონება</h1>
+        
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <select id="typeFilter" class="border p-2 rounded">
+                <option value="">ყველა ტიპი</option>
+                <option value="ბინა">ბინა</option>
+                <option value="კერძო სახლი">კერძო სახლი</option>
+            </select>
+            <select id="dealFilter" class="border p-2 rounded">
+                <option value="">გარიგება</option>
+                <option value="იყიდება">იყიდება</option>
+                <option value="ქირავდება">ქირავდება</option>
+            </select>
+        </div>
+
+        <div id="listings" class="grid grid-cols-1 gap-4">
+            <p class="text-center">მონაცემები იტვირთება...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxVqyZHxNre6o90D5nhx3qf1uTORViU9KMKmnoL9oQ4xB4SsNokq02yzvGmZPG5DwjwSQ/exec";
+
+        async function fetchListings() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderListings(data);
+            } catch (error) {
+                document.getElementById('listings').innerHTML = "შეცდომა მონაცემების ჩატვირთვისას.";
+            }
+        }
+
+        function renderListings(items) {
+            const container = document.getElementById('listings');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'property-card border p-3';
+                card.innerHTML = `
+                    <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-48 object-cover rounded-md mb-2">
+                    <div class="flex justify-between items-start">
+                        <span class="text-sm text-gray-500">${item.PropertyType} - ${item.DealType}</span>
+                        <span class="price">${item.TotalPrice} ${item.Currency}</span>
+                    </div>
+                    <h2 class="font-bold text-lg mt-1">${item.District}, ${item.Street}</h2>
+                    <div class="flex gap-4 mt-2 text-sm text-gray-600">
+                        <span>🔲 ${item.TotalArea} კვ.მ</span>
+                        <span>🚪 ${item.Rooms} ოთახი</span>
+                        <span>🏢 ${item.Floor}/${item.TotalFloors} სართ.</span>
+                    </div>
+                    <button class="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 font-semibold">ნახვა</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchListings();
+    </script>
+</body>
+</html>
