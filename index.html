@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.6</title>
+    <title>Real Estate Premium v2.7</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,24 +19,26 @@
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
 
-        /* ტაბების სტილი */
         .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 15px; }
         .tab-btn.active { color: #1e40af; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; h: 3px; background: #1e40af; border-radius: 10px; }
         
-        .tab-content { display: none; animation: fadeIn 0.4s ease; padding-bottom: 120px; } /* ადგილი ღილაკისთვის */
+        .tab-content { display: none; animation: fadeIn 0.4s ease; padding-bottom: 40px; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ღილაკის კონტეინერი */
-        .sticky-btn-container {
-            position: fixed;
-            bottom: 25px;
-            left: 20px;
-            right: 20px;
-            z-index: 600;
-        }
+        /* მოტივტივე ღილაკის (FAB) სტილი */
+        .fab-container { position: fixed; bottom: 30px; right: 25px; z-index: 700; display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
+        .fab-main { width: 60px; height: 60px; background: #0f172a; color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; shadow: 0 10px 25px rgba(0,0,0,0.2); transition: 0.3s; cursor: pointer; }
+        .fab-main.active { transform: rotate(45deg); background: #ef4444; }
+        
+        .fab-options { display: flex; flex-direction: column; gap: 12px; transform: scale(0); opacity: 0; transform-origin: bottom; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fab-options.show { transform: scale(1); opacity: 1; }
+        .fab-item { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .bg-call { background: #3b82f6; }
+        .bg-msg { background: #10b981; }
     </style>
 </head>
 <body class="pb-28">
@@ -46,18 +48,14 @@
     </div>
 
     <div id="main-content">
-        <header class="pt-6 px-6 pb-2">
-            <h1 class="text-2xl font-extrabold text-slate-900">უძრავი ქონება</h1>
-        </header>
+        <header class="pt-6 px-6 pb-2"><h1 class="text-2xl font-extrabold text-slate-900">უძრავი ქონება</h1></header>
         <section id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar px-6 pb-6 mt-8"></section>
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
         <div class="relative h-[40vh]">
             <img id="det-img" src="" class="w-full h-full object-cover">
-            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
+            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
         </div>
 
         <div class="px-7 pt-6 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh]">
@@ -85,27 +83,27 @@
                 <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
             </div>
 
-            <div id="tab-desc" class="tab-content active">
-                <p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p>
-            </div>
-
+            <div id="tab-desc" class="tab-content active"><p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p></div>
             <div id="tab-params" class="tab-content">
-                <div class="space-y-4">
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 text-xs font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 text-xs font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">პროექტის ტიპი</span><span id="p-project" class="text-slate-800 text-xs font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 text-xs font-black">---</span></div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 text-xs font-black">---</span></div>
+                <div class="space-y-4 text-[13px]">
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">პროექტის ტიპი</span><span id="p-project" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 font-black">---</span></div>
                 </div>
             </div>
-
             <div id="tab-map" class="tab-content text-center py-8 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
         </div>
 
-        <div class="sticky-btn-container">
-            <button class="w-full bg-[#0f172a] text-white py-4 rounded-[20px] font-black text-base shadow-xl active:scale-95 transition-all">
-                დაკავშირება
-            </button>
+        <div id="fab-root" class="fab-container hidden">
+            <div id="fab-options" class="fab-options">
+                <a id="fab-call" href="#" class="fab-item bg-call"><i class="fa-solid fa-phone"></i></a>
+                <a id="fab-msg" href="#" class="fab-item bg-msg"><i class="fa-solid fa-comment-dots"></i></a>
+            </div>
+            <div onclick="toggleFab()" id="fab-main" class="fab-main shadow-2xl">
+                <i class="fa-solid fa-headset text-xl"></i>
+            </div>
         </div>
     </div>
 
@@ -114,6 +112,11 @@
         
         function formatPrice(num, curr) {
             return (curr === 'დოლარი' || curr === '$' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
+        }
+
+        function toggleFab() {
+            document.getElementById('fab-options').classList.toggle('show');
+            document.getElementById('fab-main').classList.toggle('active');
         }
 
         function switchTab(tabId, el) {
@@ -129,7 +132,7 @@
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 renderHome(data.listings);
-            } catch (e) { console.log("Fetch Error"); }
+            } catch (e) { console.error("Fetch error"); }
         }
 
         function renderHome(items) {
@@ -159,7 +162,12 @@
                     document.getElementById('p-wc').innerText = item.Bathrooms || "1";
                     document.getElementById('p-balcony').innerText = item.Balcony ? "კი" : "არა";
 
+                    // საკონტაქტო ლინკები
+                    document.getElementById('fab-call').href = "tel:" + item.Phone;
+                    document.getElementById('fab-msg').href = "https://t.me/" + item.Phone;
+
                     document.getElementById('details-page').classList.add('active');
+                    document.getElementById('fab-root').classList.remove('hidden');
                 };
                 card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
@@ -168,7 +176,12 @@
             });
         }
 
-        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
+        function closeDetails() { 
+            document.getElementById('details-page').classList.remove('active');
+            document.getElementById('fab-root').classList.add('hidden');
+            document.getElementById('fab-options').classList.remove('show');
+            document.getElementById('fab-main').classList.remove('active');
+        }
         init();
     </script>
 </body>
