@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.1</title>
+    <title>Real Estate Premium v2.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,31 +16,29 @@
         .hidden-splash { opacity: 0; visibility: hidden; }
         #main-content { opacity: 0; transition: 0.5s ease; }
 
-        /* Details Page */
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
 
-        .slider-container { position: relative; height: 42vh; width: 100%; overflow: hidden; }
+        .slider-container { position: relative; height: 45vh; width: 100%; overflow: hidden; }
         .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
         .slide { min-width: 100%; height: 100%; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
         
-        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); color: white; padding: 6px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; z-index: 30; display: flex; gap: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; display: flex; gap: 10px; border: 1px solid rgba(255,255,255,0.1); }
 
-        .slider-dots { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 10; }
-        .dot { width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
-        .dot.active { background: #fff; width: 15px; border-radius: 10px; }
+        .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
+        .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
+        .dot.active { background: #fff; width: 18px; border-radius: 10px; }
 
-        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 13px; white-space: nowrap; transition: 0.3s; }
+        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 14px; white-space: nowrap; }
         .tab-btn.active { color: #1e40af; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 20px; height: 3px; background: #1e40af; border-radius: 10px; }
-        
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; height: 3px; background: #1e40af; border-radius: 10px; }
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .read-more-btn { color: #2563eb; font-weight: 800; font-size: 13px; cursor: pointer; display: inline; margin-left: 4px; }
-        .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 25px; padding: 20px; text-align: center; }
+        .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 30px; padding: 25px; text-align: center; }
     </style>
 </head>
 <body class="pb-28">
@@ -84,7 +82,7 @@
                 <h3 class="text-xl font-extrabold text-slate-800">პოპულარული</h3>
                 <button class="text-blue-600 font-bold text-xs flex items-center gap-1">ყველა <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
             </div>
-            <div id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar pr-6 pb-6"></div>
+            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar pr-10 pb-6"></div>
         </section>
     </div>
 
@@ -102,33 +100,33 @@
             <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left text-slate-800"></i></button>
         </div>
 
-        <div class="px-6 pt-6 bg-white -mt-10 rounded-t-[35px] relative min-h-[65vh] z-20">
+        <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20">
             <div class="mb-2">
-                <h1 id="det-title" class="text-xl font-black text-[#1e293b] leading-tight">...</h1>
-                <p id="det-loc" class="text-slate-400 font-bold text-[12px] mt-1 flex items-center gap-1">...</p>
+                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
+                <p id="det-loc" class="text-slate-400 font-bold text-[13px] mt-1 flex items-center gap-1"></p>
             </div>
 
-            <div class="flex items-center justify-between mb-6 mt-4">
-                <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">0</div>
+            <div class="flex items-center justify-between mb-8 mt-4">
+                <div id="det-price" class="text-3xl font-black text-blue-600 tracking-tighter">0</div>
                 <div class="flex items-center gap-4 text-slate-400">
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-expand text-[10px]"></i><span id="det-sqm" class="text-[11px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-door-open text-[10px]"></i><span id="det-rooms" class="text-[11px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-[10px]"></i><span id="det-floor" class="text-[11px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-[12px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-[12px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-[12px] font-black text-slate-700">0</span></div>
                 </div>
             </div>
 
-            <div class="flex justify-between mb-6 border-b border-slate-50 overflow-x-auto no-scrollbar gap-4">
+            <div class="flex justify-between mb-6 border-b border-slate-50 overflow-x-auto no-scrollbar gap-6">
                 <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
                 <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
                 <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
             </div>
 
             <div id="tab-desc" class="tab-content active">
-                <div id="desc-container" class="text-slate-500 text-[14px] leading-relaxed pb-10"></div>
+                <div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div>
             </div>
 
             <div id="tab-params" class="tab-content">
-                <div class="space-y-4 text-[13px] pb-10">
+                <div class="space-y-4 text-[14px] pb-10">
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">პროექტი</span><span id="p-project" class="text-slate-800 font-black">---</span></div>
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილი</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
@@ -137,17 +135,17 @@
             
             <div id="tab-contact" class="tab-content pb-10">
                 <div class="contact-card">
-                    <h3 class="text-slate-800 font-black mb-1">გსურთ დაკავშირება?</h3>
-                    <div class="space-y-3 mt-4">
-                        <a id="btn-call" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-lg">დარეკვა</a>
-                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">ტელეგრამი</a>
+                    <h3 class="text-slate-800 font-black mb-1">დაუკავშირდით მეპატრონეს</h3>
+                    <div class="space-y-4 mt-6">
+                        <a id="btn-call" href="#" class="w-full bg-[#1e293b] text-white py-4.5 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-xl">დარეკვა</a>
+                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4.5 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">ტელეგრამი</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#0f172a] p-6 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400]">
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#1e293b] p-6 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400]">
         <i class="fa-solid fa-house text-white text-lg"></i>
         <i class="fa-solid fa-location-dot text-slate-500 text-lg"></i>
         <i class="fa-solid fa-bell text-slate-500 text-lg"></i>
@@ -216,7 +214,8 @@
                 const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
                 
                 const card = document.createElement('div');
-                card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
+                // აქ შეიცვალა min-w-[260px] -> min-w-[85%]
+                card.className = "bg-white p-3.5 min-w-[85%] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 card.onclick = () => {
                     buildSlider(item.Photos);
                     document.getElementById('det-id').innerText = item.ID;
@@ -227,12 +226,11 @@
                     const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
                     document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
 
-                    // აღწერა 200 სიმბოლოიანი ლიმიტით
                     const fullText = item.Description || "აღწერა არ არის მოცემული.";
                     const descTarget = document.getElementById('desc-container');
                     if (fullText.length > 200) {
                         descTarget.innerHTML = `<span>${fullText.substring(0, 200)}...</span><span id="more-link" class="read-more-btn">მეტის ნახვა</span>`;
-                        document.getElementById('more-link').onclick = (e) => { e.stopPropagation(); descTarget.innerText = fullText; };
+                        document.getElementById('more-link').onclick = () => { descTarget.innerText = fullText; };
                     } else {
                         descTarget.innerText = fullText;
                     }
@@ -256,7 +254,7 @@
                         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${item.TotalPrice} ${(item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾'}</div>
                     </div>
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
-                    <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>`;
+                    <p class="text-xs text-slate-400 font-bold px-1 italic">${item.District || ''}</p>`;
                 container.appendChild(card);
             });
         }
