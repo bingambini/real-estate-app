@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Minimal v2.3</title>
+    <title>Real Estate Minimal v2.4</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,6 +17,15 @@
 
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
+
+        /* ტაბების სტილი */
+        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 700; color: #cbd5e1; transition: 0.3s; cursor: pointer; }
+        .tab-btn.active { color: #1e40af; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; h: 3px; background: #1e40af; border-radius: 10px; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="pb-28">
@@ -31,87 +40,90 @@
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">რას ეძებთ დღეს?</h1>
             </div>
-            <button class="bg-white shadow-lg w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
-                <i class="fa-solid fa-magnifying-glass text-lg"></i>
-            </button>
         </header>
-
-        <section class="px-6 grid grid-cols-2 gap-3 mt-6 mb-8">
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">ბინები</span>
-            </div>
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
-                <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house"></i></div>
-                <span class="font-bold text-slate-700 text-xs uppercase">სახლები</span>
-            </div>
-        </section>
-
-        <section class="pl-6">
-            <div class="flex justify-between items-center pr-6 mb-4">
-                <h3 class="text-xl font-extrabold text-slate-800">პოპულარული</h3>
-                <button class="text-blue-600 font-bold text-xs flex items-center gap-1">ყველა <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
-            </div>
-            <div id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar pr-6 pb-6"></div>
-        </section>
+        <section id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar px-6 pb-6 mt-8"></section>
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
-        <div class="relative h-[48vh]">
+        <div class="relative h-[45vh]">
             <img id="det-img" src="" class="w-full h-full object-cover">
             <button onclick="closeDetails()" class="absolute top-8 left-6 bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
         </div>
 
-        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[50vh]">
-            <div class="mb-8">
-                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-2 leading-tight">...</h1>
+        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[55vh]">
+            <div class="mb-4">
+                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-1">...</h1>
                 <p id="det-loc" class="text-slate-400 font-bold text-sm flex items-center gap-2">
                     <i class="fa-solid fa-location-dot text-blue-500/60"></i>
                     <span id="det-address-text">...</span>
                 </p>
             </div>
 
-            <div class="flex items-center justify-between bg-slate-50/50 p-6 rounded-[30px] border border-slate-100">
-                <div class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-expand text-blue-500 text-lg"></i>
-                    <span id="det-sqm" class="text-[12px] font-black text-slate-700 uppercase">0 მ²</span>
+            <div id="det-price" class="text-3xl font-black text-blue-600 mb-8 tracking-tighter">$0</div>
+
+            <div class="flex gap-8 mb-8 border-b border-slate-50">
+                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">Details</div>
+                <div onclick="switchTab('tab-params', this)" class="tab-btn">Parameters</div>
+                <div onclick="switchTab('tab-map', this)" class="tab-btn">Map</div>
+            </div>
+
+            <div id="tab-desc" class="tab-content active text-slate-500 text-sm leading-relaxed">
+                <p id="det-desc">აღწერა არ არის მოცემული...</p>
+            </div>
+
+            <div id="tab-params" class="tab-content">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-expand text-blue-500"></i>
+                        <span id="det-sqm" class="text-xs font-black text-slate-700 uppercase">0 მ²</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-door-open text-blue-500"></i>
+                        <span id="det-rooms" class="text-xs font-black text-slate-700 uppercase">0 ოთახი</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-bed text-blue-500"></i>
+                        <span id="det-bed" class="text-xs font-black text-slate-700 uppercase">0 საძინ.</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-layer-group text-blue-500"></i>
+                        <span id="det-floor" class="text-xs font-black text-slate-700 uppercase">0 სართ.</span>
+                    </div>
                 </div>
-                <div class="w-[1px] h-8 bg-slate-200"></div>
-                <div class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-door-open text-blue-500 text-lg"></i>
-                    <span id="det-rooms" class="text-[12px] font-black text-slate-700 uppercase">0 ოთახი</span>
-                </div>
-                <div class="w-[1px] h-8 bg-slate-200"></div>
-                <div class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-bed text-blue-500 text-lg"></i>
-                    <span id="det-bed" class="text-[12px] font-black text-slate-700 uppercase">0 საძინ.</span>
-                </div>
-                <div class="w-[1px] h-8 bg-slate-200"></div>
-                <div class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-layer-group text-blue-500 text-lg"></i>
-                    <span id="det-floor" class="text-[12px] font-black text-slate-700 uppercase">0 სართ.</span>
-                </div>
+            </div>
+
+            <div id="tab-map" class="tab-content text-center py-10 text-slate-300 italic">
+                <i class="fa-solid fa-map-marked-alt text-4xl mb-2"></i>
+                <p>რუკა მალე დაემატება...</p>
+            </div>
+            
+            <div class="fixed bottom-8 left-8 right-8">
+                <button class="w-full bg-[#0f172a] text-white py-5 rounded-[22px] font-black text-lg shadow-2xl active:scale-95 transition-all">დაკავშირება</button>
             </div>
         </div>
     </div>
 
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#0f172a] p-6 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400]">
-        <i class="fa-solid fa-house text-white text-lg"></i>
-        <i class="fa-solid fa-location-dot text-slate-500 text-lg"></i>
-        <i class="fa-solid fa-bell text-slate-500 text-lg"></i>
-        <i class="fa-solid fa-heart text-slate-500 text-lg"></i>
-    </nav>
-
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
         
+        function formatPrice(num, curr) {
+            return (curr === 'დოლარი' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
         async function init() {
             setTimeout(() => { 
                 document.getElementById('splash-screen').classList.add('hidden-splash'); 
                 document.getElementById('main-content').style.opacity = '1'; 
-            }, 4000);
+            }, 3000);
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
@@ -132,29 +144,26 @@
                     document.getElementById('det-img').src = img;
                     document.getElementById('det-title').innerText = item.Street || "ქუჩა არ არის";
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
+                    document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
+                    document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
                     
-                    // მონაცემების შევსება
                     document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
                     document.getElementById('det-rooms').innerText = (item.Rooms || 0) + ' ოთახი';
                     document.getElementById('det-bed').innerText = (item.Bedrooms || 0) + ' საძინ.';
                     document.getElementById('det-floor').innerText = (item.Floor || 0) + ' სართ.';
 
                     document.getElementById('details-page').classList.add('active');
-                    document.getElementById('bottom-nav').style.display = 'none';
                 };
 
-                card.innerHTML = `
-                    <img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
+                card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
-                    <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>
-                `;
+                    <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>`;
                 container.appendChild(card);
             });
         }
 
         function closeDetails() {
             document.getElementById('details-page').classList.remove('active');
-            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
         }
 
         init();
