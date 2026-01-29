@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.5</title>
+    <title>Real Estate Premium v2.6</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,6 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
         #main-content { opacity: 0; transition: 0.5s ease; }
@@ -19,13 +20,23 @@
         .details-page.active { transform: translateY(0); }
 
         /* ტაბების სტილი */
-        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 14px; }
+        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 15px; }
         .tab-btn.active { color: #1e40af; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; h: 3px; background: #1e40af; border-radius: 10px; }
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; h: 3px; background: #1e40af; border-radius: 10px; }
+        
+        .tab-content { display: none; animation: fadeIn 0.4s ease; padding-bottom: 120px; } /* ადგილი ღილაკისთვის */
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ღილაკის კონტეინერი */
+        .sticky-btn-container {
+            position: fixed;
+            bottom: 25px;
+            left: 20px;
+            right: 20px;
+            z-index: 600;
+        }
     </style>
 </head>
 <body class="pb-28">
@@ -35,81 +46,66 @@
     </div>
 
     <div id="main-content">
-        <header class="pt-6 px-6 pb-2 flex justify-between items-center">
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">უძრავი ქონება</h1>
+        <header class="pt-6 px-6 pb-2">
+            <h1 class="text-2xl font-extrabold text-slate-900">უძრავი ქონება</h1>
         </header>
         <section id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar px-6 pb-6 mt-8"></section>
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
-        <div class="relative h-[42vh]">
+        <div class="relative h-[40vh]">
             <img id="det-img" src="" class="w-full h-full object-cover">
-            <button onclick="closeDetails()" class="absolute top-8 left-6 bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center">
+            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
         </div>
 
-        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[60vh]">
-            <div class="mb-4">
-                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-1">...</h1>
-                <p id="det-loc" class="text-slate-400 font-bold text-xs flex items-center gap-1">
-                    <i class="fa-solid fa-location-dot text-blue-500/60 text-[10px]"></i>
+        <div class="px-7 pt-6 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh]">
+            <div class="mb-2">
+                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
+                <p id="det-loc" class="text-slate-400 font-bold text-[13px] mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-blue-500/70 text-[11px]"></i>
                     <span id="det-address-text">...</span>
                 </p>
             </div>
 
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-6 mt-4">
                 <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">$0</div>
-                <div class="flex items-center gap-4 text-slate-400">
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-xs font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-xs font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-xs"></i><span id="det-bed" class="text-xs font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-xs font-black text-slate-700">0</span></div>
+                <div class="flex items-center gap-5 text-slate-400">
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-expand text-sm"></i><span id="det-sqm" class="text-[13px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-door-open text-sm"></i><span id="det-rooms" class="text-[13px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-sm"></i><span id="det-bed" class="text-[13px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-sm"></i><span id="det-floor" class="text-[13px] font-black text-slate-700">0</span></div>
                 </div>
             </div>
 
-            <div class="flex gap-7 mb-6 border-b border-slate-50">
+            <div class="flex gap-8 mb-6 border-b border-slate-50">
                 <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
                 <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
                 <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
             </div>
 
-            <div id="tab-desc" class="tab-content active text-slate-500 text-[13px] leading-relaxed">
-                <p id="det-desc">აღწერა იტვირთება...</p>
+            <div id="tab-desc" class="tab-content active">
+                <p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p>
             </div>
 
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4">
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs font-bold">სტატუსი</span>
-                        <span id="p-status" class="text-slate-800 text-xs font-black">---</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs font-bold">მდგომარეობა</span>
-                        <span id="p-condition" class="text-slate-800 text-xs font-black">---</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs font-bold">პროექტის ტიპი</span>
-                        <span id="p-project" class="text-slate-800 text-xs font-black">---</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs font-bold">სვ. წერტილები</span>
-                        <span id="p-wc" class="text-slate-800 text-xs font-black">---</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs font-bold">აივანი</span>
-                        <span id="p-balcony" class="text-slate-800 text-xs font-black">---</span>
-                    </div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 text-xs font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 text-xs font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">პროექტის ტიპი</span><span id="p-project" class="text-slate-800 text-xs font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 text-xs font-black">---</span></div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 text-xs font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 text-xs font-black">---</span></div>
                 </div>
             </div>
 
-            <div id="tab-map" class="tab-content text-center py-8 text-slate-300 italic text-sm">
-                <p>რუკა მალე დაემატება...</p>
-            </div>
-            
-            <div class="fixed bottom-8 left-8 right-8">
-                <button class="w-full bg-[#0f172a] text-white py-5 rounded-[22px] font-black text-lg shadow-2xl active:scale-95 transition-all">დაკავშირება</button>
-            </div>
+            <div id="tab-map" class="tab-content text-center py-8 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
+        </div>
+
+        <div class="sticky-btn-container">
+            <button class="w-full bg-[#0f172a] text-white py-4 rounded-[20px] font-black text-base shadow-xl active:scale-95 transition-all">
+                დაკავშირება
+            </button>
         </div>
     </div>
 
@@ -152,13 +148,11 @@
                     document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
                     document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
                     
-                    // ზედა ხაზის იკონკები
                     document.getElementById('det-sqm').innerText = item.TotalArea + ' მ²';
                     document.getElementById('det-rooms').innerText = item.Rooms;
                     document.getElementById('det-bed').innerText = item.Bedrooms || 0;
                     document.getElementById('det-floor').innerText = item.Floor;
 
-                    // პარამეტრების ტაბი (მონაცემები ცხრილიდან)
                     document.getElementById('p-status').innerText = item.Status || "ახალი აშენებული";
                     document.getElementById('p-condition').innerText = item.Condition || "გარემონტებული";
                     document.getElementById('p-project').innerText = item.Project || "არასტანდარტული";
