@@ -3,77 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Mini App</title>
+    <title>Real Estate Premium App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: var(--tg-theme-bg-color, #ffffff); color: var(--tg-theme-text-color, #000000); }
-        .property-card { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; background: white; }
-        .badge { background: #f0f2f5; padding: 4px 8px; border-radius: 6px; font-size: 12px; margin-right: 5px; }
-        .price { color: #2ecc71; font-weight: bold; font-size: 1.2rem; }
+        :root { --main-color: #2563eb; }
+        body { background-color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+        .property-card { background: white; border-radius: 16px; overflow: hidden; transition: 0.3s; border: 1px solid #e2e8f0; }
+        .feature-tag { background: #f1f5f9; padding: 6px 10px; border-radius: 8px; font-size: 11px; display: flex; align-items: center; gap: 5px; color: #475569; }
+        .price-tag { background: var(--main-color); color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
     </style>
 </head>
-<body class="p-4">
-    <div id="app">
-        <h1 class="text-xl font-bold mb-4">უძრავი ქონება</h1>
-        
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <select id="typeFilter" class="border p-2 rounded">
+<body class="pb-10">
+    <div class="p-4">
+        <header class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">უძრავი ქონება</h1>
+            <p class="text-gray-500 text-sm">იპოვეთ თქვენი ოცნების სახლი</p>
+        </header>
+
+        <div class="sticky top-2 z-10 bg-white/80 backdrop-blur p-2 rounded-xl mb-6 shadow-sm flex gap-2 overflow-x-auto">
+            <select id="typeFilter" onchange="filterData()" class="bg-white border rounded-lg px-3 py-2 text-sm outline-none">
                 <option value="">ყველა ტიპი</option>
                 <option value="ბინა">ბინა</option>
                 <option value="კერძო სახლი">კერძო სახლი</option>
             </select>
-            <select id="dealFilter" class="border p-2 rounded">
-                <option value="">გარიგება</option>
-                <option value="იყიდება">იყიდება</option>
-                <option value="ქირავდება">ქირავდება</option>
+            <select id="districtFilter" onchange="filterData()" class="bg-white border rounded-lg px-3 py-2 text-sm outline-none">
+                <option value="">ყველა უბანი</option>
             </select>
         </div>
 
-        <div id="listings" class="grid grid-cols-1 gap-4">
-            <p class="text-center">მონაცემები იტვირთება...</p>
+        <div id="listings" class="space-y-6">
+            <div class="text-center py-20 text-gray-400">მონაცემები იტვირთება...</div>
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxVqyZHxNre6o90D5nhx3qf1uTORViU9KMKmnoL9oQ4xB4SsNokq02yzvGmZPG5DwjwSQ/exec";
+        let allItems = [];
 
-        async function fetchListings() {
+        async function init() {
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                renderListings(data);
-            } catch (error) {
-                document.getElementById('listings').innerHTML = "შეცდომა მონაცემების ჩატვირთვისას.";
-            }
+                const res = await fetch(API_URL);
+                allItems = await res.json();
+                populateDistricts();
+                render(allItems);
+            } catch (e) { document.getElementById('listings').innerHTML = "შეცდომაა..."; }
         }
 
-        function renderListings(items) {
-            const container = document.getElementById('listings');
-            container.innerHTML = '';
+        function populateDistricts() {
+            const districts = [...new Set(allItems.map(i => i.District))];
+            const select = document.getElementById('districtFilter');
+            districts.forEach(d => select.innerHTML += `<option value="${d}">${d}</option>`);
+        }
 
+        function filterData() {
+            const type = document.getElementById('typeFilter').value;
+            const dist = document.getElementById('districtFilter').value;
+            const filtered = allItems.filter(i => (!type || i.PropertyType === type) && (!dist || i.District === dist));
+            render(filtered);
+        }
+
+        const iconMap = {
+            "ინტერნეტი": "fa-wifi", "ავეჯი": "fa-couch", "ლიფტი": "fa-elevator", 
+            "ბუნებრივი აირი": "fa-fire", "კონდიციონერი": "fa-snowflake", "ტელევიზია": "fa-tv",
+            "დაცვა": "fa-shield-halved", "პარკინგი": "fa-car", "აუზი": "fa-person-swimming"
+        };
+
+        function render(items) {
+            const container = document.getElementById('listings');
+            container.innerHTML = items.length ? '' : '<p class="text-center text-gray-400">განცხადება ვერ მოიძებნა</p>';
+            
             items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'property-card border p-3';
-                card.innerHTML = `
-                    <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-48 object-cover rounded-md mb-2">
-                    <div class="flex justify-between items-start">
-                        <span class="text-sm text-gray-500">${item.PropertyType} - ${item.DealType}</span>
-                        <span class="price">${item.TotalPrice} ${item.Currency}</span>
+                const allFeatures = [...item.Features, ...item.Furniture, ...item.BuildingFeatures];
+                const featureHtml = allFeatures.slice(0, 6).map(f => `
+                    <div class="feature-tag"><i class="fa-solid ${iconMap[f] || 'fa-check'} text-blue-500"></i> ${f}</div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="property-card shadow-sm">
+                        <div class="relative">
+                            <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-56 object-cover">
+                            <div class="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-xs font-bold shadow-sm">${item.DealType}</div>
+                            <div class="absolute bottom-3 right-3 price-tag shadow-lg">${item.TotalPrice} ${item.Currency}</div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg text-gray-800">${item.District}, ${item.Street}</h3>
+                            <div class="flex gap-4 my-3 text-sm text-gray-500 border-b pb-3">
+                                <span><i class="fa-solid fa-ruler-combined"></i> ${item.TotalArea} მ²</span>
+                                <span><i class="fa-solid fa-door-open"></i> ${item.Rooms} ოთახი</span>
+                                <span><i class="fa-solid fa-building"></i> ${item.Floor}/${item.TotalFloors}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">${featureHtml}</div>
+                            <button onclick="window.open('tel:${item.Phone}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-phone"></i> დარეკვა
+                            </button>
+                        </div>
                     </div>
-                    <h2 class="font-bold text-lg mt-1">${item.District}, ${item.Street}</h2>
-                    <div class="flex gap-4 mt-2 text-sm text-gray-600">
-                        <span>🔲 ${item.TotalArea} კვ.მ</span>
-                        <span>🚪 ${item.Rooms} ოთახი</span>
-                        <span>🏢 ${item.Floor}/${item.TotalFloors} სართ.</span>
-                    </div>
-                    <button class="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 font-semibold">ნახვა</button>
                 `;
-                container.appendChild(card);
             });
         }
-
-        fetchListings();
+        init();
     </script>
 </body>
 </html>
