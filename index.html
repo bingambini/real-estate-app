@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v3.2</title>
+    <title>Real Estate Premium v3.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,7 +24,6 @@
         .slide { min-width: 100%; height: 100%; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* ID და Views ბეიჯის სტილი */
         .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; display: flex; gap: 10px; border: 1px solid rgba(255,255,255,0.1); }
 
         .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
@@ -33,11 +32,19 @@
 
         .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 14px; white-space: nowrap; }
         .tab-btn.active { color: #1e40af; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; h: 3px; background: #1e40af; border-radius: 10px; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; height: 3px; background: #1e40af; border-radius: 10px; }
+        
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* აღწერის შემოკლების სტილები */
+        .desc-wrapper { position: relative; }
+        .description-container { max-height: 80px; overflow: hidden; transition: max-height 0.4s ease; position: relative; }
+        .description-container.expanded { max-height: 2000px; }
+        .read-more-btn { color: #2563eb; font-weight: 800; font-size: 13px; cursor: pointer; margin-top: 8px; display: inline-block; }
+
         .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 30px; padding: 25px; text-align: center; }
     </style>
 </head>
@@ -74,11 +81,10 @@
             </div>
 
             <div class="flex items-center justify-between mb-6 mt-4">
-                <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">$0</div>
+                <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">0</div>
                 <div class="flex items-center gap-4 text-slate-400">
                     <div class="flex items-center gap-1"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-[12px] font-black text-slate-700">0</span></div>
                     <div class="flex items-center gap-1"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-[12px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1"><i class="fa-solid fa-bed text-xs"></i><span id="det-bed" class="text-[12px] font-black text-slate-700">0</span></div>
                     <div class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-[12px] font-black text-slate-700">0</span></div>
                 </div>
             </div>
@@ -90,7 +96,13 @@
                 <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
             </div>
 
-            <div id="tab-desc" class="tab-content active"><p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p></div>
+            <div id="tab-desc" class="tab-content active">
+                <div class="desc-wrapper">
+                    <div id="det-desc" class="description-container text-slate-500 text-[14px] leading-relaxed"></div>
+                    <span id="toggle-desc" class="read-more-btn">მეტის ნახვა...</span>
+                </div>
+            </div>
+
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4 text-[13px]">
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">მდგომარეობა</span><span id="p-condition" class="text-slate-800 font-black">---</span></div>
@@ -98,13 +110,15 @@
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილი</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
                 </div>
             </div>
+            
             <div id="tab-map" class="tab-content text-center py-10 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
+            
             <div id="tab-contact" class="tab-content">
                 <div class="contact-card">
                     <h3 class="text-slate-800 font-black text-lg mb-1">გსურთ დაკავშირება?</h3>
                     <div class="space-y-3 mt-4">
-                        <a id="btn-call" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold">დარეკვა</a>
-                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold">ტელეგრამი</a>
+                        <a id="btn-call" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">დარეკვა</a>
+                        <a id="btn-msg" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">ტელეგრამი</a>
                     </div>
                 </div>
             </div>
@@ -176,12 +190,25 @@
                     document.getElementById('det-title').innerText = item.Street || "განცხადება";
                     document.getElementById('det-id').innerText = item.ID;
                     document.getElementById('det-views').innerText = item.Views || 0;
-                    document.getElementById('det-price').innerText = (item.Currency === '$' ? '$' : '') + item.TotalPrice;
-                    document.getElementById('det-desc').innerText = item.Description || "";
+
+                    // ვალუტის ლოგიკა
+                    const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
+                    document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
+
+                    // აღწერა და See More
+                    const descContainer = document.getElementById('det-desc');
+                    descContainer.innerText = item.Description || "";
+                    descContainer.classList.remove('expanded');
+                    const toggleBtn = document.getElementById('toggle-desc');
+                    toggleBtn.innerText = "მეტის ნახვა...";
+                    toggleBtn.onclick = function() {
+                        descContainer.classList.toggle('expanded');
+                        this.innerText = descContainer.classList.contains('expanded') ? "შეკეცვა" : "მეტის ნახვა...";
+                    };
+
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
                     document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
                     document.getElementById('det-rooms').innerText = item.Rooms || 0;
-                    document.getElementById('det-bed').innerText = item.Bedrooms || 0;
                     document.getElementById('det-floor').innerText = item.Floor || 0;
                     document.getElementById('p-condition').innerText = item.Condition || "---";
                     document.getElementById('p-project').innerText = item.ProjectType || "---";
@@ -189,9 +216,8 @@
                     document.getElementById('btn-call').href = "tel:" + item.Phone;
                     document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
 
-                    // ნახვის დამატება სერვერზე
+                    // ნახვის გაგზავნა
                     fetch(`${API_URL}?viewId=${item.ID}`).catch(() => {});
-
                     document.getElementById('details-page').classList.add('active');
                 };
                 card.innerHTML = `<img src="${firstImg}" class="w-full h-48 object-cover rounded-[28px] mb-4">
