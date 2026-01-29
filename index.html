@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate App</title>
+    <title>Real Estate Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #fcfcff; font-family: sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        #splash-screen { position: fixed; inset: 0; z-index: 100; background: #fff; transition: 0.8s; }
+        #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; transition: 0.8s; }
         .hidden-splash { opacity: 0; visibility: hidden; }
+        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .details-page.active { transform: translateY(0); }
+        .category-icon { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="pb-24">
@@ -20,34 +24,79 @@
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" class="opacity-0 transition-opacity duration-700 p-6">
-        <header class="flex justify-between items-start mb-8">
+    <div id="main-content" class="opacity-0 transition-opacity duration-700">
+        <header class="p-6 flex justify-between items-start">
             <div>
-                <h2 class="text-2xl text-gray-400">What are you</h2>
-                <h1 class="text-3xl font-bold text-slate-900">Looking for?</h1>
+                <h2 class="text-2xl text-gray-400 font-light">What are you</h2>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Looking <span class="text-slate-800">for?</span></h1>
             </div>
-            <div class="bg-white shadow-md p-3 rounded-2xl text-gray-400">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div>
+            <div class="bg-white shadow-xl p-4 rounded-2xl text-slate-400"><i class="fa-solid fa-magnifying-glass text-xl"></i></div>
         </header>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-gray-50">
-                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-house"></i></div>
-                <span class="font-bold text-sm">House</span>
+        <section class="px-6 grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-white p-3 rounded-[24px] shadow-sm border border-slate-50 flex items-center gap-3">
+                <div class="category-icon bg-blue-50 text-blue-500"><i class="fa-solid fa-house"></i></div>
+                <span class="font-bold text-slate-700">House</span>
             </div>
-            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-gray-50">
-                <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center text-pink-600"><i class="fa-solid fa-building"></i></div>
-                <span class="font-bold text-sm">Condo</span>
+            <div class="bg-white p-3 rounded-[24px] shadow-sm border border-slate-50 flex items-center gap-3">
+                <div class="category-icon bg-pink-50 text-pink-500"><i class="fa-solid fa-building-user"></i></div>
+                <span class="font-bold text-slate-700">Condo</span>
+            </div>
+        </section>
+
+        <section class="pl-6">
+            <div class="flex justify-between items-center pr-6 mb-4">
+                <h3 class="text-xl font-bold text-slate-800">Trending Properties</h3>
+                <span class="text-blue-600 font-bold text-sm">See All <i class="fa-solid fa-chevron-right ml-1"></i></span>
+            </div>
+            <div id="trending-container" class="flex gap-6 overflow-x-auto no-scrollbar pr-6 pb-6"></div>
+        </section>
+    </div>
+
+    <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
+        <div class="relative h-[45vh]">
+            <img id="det-img" src="" class="w-full h-full object-cover rounded-b-[40px]">
+            <div class="absolute top-8 left-6 right-6 flex justify-between">
+                <button onclick="closeDetails()" class="bg-white/90 p-3 rounded-full shadow-lg"><i class="fa-solid fa-arrow-left"></i></button>
+                <button class="bg-white/90 p-3 rounded-full shadow-lg text-purple-500"><i class="fa-solid fa-bookmark"></i></button>
             </div>
         </div>
 
-        <h3 class="text-xl font-bold mb-4">Trending Properties</h3>
-        <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+        <div class="p-8">
+            <h1 id="det-title" class="text-3xl font-extrabold text-slate-900 mb-1">Classic Apartment</h1>
+            <p id="det-loc" class="text-gray-400 font-medium mb-4">New Boston</p>
+            
+            <div class="flex items-center gap-2 mb-6 text-yellow-400">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-gray-300"></i>
+                <span class="text-gray-400 text-sm ml-2">( 178 reviews )</span>
             </div>
+
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div class="text-center"><i class="fa-solid fa-wifi text-gray-400 block mb-1"></i><span class="text-xs font-bold">Free</span></div>
+                <div class="text-center"><i class="fa-solid fa-bed text-gray-400 block mb-1"></i><span id="det-bed" class="text-xs font-bold">2</span></div>
+                <div class="text-center"><i class="fa-solid fa-bath text-gray-400 block mb-1"></i><span id="det-bath" class="text-xs font-bold">2</span></div>
+                <div class="text-center"><i class="fa-solid fa-car text-gray-400 block mb-1"></i><span class="text-xs font-bold">1</span></div>
+            </div>
+
+            <div class="text-3xl font-extrabold text-blue-600 mb-6" id="det-price">$1,135.00</div>
+
+            <div class="flex gap-8 border-b border-gray-100 mb-6">
+                <span class="pb-3 border-b-2 border-purple-500 font-bold text-slate-800">Details</span>
+                <span class="pb-3 text-gray-300 font-bold">Reviews</span>
+                <span class="pb-3 text-gray-300 font-bold">Map</span>
+            </div>
+
+            <p class="text-gray-500 leading-relaxed mb-10 text-sm">
+                This luxurious builder floor is strategically located at Boston. The apartment comes with all modern facilities... <span class="text-blue-600 font-bold">See More</span>
+            </p>
+
+            <button onclick="window.open('tel:555555')" class="w-full bg-[#0f172a] text-white py-5 rounded-[24px] font-extrabold text-lg shadow-xl active:scale-95 transition-all">
+                Continue
+            </button>
+        </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 p-5 flex justify-around items-center rounded-t-3xl">
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#0f172a] p-6 flex justify-around items-center rounded-t-[32px] z-[400]">
         <i class="fa-solid fa-house text-white text-xl"></i>
         <i class="fa-solid fa-location-dot text-gray-500 text-xl"></i>
         <i class="fa-solid fa-bell text-gray-500 text-xl"></i>
@@ -56,33 +105,55 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbToNunJg58cTeM7jgV3rSbmNavVrc97iB7HCGCnxpJOkhijmVFwkoNt6XSnoM2jpYvXA/exec";
-        
+        let listings = [];
+
         async function init() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                
-                const container = document.getElementById('trending-container');
-                data.listings.forEach(item => {
-                    container.innerHTML += `
-                        <div class="min-w-[250px] bg-blue-50 p-4 rounded-[2rem] shadow-sm">
-                            <img src="${item.Photos[0]}" class="w-full h-40 object-cover rounded-3xl mb-3">
-                            <h4 class="font-bold text-lg">${item.Street || 'Property'}</h4>
-                            <p class="text-gray-500 text-sm">${item.District}</p>
-                        </div>
-                    `;
-                });
-
+                listings = data.listings;
+                renderHome(listings);
                 setTimeout(() => {
                     document.getElementById('splash-screen').classList.add('hidden-splash');
                     document.getElementById('main-content').classList.replace('opacity-0', 'opacity-100');
-                }, data.settings.SplashDuration || 1000);
-            } catch (e) {
-                console.error("შეცდომაა ჩატვირთვისას:", e);
-                document.getElementById('splash-screen').style.display = 'none';
-                document.getElementById('main-content').style.opacity = '1';
-            }
+                }, data.settings.SplashDuration || 1200);
+            } catch (e) { console.error(e); }
         }
+
+        function renderHome(items) {
+            const container = document.getElementById('trending-container');
+            const colors = ['bg-pink-100', 'bg-blue-100', 'bg-emerald-100'];
+            items.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = `${colors[idx % 3]} p-5 min-w-[280px] rounded-[40px] shadow-sm flex-shrink-0 border border-white/50 cursor-pointer`;
+                card.onclick = () => showDetails(item);
+                card.innerHTML = `
+                    <img src="${item.Photos[0]}" class="w-full h-52 object-cover rounded-[32px] mb-4 shadow-md">
+                    <h4 class="text-xl font-extrabold text-slate-800">${item.Street || 'Villa'}</h4>
+                    <div class="flex justify-between items-center text-slate-500 text-sm font-semibold">
+                        <span>${item.District}</span>
+                        <span class="text-slate-800"><i class="fa-solid fa-star"></i> 4.5</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function showDetails(item) {
+            document.getElementById('det-img').src = item.Photos[0];
+            document.getElementById('det-title').innerText = item.Street || "Apartment";
+            document.getElementById('det-loc').innerText = item.District;
+            document.getElementById('det-price').innerText = `${item.TotalPrice} ${item.Currency}`;
+            document.getElementById('det-bed').innerText = item.Rooms || 0;
+            document.getElementById('details-page').classList.add('active');
+            document.getElementById('bottom-nav').style.display = 'none';
+        }
+
+        function closeDetails() {
+            document.getElementById('details-page').classList.remove('active');
+            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
+        }
+
         init();
         window.Telegram.WebApp.expand();
     </script>
