@@ -12,19 +12,15 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         
-        /* Base Settings */
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Splash Screen */
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
         
-        /* Details Page Animation */
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         .details-page.active { transform: translateY(0); }
 
-        /* UI Components */
         .slider-container { position: relative; height: 40vh; width: 100%; overflow: hidden; }
         .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
         .slide { min-width: 100%; height: 100%; }
@@ -44,7 +40,6 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Layout Helpers */
         .snap-x-container { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .snap-item { scroll-snap-align: center; }
         nav { padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 1rem) !important; }
@@ -68,16 +63,28 @@
         </header>
 
         <section class="px-6 grid grid-cols-2 gap-3 mt-6 mb-8">
-            <div class="category-card" onclick="filterBy('Apartment')">
-                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3">
+            <div class="category-card" onclick="filterBy('ბინა')">
+                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
                     <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
                     <span class="font-bold text-slate-700 text-[11px] uppercase">ბინები</span>
                 </div>
             </div>
-            <div class="category-card" onclick="filterBy('House')">
-                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3">
+            <div class="category-card" onclick="filterBy('სახლი')">
+                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
                     <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house"></i></div>
                     <span class="font-bold text-slate-700 text-[11px] uppercase">სახლები</span>
+                </div>
+            </div>
+            <div class="category-card" onclick="filterBy('აგარაკი')">
+                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                    <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-tree-city"></i></div>
+                    <span class="font-bold text-slate-700 text-[11px] uppercase">აგარაკები</span>
+                </div>
+            </div>
+            <div class="category-card" onclick="filterBy('ნაკვეთი')">
+                <div class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <span class="font-bold text-slate-700 text-[11px] uppercase">ნაკვეთები</span>
                 </div>
             </div>
         </section>
@@ -85,10 +92,9 @@
         <section>
             <div class="flex justify-between items-center px-6 mb-4">
                 <h3 class="text-xl font-extrabold text-slate-800">პოპულარული</h3>
-                <button class="text-blue-600 font-bold text-xs">ყველა</button>
+                <button onclick="filterBy(null)" class="text-blue-600 font-bold text-xs">ყველა</button>
             </div>
-            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container">
-                </div>
+            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container"></div>
         </section>
     </div>
 
@@ -123,15 +129,15 @@
                 <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
             </div>
 
-            <div id="tab-desc" class="tab-content active"><div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed"></div></div>
+            <div id="tab-desc" class="tab-content active"><div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div></div>
             <div id="tab-params" class="tab-content">
-                <div class="space-y-4 text-sm">
+                <div class="space-y-4 text-sm pb-10">
                     <div class="flex justify-between border-b pb-2"><span class="text-slate-400">მდგომარეობა</span><span id="p-condition" class="font-black">---</span></div>
                     <div class="flex justify-between border-b pb-2"><span class="text-slate-400">პროექტი</span><span id="p-project" class="font-black">---</span></div>
                 </div>
             </div>
 
-            <div class="mt-10 grid grid-cols-1 gap-3 pb-10">
+            <div class="mt-4 grid grid-cols-1 gap-3 pb-20">
                 <a id="btn-call" href="#" class="bg-[#1e293b] text-white py-4 rounded-2xl text-center font-bold">დარეკვა</a>
                 <a id="btn-msg" href="#" class="border-2 border-slate-200 py-4 rounded-2xl text-center font-bold">ტელეგრამი</a>
             </div>
@@ -147,10 +153,9 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzoE9ND74hVmD3RwNjcYZUXd6u3dD8GOzbC9_CzjusCOdvFk3nvuCoXGLYz4973PTEgkg/exec";
+        let allProperties = []; // სრული სია ფილტრაციისთვის
         let currentSlide = 0;
         let totalSlides = 0;
-
-        // --- Core Functions ---
 
         async function init() {
             showSplash();
@@ -168,11 +173,21 @@
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                renderHome(data.listings);
+                allProperties = data.listings;
+                renderHome(allProperties);
             } catch (e) { console.error("Data Fetch Error"); }
         }
 
-        // --- UI Rendering Functions ---
+        // ფილტრაციის ფუნქცია
+        function filterBy(category) {
+            if (!category) {
+                renderHome(allProperties);
+                return;
+            }
+            // ფილტრავს Google Sheet-ის "PropertyType" სვეტის მიხედვით
+            const filtered = allProperties.filter(item => item.PropertyType === category);
+            renderHome(filtered);
+        }
 
         function renderHome(items) {
             const container = document.getElementById('trending-container');
@@ -201,8 +216,6 @@
                 <p class="text-xs text-slate-400 font-bold px-1 italic">${item.District || ''}</p>`;
             return card;
         }
-
-        // --- Interaction Functions ---
 
         function openDetails(item) {
             handleViews(item);
@@ -240,8 +253,6 @@
             document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
         }
 
-        // --- Utilities (Slider, Tabs, Close) ---
-
         function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
             const dots = document.getElementById('slider-dots');
@@ -256,7 +267,6 @@
                 const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
             });
-            // Touch Navigation Logic here...
         }
 
         function switchTab(tabId, el) {
