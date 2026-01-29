@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Minimal v2.4</title>
+    <title>Real Estate Premium v2.5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,9 +19,9 @@
         .details-page.active { transform: translateY(0); }
 
         /* ტაბების სტილი */
-        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 700; color: #cbd5e1; transition: 0.3s; cursor: pointer; }
+        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 14px; }
         .tab-btn.active { color: #1e40af; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; h: 3px; background: #1e40af; border-radius: 10px; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; h: 3px; background: #1e40af; border-radius: 10px; }
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
 
@@ -36,66 +36,74 @@
 
     <div id="main-content">
         <header class="pt-6 px-6 pb-2 flex justify-between items-center">
-            <div>
-                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">რას ეძებთ დღეს?</h1>
-            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">უძრავი ქონება</h1>
         </header>
         <section id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar px-6 pb-6 mt-8"></section>
     </div>
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
-        <div class="relative h-[45vh]">
+        <div class="relative h-[42vh]">
             <img id="det-img" src="" class="w-full h-full object-cover">
             <button onclick="closeDetails()" class="absolute top-8 left-6 bg-white/90 w-11 h-11 rounded-full shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
         </div>
 
-        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[55vh]">
+        <div class="p-8 bg-white -mt-10 rounded-t-[45px] relative min-h-[60vh]">
             <div class="mb-4">
                 <h1 id="det-title" class="text-2xl font-black text-[#1e293b] mb-1">...</h1>
-                <p id="det-loc" class="text-slate-400 font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-location-dot text-blue-500/60"></i>
+                <p id="det-loc" class="text-slate-400 font-bold text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-blue-500/60 text-[10px]"></i>
                     <span id="det-address-text">...</span>
                 </p>
             </div>
 
-            <div id="det-price" class="text-3xl font-black text-blue-600 mb-8 tracking-tighter">$0</div>
-
-            <div class="flex gap-8 mb-8 border-b border-slate-50">
-                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">Details</div>
-                <div onclick="switchTab('tab-params', this)" class="tab-btn">Parameters</div>
-                <div onclick="switchTab('tab-map', this)" class="tab-btn">Map</div>
+            <div class="flex items-center justify-between mb-6">
+                <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">$0</div>
+                <div class="flex items-center gap-4 text-slate-400">
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-xs font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-xs font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-xs"></i><span id="det-bed" class="text-xs font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-xs font-black text-slate-700">0</span></div>
+                </div>
             </div>
 
-            <div id="tab-desc" class="tab-content active text-slate-500 text-sm leading-relaxed">
-                <p id="det-desc">აღწერა არ არის მოცემული...</p>
+            <div class="flex gap-7 mb-6 border-b border-slate-50">
+                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
+                <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
+                <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
+            </div>
+
+            <div id="tab-desc" class="tab-content active text-slate-500 text-[13px] leading-relaxed">
+                <p id="det-desc">აღწერა იტვირთება...</p>
             </div>
 
             <div id="tab-params" class="tab-content">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <i class="fa-solid fa-expand text-blue-500"></i>
-                        <span id="det-sqm" class="text-xs font-black text-slate-700 uppercase">0 მ²</span>
+                <div class="space-y-4">
+                    <div class="flex justify-between border-b border-slate-50 pb-2">
+                        <span class="text-slate-400 text-xs font-bold">სტატუსი</span>
+                        <span id="p-status" class="text-slate-800 text-xs font-black">---</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <i class="fa-solid fa-door-open text-blue-500"></i>
-                        <span id="det-rooms" class="text-xs font-black text-slate-700 uppercase">0 ოთახი</span>
+                    <div class="flex justify-between border-b border-slate-50 pb-2">
+                        <span class="text-slate-400 text-xs font-bold">მდგომარეობა</span>
+                        <span id="p-condition" class="text-slate-800 text-xs font-black">---</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <i class="fa-solid fa-bed text-blue-500"></i>
-                        <span id="det-bed" class="text-xs font-black text-slate-700 uppercase">0 საძინ.</span>
+                    <div class="flex justify-between border-b border-slate-50 pb-2">
+                        <span class="text-slate-400 text-xs font-bold">პროექტის ტიპი</span>
+                        <span id="p-project" class="text-slate-800 text-xs font-black">---</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <i class="fa-solid fa-layer-group text-blue-500"></i>
-                        <span id="det-floor" class="text-xs font-black text-slate-700 uppercase">0 სართ.</span>
+                    <div class="flex justify-between border-b border-slate-50 pb-2">
+                        <span class="text-slate-400 text-xs font-bold">სვ. წერტილები</span>
+                        <span id="p-wc" class="text-slate-800 text-xs font-black">---</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-50 pb-2">
+                        <span class="text-slate-400 text-xs font-bold">აივანი</span>
+                        <span id="p-balcony" class="text-slate-800 text-xs font-black">---</span>
                     </div>
                 </div>
             </div>
 
-            <div id="tab-map" class="tab-content text-center py-10 text-slate-300 italic">
-                <i class="fa-solid fa-map-marked-alt text-4xl mb-2"></i>
+            <div id="tab-map" class="tab-content text-center py-8 text-slate-300 italic text-sm">
                 <p>რუკა მალე დაემატება...</p>
             </div>
             
@@ -109,7 +117,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
         
         function formatPrice(num, curr) {
-            return (curr === 'დოლარი' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
+            return (curr === 'დოლარი' || curr === '$' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
         }
 
         function switchTab(tabId, el) {
@@ -120,10 +128,7 @@
         }
 
         async function init() {
-            setTimeout(() => { 
-                document.getElementById('splash-screen').classList.add('hidden-splash'); 
-                document.getElementById('main-content').style.opacity = '1'; 
-            }, 3000);
+            setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden-splash'); document.getElementById('main-content').style.opacity = '1'; }, 3000);
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
@@ -142,19 +147,26 @@
                 
                 card.onclick = () => {
                     document.getElementById('det-img').src = img;
-                    document.getElementById('det-title').innerText = item.Street || "ქუჩა არ არის";
+                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
                     document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
                     document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
                     
-                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
-                    document.getElementById('det-rooms').innerText = (item.Rooms || 0) + ' ოთახი';
-                    document.getElementById('det-bed').innerText = (item.Bedrooms || 0) + ' საძინ.';
-                    document.getElementById('det-floor').innerText = (item.Floor || 0) + ' სართ.';
+                    // ზედა ხაზის იკონკები
+                    document.getElementById('det-sqm').innerText = item.TotalArea + ' მ²';
+                    document.getElementById('det-rooms').innerText = item.Rooms;
+                    document.getElementById('det-bed').innerText = item.Bedrooms || 0;
+                    document.getElementById('det-floor').innerText = item.Floor;
+
+                    // პარამეტრების ტაბი (მონაცემები ცხრილიდან)
+                    document.getElementById('p-status').innerText = item.Status || "ახალი აშენებული";
+                    document.getElementById('p-condition').innerText = item.Condition || "გარემონტებული";
+                    document.getElementById('p-project').innerText = item.Project || "არასტანდარტული";
+                    document.getElementById('p-wc').innerText = item.Bathrooms || "1";
+                    document.getElementById('p-balcony').innerText = item.Balcony ? "კი" : "არა";
 
                     document.getElementById('details-page').classList.add('active');
                 };
-
                 card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
                     <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
                     <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>`;
@@ -162,10 +174,7 @@
             });
         }
 
-        function closeDetails() {
-            document.getElementById('details-page').classList.remove('active');
-        }
-
+        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
         init();
     </script>
 </body>
