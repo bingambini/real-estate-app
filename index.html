@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Premium v2.9</title>
+    <title>Real Estate Premium v3.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,20 +28,19 @@
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
         .dot.active { background: #fff; width: 18px; border-radius: 10px; }
 
-        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 15px; }
+        .tab-btn { position: relative; padding-bottom: 6px; font-weight: 800; color: #cbd5e1; transition: 0.3s; cursor: pointer; font-size: 14px; white-space: nowrap; }
         .tab-btn.active { color: #1e40af; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; h: 3px; background: #1e40af; border-radius: 10px; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; h: 3px; background: #1e40af; border-radius: 10px; }
         
-        .tab-content { display: none; animation: fadeIn 0.4s ease; padding-bottom: 40px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* საკონტაქტო ბლოკის სტილი */
-        .contact-box { margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 25px; border: 1px solid #f1f5f9; }
+        .contact-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 30px; padding: 25px; text-align: center; }
     </style>
 </head>
-<body class="pb-28">
+<body class="pb-10">
 
     <div id="splash-screen">
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
@@ -70,22 +69,23 @@
 
             <div class="flex items-center justify-between mb-6 mt-4">
                 <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tighter">$0</div>
-                <div class="flex items-center gap-5 text-slate-400">
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-expand text-sm"></i><span id="det-sqm" class="text-[13px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-door-open text-sm"></i><span id="det-rooms" class="text-[13px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-sm"></i><span id="det-bed" class="text-[13px] font-black text-slate-700">0</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-sm"></i><span id="det-floor" class="text-[13px] font-black text-slate-700">0</span></div>
+                <div class="flex items-center gap-4 text-slate-400">
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-expand text-xs"></i><span id="det-sqm" class="text-[12px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-door-open text-xs"></i><span id="det-rooms" class="text-[12px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-bed text-xs"></i><span id="det-bed" class="text-[12px] font-black text-slate-700">0</span></div>
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-xs"></i><span id="det-floor" class="text-[12px] font-black text-slate-700">0</span></div>
                 </div>
             </div>
 
-            <div class="flex gap-8 mb-6 border-b border-slate-50">
+            <div class="flex justify-between mb-6 border-b border-slate-50 overflow-x-auto no-scrollbar">
                 <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
                 <div onclick="switchTab('tab-params', this)" class="tab-btn">პარამეტრები</div>
                 <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
+                <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
             </div>
 
             <div id="tab-desc" class="tab-content active"><p id="det-desc" class="text-slate-500 text-[14px] leading-relaxed">...</p></div>
-
+            
             <div id="tab-params" class="tab-content">
                 <div class="space-y-4 text-[13px]">
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სტატუსი</span><span id="p-status" class="text-slate-800 font-black">---</span></div>
@@ -94,25 +94,25 @@
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">სვ. წერტილები</span><span id="p-wc" class="text-slate-800 font-black">---</span></div>
                     <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400 font-bold">აივანი</span><span id="p-balcony" class="text-slate-800 font-black">---</span></div>
                 </div>
-                
-                <div class="contact-box">
-                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">კონტაქტი</p>
-                    <div class="flex gap-3">
-                        <a id="btn-call-param" href="#" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-blue-200"><i class="fa-solid fa-phone"></i> დარეკვა</a>
-                        <a id="btn-msg-param" href="#" class="flex-1 bg-emerald-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-emerald-200"><i class="fa-solid fa-comment"></i> მესიჯი</a>
-                    </div>
-                </div>
             </div>
 
-            <div id="tab-map" class="tab-content">
-                <div class="w-full h-48 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 italic text-sm mb-6">
-                    <p>რუკა მალე დაემატება...</p>
-                </div>
-                <div class="contact-box">
-                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">კონტაქტი</p>
-                    <div class="flex gap-3">
-                        <a id="btn-call-map" href="#" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg"><i class="fa-solid fa-phone"></i> დარეკვა</a>
-                        <a id="btn-msg-map" href="#" class="flex-1 bg-emerald-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg"><i class="fa-solid fa-comment"></i> მესიჯი</a>
+            <div id="tab-map" class="tab-content text-center py-10 text-slate-300 italic text-sm">რუკა მალე დაემატება...</div>
+
+            <div id="tab-contact" class="tab-content">
+                <div class="contact-card">
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-headset text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-slate-800 font-black text-lg mb-1">გსურთ დაკავშირება?</h3>
+                    <p class="text-slate-400 text-xs mb-6 font-bold uppercase tracking-widest">აგენტი მზად არის დაგეხმაროთ</p>
+                    
+                    <div class="space-y-3">
+                        <a id="btn-call-final" href="#" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">
+                            <i class="fa-solid fa-phone"></i> დარეკვა
+                        </a>
+                        <a id="btn-msg-final" href="#" class="w-full border-2 border-slate-100 text-slate-800 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all">
+                            <i class="fa-brands fa-telegram text-blue-500"></i> ტელეგრამი
+                        </a>
                     </div>
                 </div>
             </div>
@@ -121,8 +121,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
-        let currentSlide = 0;
-        let totalSlides = 0;
+        let currentSlide = 0; let totalSlides = 0;
 
         function formatPrice(num, curr) {
             return (curr === 'დოლარი' || curr === '$' ? '$' : '') + new Intl.NumberFormat('en-US').format(num) + (curr === 'ლარი' ? ' ₾' : '');
@@ -131,13 +130,12 @@
         function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
             const dots = document.getElementById('slider-dots');
-            wrapper.innerHTML = ''; dots.innerHTML = '';
-            currentSlide = 0; wrapper.style.transform = 'translateX(0)';
+            wrapper.innerHTML = ''; dots.innerHTML = ''; currentSlide = 0; wrapper.style.transform = 'translateX(0)';
             const photoArray = Array.isArray(photos) ? photos : (photos ? photos.split(',') : []);
             totalSlides = photoArray.length;
             photoArray.forEach((url, index) => {
                 const slide = document.createElement('div'); slide.className = 'slide';
-                slide.innerHTML = `<img src="${url.trim()}" alt="ფოტო ${index + 1}">`;
+                slide.innerHTML = `<img src="${url.trim()}" alt="ფოტო">`;
                 wrapper.appendChild(slide);
                 const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
@@ -172,7 +170,7 @@
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 renderHome(data.listings);
-            } catch (e) { console.error("Fetch error"); }
+            } catch (e) { console.error("API Error"); }
         }
 
         function renderHome(items) {
@@ -185,37 +183,37 @@
                 card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 card.onclick = () => {
                     buildSlider(item.Photos);
-                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
+                    document.getElementById('det-title').innerText = item.Street;
                     document.getElementById('det-address-text').innerText = `${item.District || ''}, ${item.City || ''}`;
                     document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
-                    document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
+                    document.getElementById('det-desc').innerText = item.Description;
                     document.getElementById('det-sqm').innerText = item.TotalArea + ' მ²';
                     document.getElementById('det-rooms').innerText = item.Rooms;
                     document.getElementById('det-bed').innerText = item.Bedrooms || 0;
                     document.getElementById('det-floor').innerText = item.Floor;
-                    document.getElementById('p-status').innerText = item.Status || "---";
-                    document.getElementById('p-condition').innerText = item.Condition || "---";
-                    document.getElementById('p-project').innerText = item.Project || "---";
+                    document.getElementById('p-status').innerText = item.Status || "ახალი აშენებული";
+                    document.getElementById('p-condition').innerText = item.Condition || "გარემონტებული";
+                    document.getElementById('p-project').innerText = item.Project || "არასტანდარტული";
                     document.getElementById('p-wc').innerText = item.Bathrooms || "1";
                     document.getElementById('p-balcony').innerText = item.Balcony ? "კი" : "არა";
 
-                    // საკონტაქტო ლინკების განახლება ორივე ტაბში
-                    const phone = item.Phone || "";
-                    document.getElementById('btn-call-param').href = "tel:" + phone;
-                    document.getElementById('btn-msg-param').href = "https://t.me/" + phone;
-                    document.getElementById('btn-call-map').href = "tel:" + phone;
-                    document.getElementById('btn-msg-map').href = "https://t.me/" + phone;
+                    // კონტაქტის ლინკები
+                    document.getElementById('btn-call-final').href = "tel:" + item.Phone;
+                    document.getElementById('btn-msg-final').href = "https://t.me/" + item.Phone;
 
                     document.getElementById('details-page').classList.add('active');
                 };
                 card.innerHTML = `<img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
-                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
-                    <p class="text-xs text-slate-400 font-bold px-1">${item.District || ''}</p>`;
+                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street}</h4>
+                    <p class="text-xs text-slate-400 font-bold px-1">${item.District}</p>`;
                 container.appendChild(card);
             });
         }
 
-        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
+        function closeDetails() { 
+            document.getElementById('details-page').classList.remove('active');
+            switchTab('tab-desc', document.querySelector('.tab-btn')); // დაბრუნებისას პირველ ტაბზე გადასვლა
+        }
         init();
     </script>
 </body>
