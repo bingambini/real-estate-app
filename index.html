@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Real Estate Premium v2.4</title>
+    <title>Real Estate App v3.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,6 +16,7 @@
         .hidden-splash { opacity: 0; visibility: hidden; }
         #main-content { opacity: 0; transition: 0.5s ease; width: 100%; }
 
+        /* Responsive Details Page */
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         .details-page.active { transform: translateY(0); }
 
@@ -43,7 +44,7 @@
         .snap-x-container { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .snap-item { scroll-snap-align: center; }
 
-        nav { padding-bottom: calc(env(safe-area-inset-bottom, 1.5rem) + 1rem) !important; }
+        nav { padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 1rem) !important; }
     </style>
 </head>
 <body class="pb-32">
@@ -152,8 +153,87 @@
     </nav>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzoE9ND74hVmD3RwNjcYZUXd6u3dD8GOzbC9_CzjusCOdvFk3nvuCoXGLYz4973PTEgkg/exec";
         let currentSlide = 0; let totalSlides = 0;
+
+        async function init() {
+            setTimeout(() => { 
+                document.getElementById('splash-screen').classList.add('hidden-splash'); 
+                document.getElementById('main-content').style.opacity = '1'; 
+            }, 2000);
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                renderHome(data.listings);
+            } catch (e) { console.error("API Error"); }
+        }
+
+        function renderHome(items) {
+            const container = document.getElementById('trending-container');
+            container.innerHTML = '';
+            items.forEach(item => {
+                if(!item.ID) return;
+                const photos = item.Photos || "";
+                const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
+                
+                const card = document.createElement('div');
+                card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all snap-item";
+                
+                card.onclick = () => {
+                    const propertyId = item.ID;
+                    let viewedProperties = JSON.parse(localStorage.getItem('viewed_ids') || "[]");
+                    const isAlreadyViewed = viewedProperties.includes(propertyId);
+                    
+                    // AM სვეტის (Views) სახელი ემთხვევა?
+                    let currentViews = parseInt(item.Views) || 0;
+
+                    if (!isAlreadyViewed) {
+                        document.getElementById('det-views').innerText = currentViews + 1;
+                        viewedProperties.push(propertyId);
+                        localStorage.setItem('viewed_ids', JSON.stringify(viewedProperties));
+                        // გაგზავნა Google Script-ში
+                        fetch(`${API_URL}?viewId=${propertyId}`, { mode: 'no-cors' }).catch(() => {});
+                    } else {
+                        document.getElementById('det-views').innerText = currentViews;
+                    }
+
+                    buildSlider(item.Photos);
+                    document.getElementById('det-id').innerText = propertyId;
+                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
+                    document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
+                    const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
+                    document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
+                    
+                    const descTarget = document.getElementById('desc-container');
+                    const fullText = item.Description || "აღწერა არ არის მოცემული.";
+                    if (fullText.length > 200) {
+                        descTarget.innerHTML = `<span>${fullText.substring(0, 200)}...</span><span id="more-link" class="read-more-btn">მეტის ნახვა</span>`;
+                        document.getElementById('more-link').onclick = (e) => { e.stopPropagation(); descTarget.innerText = fullText; };
+                    } else { descTarget.innerText = fullText; }
+
+                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
+                    document.getElementById('det-rooms').innerText = item.Rooms || 0;
+                    document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '0'}`;
+                    document.getElementById('p-condition').innerText = item.Condition || "---";
+                    document.getElementById('p-project').innerText = item.ProjectType || "---";
+                    document.getElementById('p-wc').innerText = item.Bathrooms || "---";
+                    document.getElementById('btn-call').href = "tel:" + item.Phone;
+                    document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
+
+                    document.getElementById('details-page').classList.add('active');
+                    document.getElementById('bottom-nav').style.display = 'none';
+                };
+
+                card.innerHTML = `
+                    <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
+                        <img src="${firstImg}" class="w-full h-full object-cover">
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${item.TotalPrice} ${(item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾'}</div>
+                    </div>
+                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
+                    <p class="text-xs text-slate-400 font-bold px-1 italic">${item.District || ''}</p>`;
+                container.appendChild(card);
+            });
+        }
 
         function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
@@ -190,76 +270,6 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
-        }
-
-        async function init() {
-            setTimeout(() => { 
-                document.getElementById('splash-screen').classList.add('hidden-splash'); 
-                document.getElementById('main-content').style.opacity = '1'; 
-            }, 2000);
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                renderHome(data.listings);
-            } catch (e) { console.error("API Error"); }
-        }
-
-        function renderHome(items) {
-            const container = document.getElementById('trending-container');
-            container.innerHTML = '';
-            items.forEach(item => {
-                if(!item.ID) return;
-                const photos = item.Photos || "";
-                const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
-                
-                const card = document.createElement('div');
-                card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all snap-item";
-                
-                card.onclick = () => {
-                    // 1. მყისიერი განახლება ეკრანზე
-                    let currentViews = parseInt(item.Views) || 0;
-                    document.getElementById('det-views').innerText = currentViews + 1;
-                    
-                    // 2. მონაცემების შევსება
-                    buildSlider(item.Photos);
-                    document.getElementById('det-id').innerText = item.ID;
-                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
-                    document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
-                    const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
-                    document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
-                    
-                    const descTarget = document.getElementById('desc-container');
-                    const fullText = item.Description || "აღწერა არ არის მოცემული.";
-                    if (fullText.length > 200) {
-                        descTarget.innerHTML = `<span>${fullText.substring(0, 200)}...</span><span id="more-link" class="read-more-btn">მეტის ნახვა</span>`;
-                        document.getElementById('more-link').onclick = (e) => { e.stopPropagation(); descTarget.innerText = fullText; };
-                    } else { descTarget.innerText = fullText; }
-
-                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
-                    document.getElementById('det-rooms').innerText = item.Rooms || 0;
-                    document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '0'}`;
-                    document.getElementById('p-condition').innerText = item.Condition || "---";
-                    document.getElementById('p-project').innerText = item.ProjectType || "---";
-                    document.getElementById('p-wc').innerText = item.Bathrooms || "---";
-                    document.getElementById('btn-call').href = "tel:" + item.Phone;
-                    document.getElementById('btn-msg').href = "https://t.me/" + item.Phone;
-
-                    // 3. გაგზავნა სერვერზე (no-cors რეჟიმში)
-                    fetch(`${API_URL}?viewId=${item.ID}`, { mode: 'no-cors' }).catch(err => console.log("View tracked"));
-
-                    document.getElementById('details-page').classList.add('active');
-                    document.getElementById('bottom-nav').style.display = 'none';
-                };
-
-                card.innerHTML = `
-                    <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
-                        <img src="${firstImg}" class="w-full h-full object-cover">
-                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${item.TotalPrice} ${(item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾'}</div>
-                    </div>
-                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
-                    <p class="text-xs text-slate-400 font-bold px-1 italic">${item.District || ''}</p>`;
-                container.appendChild(card);
-            });
         }
 
         function closeDetails() { 
