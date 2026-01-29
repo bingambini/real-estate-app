@@ -3,108 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Mini App</title>
+    <title>Premium Real Estate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        
-        /* Splash Screen */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background-color: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease-out, visibility 0.8s;
-        }
-        #splash-screen.hidden-splash { opacity: 0; visibility: hidden; }
-        .splash-img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Main App */
-        .property-card { background: white; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .price-badge { background: #2563eb; color: white; padding: 5px 15px; border-radius: 12px; font-weight: bold; }
-        #main-content { transition: opacity 1s; }
+        body { background-color: #fcfcff; font-family: 'Inter', sans-serif; color: #1a1a2e; }
+        .category-card { transition: all 0.3s ease; }
+        .category-card:active { transform: scale(0.9); }
+        .trending-card { min-width: 260px; border-radius: 24px; overflow: hidden; }
+        .bottom-nav { background: #0f172a; border-radius: 24px 24px 0 0; }
+        #splash-screen { position: fixed; inset: 0; z-index: 100; background: #fff; transition: 0.8s; }
+        .hidden-splash { opacity: 0; visibility: hidden; }
     </style>
 </head>
-<body>
+<body class="pb-24">
 
     <div id="splash-screen">
-        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="splash-img">
+        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" class="p-4 opacity-0">
-        <header class="mb-6 flex justify-between items-center">
+    <div id="main-content" class="opacity-0 transition-opacity duration-700">
+        <header class="p-6 flex justify-between items-start">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">უძრავი ქონება</h1>
-                <p class="text-gray-500 text-sm">სამართავი პანელიდან კონტროლირებადი</p>
+                <h2 class="text-3xl font-light text-gray-500">What are you</h2>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight"><span class="text-slate-800">Looking</span> for?</h1>
             </div>
+            <button class="bg-white shadow-lg p-3 rounded-2xl text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xl"></i>
+            </button>
         </header>
 
-        <div id="listings" class="space-y-4">
+        <section class="px-6 grid grid-cols-2 gap-4 mb-8">
+            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
+                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                    <i class="fa-solid fa-house"></i>
+                </div>
+                <span class="font-semibold text-slate-700">House</span>
             </div>
+            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
+                <div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <span class="font-semibold text-slate-700">Condo</span>
+            </div>
+            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
+                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                    <i class="fa-solid fa-hotel"></i>
+                </div>
+                <span class="font-semibold text-slate-700">Villa</span>
+            </div>
+            <div class="category-card flex items-center gap-3 p-3 bg-white rounded-3xl shadow-sm border border-slate-50">
+                <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <span class="font-semibold text-slate-700">Apartment</span>
+            </div>
+        </section>
+
+        <section class="pl-6 mb-8">
+            <div class="flex justify-between items-center pr-6 mb-4">
+                <h3 class="text-xl font-bold text-slate-800">Trending Properties</h3>
+                <a href="#" class="text-blue-600 font-semibold text-sm">See All <i class="fa-solid fa-chevron-right ml-1"></i></a>
+            </div>
+            
+            <div id="trending-container" class="flex gap-6 overflow-x-auto pr-6 pb-4 scroll-smooth no-scrollbar">
+                </div>
+        </section>
     </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxToNunJg58cTeM7jgV3rSbmNavVrc97iB7HCGCnxpJOkhijmVFwkoNt6XSnoM2jpYvXA/exec";
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    <nav class="fixed bottom-0 left-0 right-0 bottom-nav p-5 flex justify-around items-center z-50">
+        <button class="text-white relative">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="absolute -top-1 -right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
+        </button>
+        <button class="text-slate-400"><i class="fa-solid fa-location-dot text-xl"></i></button>
+        <button class="text-slate-400"><i class="fa-solid fa-bell text-xl"></i></button>
+        <button class="text-slate-400"><i class="fa-solid fa-heart text-xl"></i></button>
+    </nav>
 
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbToNunJg58cTeM7jgV3rSbmNavVrc97iB7HCGCnxpJOkhijmVFwkoNt6XSnoM2jpYvXA/exec";
+        
         async function init() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
+                renderTrending(data.listings);
                 
-                // მონაცემების ამოღება ახალი სტრუქტურიდან
-                const listings = data.listings;
-                const splashDuration = data.settings.SplashDuration || 1000; 
-
-                render(listings);
-
-                // Splash Screen-ის გაქრობა შიტში მითითებული დროის მიხედვით
                 setTimeout(() => {
                     document.getElementById('splash-screen').classList.add('hidden-splash');
-                    document.getElementById('main-content').classList.remove('opacity-0');
-                    document.getElementById('main-content').classList.add('opacity-100');
-                }, splashDuration);
-
-            } catch (e) {
-                console.error("Error:", e);
-                document.getElementById('splash-screen').style.display = 'none';
-                document.getElementById('main-content').classList.remove('opacity-0');
-            }
+                    document.getElementById('main-content').classList.replace('opacity-0', 'opacity-100');
+                }, data.settings.SplashDuration || 1200);
+            } catch (e) { console.error(e); }
         }
 
-        function render(items) {
-            const container = document.getElementById('listings');
-            container.innerHTML = '';
-            
-            items.forEach(item => {
+        function renderTrending(items) {
+            const container = document.getElementById('trending-container');
+            items.forEach((item, index) => {
+                const bgColors = ['bg-pink-100', 'bg-blue-100', 'bg-emerald-100'];
+                const bgColor = bgColors[index % bgColors.length];
+                
                 container.innerHTML += `
-                    <div class="property-card shadow-sm">
-                        <img src="${item.Photos[0] || 'https://via.placeholder.com/400x250'}" class="w-full h-64 object-cover">
-                        <div class="p-5">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="font-bold text-lg">${item.District}</h3>
-                                <span class="price-badge">${item.TotalPrice} ${item.Currency}</span>
-                            </div>
-                            <p class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-location-dot"></i> ${item.Street}</p>
-                            <div class="flex gap-4 text-xs text-gray-600 border-t pt-4">
-                                <span><i class="fa-solid fa-ruler"></i> ${item.TotalArea} მ²</span>
-                                <span><i class="fa-solid fa-bed"></i> ${item.Rooms} ოთახი</span>
-                                <span><i class="fa-solid fa-building"></i> ${item.Floor}/${item.TotalFloors} სართ.</span>
+                    <div class="trending-card ${bgColor} p-4 flex-shrink-0 shadow-sm border border-white/50">
+                        <img src="${item.Photos[0]}" class="w-full h-48 object-cover rounded-[2rem] mb-4 shadow-md">
+                        <div class="px-2">
+                            <h4 class="text-xl font-bold text-slate-800 mb-1">${item.Street || 'Elegant Villa'}</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">${item.District}</span>
+                                <div class="flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-slate-800 text-xs"></i>
+                                    <span class="font-bold text-slate-800">4.5</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
             });
         }
-
         init();
+        window.Telegram.WebApp.expand();
     </script>
 </body>
 </html>
