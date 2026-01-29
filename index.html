@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate App v2.0</title>
+    <title>Real Estate Premium v1.8</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,21 +11,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Splash Screen */
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
-
-        /* Product Page */
         .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .details-page.active { transform: translateY(0); }
-
-        /* Contact Bottom Sheet */
-        #contact-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 700; border-radius: 40px 40px 0 0; transform: translateY(100%); transition: 0.3s ease-out; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 24px 32px 48px; }
-        #contact-sheet.active { transform: translateY(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 650; display: none; }
-        .overlay.active { display: block; }
-        
         #main-content { opacity: 0; transition: 0.5s ease; }
     </style>
 </head>
@@ -39,24 +28,37 @@
         <header class="pt-6 px-6 pb-2 flex justify-between items-center">
             <div>
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
-                <h1 class="text-2xl font-extrabold text-slate-900">რას ეძებთ დღეს?</h1>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">რას ეძებთ დღეს?</h1>
             </div>
-            <button class="bg-white shadow-lg w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <button class="bg-white shadow-lg w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            </button>
         </header>
 
         <section class="px-6 grid grid-cols-2 gap-3 mt-6 mb-8">
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-building"></i></div>
-                <span class="font-bold text-slate-700 text-xs">ბინები</span>
+            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
+                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
+                <span class="font-bold text-slate-700 text-xs uppercase">ბინები</span>
             </div>
-            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3">
-                <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-house"></i></div>
-                <span class="font-bold text-slate-700 text-xs">სახლები</span>
+            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
+                <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house"></i></div>
+                <span class="font-bold text-slate-700 text-xs uppercase">სახლები</span>
+            </div>
+            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
+                <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-tree-city"></i></div>
+                <span class="font-bold text-slate-700 text-xs uppercase">აგარაკები</span>
+            </div>
+            <div class="bg-white p-3 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:bg-slate-50 transition-all cursor-pointer">
+                <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+                <span class="font-bold text-slate-700 text-xs uppercase">ნაკვეთები</span>
             </div>
         </section>
 
         <section class="pl-6">
-            <h3 class="text-xl font-extrabold text-slate-800 mb-4">პოპულარული</h3>
+            <div class="flex justify-between items-center pr-6 mb-4">
+                <h3 class="text-xl font-extrabold text-slate-800">პოპულარული</h3>
+                <button class="text-blue-600 font-bold text-xs flex items-center gap-1">ყველა <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
+            </div>
             <div id="trending-container" class="flex gap-5 overflow-x-auto no-scrollbar pr-6 pb-6">
                 </div>
         </section>
@@ -64,49 +66,31 @@
 
     <div id="details-page" class="details-page overflow-y-auto no-scrollbar">
         <div class="relative h-[45vh]">
-            <img id="det-img" src="" class="w-full h-full object-cover">
+            <img id="det-img" src="" class="w-full h-full object-cover rounded-b-[40px]">
             <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/90 w-10 h-10 rounded-full shadow-lg flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button>
         </div>
-        <div class="p-8 bg-white -mt-10 rounded-t-[40px] relative min-h-screen">
-            <div class="flex justify-between items-start mb-6">
+        <div class="p-8">
+            <h1 id="det-title" class="text-2xl font-extrabold text-slate-900 mb-1">...</h1>
+            <p id="det-loc" class="text-slate-400 font-medium mb-6 text-sm italic">...</p>
+            
+            <div class="flex justify-between items-center mb-8 bg-slate-50 p-5 rounded-[30px] border border-white">
                 <div>
-                    <h1 id="det-title" class="text-2xl font-black text-slate-900 leading-tight">...</h1>
-                    <p id="det-loc" class="text-slate-400 font-medium text-sm mt-1 italic">...</p>
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">ფასი</p>
+                    <div id="det-price" class="text-2xl font-black text-blue-600 tracking-tight">0</div>
                 </div>
-                <div id="det-price" class="text-xl font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-2xl tracking-tighter">0</div>
+                <button class="bg-slate-900 text-white px-8 py-3.5 rounded-[20px] font-bold shadow-xl active:scale-95 transition-transform">დაჯავშნა</button>
             </div>
 
-            <div class="grid grid-cols-4 gap-3 my-8 border-y border-slate-50 py-6">
-                <div class="text-center"><i class="fa-solid fa-expand text-blue-500 text-lg mb-2 block"></i><span id="det-sqm" class="text-[10px] font-bold">0 მ²</span></div>
-                <div class="text-center"><i class="fa-solid fa-bed text-blue-500 text-lg mb-2 block"></i><span id="det-bed" class="text-[10px] font-bold">0</span></div>
-                <div class="text-center"><i class="fa-solid fa-layer-group text-blue-500 text-lg mb-2 block"></i><span id="det-floor" class="text-[10px] font-bold">0</span></div>
-                <div class="text-center"><i class="fa-solid fa-couch text-blue-500 text-lg mb-2 block"></i><span class="text-[10px] font-bold text-slate-700">ავეჯით</span></div>
+            <div class="grid grid-cols-4 gap-3 text-center">
+                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-expand text-blue-400 text-sm block mb-1"></i><span id="det-sqm" class="text-[10px] font-extrabold">0 მ²</span></div>
+                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-bed text-pink-400 text-sm block mb-1"></i><span id="det-bed" class="text-[10px] font-extrabold">0</span></div>
+                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-layer-group text-purple-400 text-sm block mb-1"></i><span id="det-floor" class="text-[10px] font-extrabold">0/0</span></div>
+                <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><i class="fa-solid fa-couch text-emerald-400 text-sm block mb-1"></i><span class="text-[10px] font-extrabold text-slate-700">კი</span></div>
             </div>
-
-            <h3 class="font-bold text-slate-900 mb-2">აღწერა</h3>
-            <p id="det-desc" class="text-slate-500 text-sm leading-relaxed mb-10">ინფორმაცია არ არის.</p>
-
-            <button onclick="toggleContact()" class="w-full bg-[#1e40af] text-white py-5 rounded-[24px] font-black text-lg shadow-xl shadow-blue-100 active:scale-95 transition-all">დაკავშირება</button>
         </div>
     </div>
 
-    <div id="overlay" class="overlay" onclick="toggleContact()"></div>
-    <div id="contact-sheet">
-        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
-        <h3 class="text-xl font-black text-center mb-8">აირჩიეთ კავშირი</h3>
-        <div class="grid grid-cols-2 gap-4">
-            <a id="call-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[30px] border border-slate-100">
-                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 text-xl"><i class="fa-solid fa-phone"></i></div>
-                <span class="font-bold text-slate-700">დარეკვა</span>
-            </a>
-            <a id="msg-link" href="#" class="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[30px] border border-slate-100">
-                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3 text-xl"><i class="fa-solid fa-comment-dots"></i></div>
-                <span class="font-bold text-slate-700">მესიჯი</span>
-            </a>
-        </div>
-    </div>
-
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#0f172a] p-6 flex justify-around items-center rounded-t-[35px] z-[400]">
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#0f172a] p-6 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400]">
         <i class="fa-solid fa-house text-white text-lg"></i>
         <i class="fa-solid fa-location-dot text-slate-500 text-lg"></i>
         <i class="fa-solid fa-bell text-slate-500 text-lg"></i>
@@ -116,50 +100,58 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzSd_BSR6LFajeu2aeLVOX0n5k1nwE5QftVE58zGQ2Yu-Lj_7m729L9_g4sLHownuBpwg/exec";
         
+        function formatPrice(num, curr) {
+            return new Intl.NumberFormat('en-US').format(num) + ' ' + curr;
+        }
+
         async function init() {
             setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden-splash'); document.getElementById('main-content').style.opacity = '1'; }, 4000);
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 renderHome(data.listings);
-            } catch (e) { console.log(e); }
+            } catch (e) { console.log("Fetch Error"); }
         }
 
         function renderHome(items) {
             const container = document.getElementById('trending-container');
             container.innerHTML = '';
+            
             items.forEach(item => {
                 if(!item.ID) return;
-                const img = (item.Photos && item.Photos.length > 0) ? item.Photos[0] : 'https://placehold.co/600x400';
+                const img = (item.Photos && item.Photos.length > 0) ? item.Photos[0] : 'https://placehold.co/600x400?text=Property';
                 const card = document.createElement('div');
-                card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-sm border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
+                card.className = "bg-white p-3.5 min-w-[260px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer active:scale-95 transition-all";
                 card.onclick = () => {
                     document.getElementById('det-img').src = img;
-                    document.getElementById('det-title').innerText = item.Street;
-                    document.getElementById('det-loc').innerText = item.District;
-                    document.getElementById('det-price').innerText = item.TotalPrice + ' ' + item.Currency;
-                    document.getElementById('det-sqm').innerText = item.TotalArea + ' მ²';
-                    document.getElementById('det-bed').innerText = item.Rooms;
-                    document.getElementById('det-floor').innerText = item.Floor + '/' + item.TotalFloors;
-                    document.getElementById('det-desc').innerText = item.Description || "აღწერა არ არის მოცემული.";
-                    document.getElementById('call-link').href = "tel:" + item.Phone;
-                    document.getElementById('msg-link').href = "https://t.me/" + item.Phone;
+                    document.getElementById('det-title').innerText = item.Street || "განცხადება";
+                    document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
+                    document.getElementById('det-price').innerText = formatPrice(item.TotalPrice, item.Currency);
+                    document.getElementById('det-bed').innerText = item.Rooms || 0;
+                    document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
+                    document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors}`;
                     document.getElementById('details-page').classList.add('active');
+                    document.getElementById('bottom-nav').style.display = 'none';
                 };
-                card.innerHTML = `<img src="${img}" class="w-full h-44 object-cover rounded-[28px] mb-3"><h4 class="font-extrabold text-slate-800 truncate">${item.Street}</h4><p class="text-xs text-slate-400 font-bold">${item.District}</p>`;
+                card.innerHTML = `
+                    <div class="relative">
+                        <img src="${img}" class="w-full h-48 object-cover rounded-[28px] mb-4">
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[11px] font-black text-slate-800 shadow-sm">${formatPrice(item.TotalPrice, item.Currency)}</div>
+                    </div>
+                    <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'ქონება'}</h4>
+                    <div class="flex justify-between items-center px-1 mt-1">
+                        <span class="text-xs text-slate-400 font-bold italic">${item.District || ''}</span>
+                        <div class="text-[10px] font-bold text-yellow-500"><i class="fa-solid fa-star mr-1"></i>4.9</div>
+                    </div>
+                `;
                 container.appendChild(card);
             });
         }
 
-        function toggleContact() {
-            document.getElementById('contact-sheet').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-        }
-
         function closeDetails() {
             document.getElementById('details-page').classList.remove('active');
+            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
         }
-
         init();
     </script>
 </body>
