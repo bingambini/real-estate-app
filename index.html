@@ -234,10 +234,19 @@
             handleViews(item);
         }
 
-        function fillDetailsData(item) {
+function fillDetailsData(item) {
+            // 1. ვაწყობთ ახალ სათაურს: გარიგება + ტიპი + უბანი
+            const deal = item.DealType || "";      // მაგ: იყიდება
+            const type = item.PropertyType || "";  // მაგ: ბინა
+            const dist = item.District || "";      // მაგ: საბურთალო
+            
+            document.getElementById('det-title').innerText = `${deal} ${type} ${dist}`;
+
+            // 2. მისამართის ხაზზე (პატარა ტექსტი) დავტოვოთ ქუჩა და ქალაქი
+            document.getElementById('det-loc').innerText = `${item.Street || ''}, ${item.City || ''}`;
+
+            // --- დანარჩენი კოდი უცვლელია ---
             document.getElementById('det-id').innerText = item.ID;
-            document.getElementById('det-title').innerText = item.Street || "განცხადება";
-            document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
             const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
             document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
             document.getElementById('desc-container').innerText = item.Description || "აღწერა არ არის.";
@@ -251,7 +260,6 @@
             document.getElementById('p-project').innerText = item.ProjectType || "---";
             document.getElementById('p-heating').innerText = item.Heating || "---";
             
-            // Google Maps Link
             const addr = encodeURIComponent(`${item.City || ''} ${item.Street || ''}`);
             document.getElementById('btn-google-maps').href = `https://www.google.com/maps/search/?api=1&query=${addr}`;
             
