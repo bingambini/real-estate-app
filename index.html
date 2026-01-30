@@ -287,29 +287,30 @@
         }
 
 function fillDetailsData(item) {
-            // ძირითადი ინფო
+            // 1. ძირითადი ინფორმაცია
             document.getElementById('det-id').innerText = item.ID;
             document.getElementById('det-title').innerText = item.Street || "განცხადება";
             document.getElementById('det-loc').innerText = `${item.District || ''}, ${item.City || ''}`;
             
-            // ფასი ვალუტის მიხედვით
+            // 2. ფასი და ვალუტა
             const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
             document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
             
-            // აღწერა
+            // 3. აღწერა
             document.getElementById('desc-container').innerText = item.Description || "აღწერა არ არის.";
             
-            // ოთხი იკონკის მონაცემები
+            // 4. ოთხი იკონკის მონაცემები (კვადრატულობა, ოთახები, სველი წერტილი, სართული)
             document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
             document.getElementById('det-rooms').innerText = item.Rooms || 0;
-            document.getElementById('det-wc').innerText = item.Bathrooms || 0; // სველი წერტილი
-            document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '0'}`; // სართული
+            document.getElementById('det-wc').innerText = item.Bathrooms || 0;
+            document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '0'}`;
             
-            // დამატებითი პარამეტრი
+            // 5. პარამეტრების ტაბის მონაცემები
             document.getElementById('p-condition').innerText = item.Condition || "---";
             document.getElementById('p-project').innerText = item.ProjectType || "---";
+            document.getElementById('p-heating').innerText = item.Heating || "---"; // ეს არის ახალი ხაზი
             
-            // კონტაქტი
+            // 6. კონტაქტის ღილაკების ლინკები
             document.getElementById('btn-call').href = "tel:" + item.Phone;
             document.getElementById('btn-msg').href = "https://t.me/" + (item.TelegramUser || item.Phone);
         }
