@@ -210,19 +210,27 @@
             });
         }
 
-        function createCard(item) {
+function createCard(item) {
             const photos = item.Photos || "";
             const firstImg = (typeof photos === 'string') ? photos.split(',')[0] : (Array.isArray(photos) ? photos[0] : 'https://placehold.co/600x400');
+            
+            // ვაწყობთ სათაურს ქარდისთვის
+            const deal = item.DealType || "";
+            const type = item.PropertyType || "";
+            const dist = item.District || "";
+            const fullTitle = `${deal} ${type} ${dist}`;
+
             const card = document.createElement('div');
             card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer snap-item";
             card.onclick = () => openDetails(item);
+            
             card.innerHTML = `
                 <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
                     <img src="${firstImg}" class="w-full h-full object-cover">
                     <div class="absolute top-3 right-3 bg-white/90 px-4 py-1.5 rounded-2xl text-[11px] font-black">${item.TotalPrice} ${item.Currency === '$' ? '$' : '₾'}</div>
                 </div>
-                <h4 class="text-base font-extrabold text-slate-800 px-1 truncate">${item.Street || 'განცხადება'}</h4>
-                <p class="text-xs text-slate-400 font-bold px-1 italic">${item.District || ''}</p>`;
+                <h4 class="text-sm font-extrabold text-slate-800 px-1 truncate">${fullTitle}</h4>
+                <p class="text-[10px] text-slate-400 font-bold px-1 italic">${item.Street || ''}</p>`;
             return card;
         }
 
