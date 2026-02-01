@@ -200,7 +200,7 @@
     <nav id="bottom-nav"></nav>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzoE9ND74hVmD3RwNjcYZUXd6u3dD8GOzbC9_CzjusCOdvFk3nvuCoXGLYz4973PTEgkg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxAlPBExLcp_uCe2VOA2BtZetujMSdL9_pwzsrfWPTpjNMtznz7-uVmRd_yEZn7UJvntg/exec";
         const tg = window.Telegram.WebApp;
         let allProperties = [];
 
@@ -217,29 +217,31 @@
             }, 2000);
         }
 
-        async function fetchData() {
-            try {
-                const url = `${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                // ნავიგაციის რენდერი
-                if (data.navigation) {
-                    renderFooter(data.navigation);
-                }
-
-                // პროდუქტების რენდერი (თუ თქვენს API-ში listings ქვია)
-                if (data.listings) {
-                    allProperties = data.listings;
-                    renderHome(allProperties);
-                }
-                
-                console.log("Orders:", data.orders);
-                
-            } catch (e) {
-                console.error("Fetch error:", e);
-            }
+async function fetchData() {
+    try {
+        // წამოვიღოთ მონაცემები
+        const res = await fetch(`${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`);
+        const data = await res.json();
+        
+        // 1. გამოვაჩინოთ ბოტასები (Products)
+        if (data.products) {
+            allProperties = data.products; // შევინახოთ ფილტრაციისთვის
+            renderHome(data.products); 
         }
+        
+        // 2. ავაწყოთ ფუტერი (Navigation)
+        if (data.navigation) {
+            renderFooter(data.navigation);
+        }
+        
+        // 3. თუ შეკვეთები გვაინტერესებს
+        console.log("Orders:", data.orders);
+
+    } catch (e) {
+        console.error("Fetch error:", e);
+    }
+}
+    
 
         function renderFooter(navData) {
             const footer = document.getElementById('bottom-nav');
@@ -276,23 +278,27 @@
             });
         }
 
-        function createCard(item) {
-            const photos = item.Photos || "";
-            const firstImg = photos.split(',')[0] || 'https://placehold.co/600x400';
-            const fullTitle = `${item.DealType || ""} ${item.PropertyType || ""} ${item.District || ""}`;
-
-            const card = document.createElement('div');
-            card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer snap-item";
-            card.onclick = () => openDetails(item);
-            card.innerHTML = `
-                <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
-                    <img src="${firstImg}" class="w-full h-full object-cover">
-                    <div class="absolute top-3 right-3 bg-white/90 px-4 py-1.5 rounded-2xl text-[11px] font-black">${item.TotalPrice} ${item.Currency === '$' ? '$' : '₾'}</div>
-                </div>
-                <h4 class="text-sm font-extrabold text-slate-800 px-1 truncate">${fullTitle}</h4>
-                <p class="text-[10px] text-slate-400 font-bold px-1 italic">${item.Street || ''}</p>`;
-            return card;
-        }
+function createCard(item) {
+    const photos = item.images || "";
+    const firstImg = photos.split(',')[0] || 'https://placehold.co/600x400';
+    
+    const card = document.createElement('div');
+    card.className = "bg-white p-3.5 min-w-[calc(100vw-80px)] max-w-[350px] rounded-[35px] shadow-md border border-slate-50 flex-shrink-0 cursor-pointer snap-item";
+    
+    card.innerHTML = `
+        <div class="relative aspect-video overflow-hidden rounded-[28px] mb-4">
+            <img src="${firstImg}" class="w-full h-full object-cover">
+            <div class="absolute top-3 right-3 bg-white/90 px-4 py-1.5 rounded-2xl text-[11px] font-black">
+                ${item.price} ₾
+            </div>
+        </div>
+        <h4 class="text-sm font-extrabold text-slate-800 px-1 truncate">${item.name}</h4>
+        <p class="text-[10px] text-slate-400 font-bold px-1 italic">${item.category || ''}</p>
+    `;
+    
+    card.onclick = () => openDetails(item);
+    return card;
+}
 
         function openDetails(item) {
             fillDetailsData(item);
