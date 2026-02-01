@@ -3,169 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shoes Store v2.0</title>
+    <title>Shoes Store</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f9fc; margin: 0; padding-bottom: 120px; }
         
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .promo-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 40px; position: relative; overflow: hidden;
+        }
+
+        /* პროდუქტის ბარათი ზუსტად დიზაინის მიხედვით */
+        .product-card {
+            background: white; border-radius: 35px; padding: 15px;
+            transition: all 0.2s; position: relative;
+        }
+        .product-card:active { transform: scale(0.95); }
         
-        #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
-        .hidden-splash { opacity: 0; visibility: hidden; }
-        
-        /* Fixed Bottom Nav - ზუსტად სურათის მიხედვით */
+        .discount-badge {
+            position: absolute; top: 15px; right: 15px;
+            background: #ff5f5f; color: white; padding: 4px 10px;
+            border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 10;
+        }
+
+        /* შავი ნავიგაცია - სქრინშოტის ანალოგი */
         #bottom-nav {
-            position: fixed;
-            bottom: 25px;
-            left: 20px;
-            right: 20px;
-            height: 75px;
-            background: #000000;
-            border-radius: 38px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 9999; /* ძალიან მაღალი ინდექსი რომ არაფერმა დაფაროს */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            padding: 0 15px;
+            position: fixed; bottom: 25px; left: 20px; right: 20px;
+            height: 75px; background: #000; border-radius: 38px;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #4b5563; /* არააქტიური ფერი */
-            transition: 0.3s;
-            cursor: pointer;
-            text-decoration: none;
+        .nav-item { color: #4b5563; transition: 0.3s; cursor: pointer; }
+        .nav-item.active { color: white; }
+        
+        .details-page { 
+            position: fixed; inset: 0; background: white; z-index: 2000; 
+            transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            overflow-y: auto; 
         }
-
-        .nav-item.active {
-            color: #ffffff !important; /* აქტიური ფერი - თეთრი */
-        }
-
-        .nav-label {
-            font-size: 9px;
-            font-weight: 800;
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* სლაიდერის და დეტალების სტილები */
-        .details-page { position: fixed; inset: 0; background: white; z-index: 10000; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         .details-page.active { transform: translateY(0); }
-        .slider-container { position: relative; height: 45vh; width: 100%; background: #f8f9fa; }
-        .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s; }
-        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .slide img { max-width: 85%; max-height: 85%; object-fit: contain; }
     </style>
 </head>
-<body class="pb-32">
+<body>
 
-    <div id="splash-screen">
-        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
-    </div>
-
-    <div id="main-content" style="opacity: 0;">
-        <header class="pt-8 px-6 pb-2 flex justify-between items-center">
-            <div>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Sneaker Store</p>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">ბოტასების მაღაზია</h1>
-            </div>
-            <i class="fa-solid fa-bell text-slate-300 text-xl"></i>
-        </header>
-
-        <section class="px-6 mt-6 mb-8">
-            <div id="trending-container" class="grid grid-cols-2 gap-4"></div>
-        </section>
-    </div>
-
-    <div id="details-page" class="details-page no-scrollbar">
-        <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-[10001]"><i class="fa-solid fa-arrow-left"></i></button>
-        <div id="slider-container" class="slider-container">
-            <div id="slider-wrapper" class="slider-wrapper"></div>
+    <header class="p-6 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <img src="https://github.com/bingambini/real-estate-app/blob/main/shoes_logo.png?raw=true" class="w-10 h-10 object-contain">
+            <h1 class="font-extrabold text-xl">Shoes Store</h1>
         </div>
-        <div class="p-8">
-            <h1 id="det-title" class="text-2xl font-black mb-2"></h1>
-            <div id="det-price" class="text-3xl font-black text-blue-600 mb-6"></div>
-            <div id="desc-container" class="text-slate-500 leading-relaxed"></div>
+        <i class="fa-solid fa-bell text-slate-300 text-xl"></i>
+    </header>
+
+    <div class="px-6 mb-8">
+        <div class="promo-banner p-8 h-52 flex flex-col justify-center text-white">
+            <h2 class="text-2xl font-extrabold leading-tight mb-4">ექსკლუზიური<br>შეთავაზება</h2>
+            <button class="bg-blue-600 w-28 py-2.5 rounded-2xl font-bold text-xs">ნახვა</button>
+            <img src="https://i.postimg.cc/g0t38GT9/nike5-Photoroom.png" class="absolute -right-4 top-4 w-52 rotate-[-15deg]">
         </div>
     </div>
+
+    <div class="px-8 mb-5 text-[10px] uppercase tracking-[3px] font-black text-slate-400">ახალი კოლექცია</div>
+
+    <div id="product-grid" class="grid grid-cols-2 gap-4 px-6"></div>
 
     <nav id="bottom-nav"></nav>
 
+    <div id="details-page" class="details-page">
+        <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-[2001]"><i class="fa-solid fa-arrow-left"></i></button>
+        <div id="det-img-cont" class="h-[45vh] bg-slate-50 flex items-center justify-center p-12">
+            <img id="det-img" class="max-h-full object-contain">
+        </div>
+        <div class="p-8">
+            <h1 id="det-title" class="text-2xl font-black mb-2"></h1>
+            <p id="det-cat" class="text-slate-400 font-bold text-xs uppercase mb-4"></p>
+            <div id="det-price" class="text-3xl font-black text-blue-600 mb-6"></div>
+            <div id="det-desc" class="text-slate-500 leading-relaxed"></div>
+        </div>
+    </div>
+
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxAlPBExLcp_uCe2VOA2BtZetujMSdL9_pwzsrfWPTpjNMtznz7-uVmRd_yEZn7UJvntg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyLXPvQ12ZjDavvaPU5sjuUUk2OwUHT2fgtgorDBCtSJV7l5TfdUCPdmzhTZVfTfOMKkQ/exec";
         const tg = window.Telegram.WebApp;
 
         async function init() {
             tg.expand();
-            // Splash screen-ის გაქრობა
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('hidden-splash');
-                document.getElementById('main-content').style.opacity = '1';
-            }, 2000);
-            await fetchData();
-        }
-
-        async function fetchData() {
             try {
-                const res = await fetch(`${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`);
+                const res = await fetch(API_URL);
                 const data = await res.json();
                 
                 if (data.products) renderProducts(data.products);
                 if (data.navigation) renderNavigation(data.navigation);
-            } catch (e) {
-                console.error("Error:", e);
-            }
+            } catch (e) { console.error("Load failed", e); }
         }
 
-        function renderProducts(products) {
-            const container = document.getElementById('trending-container');
-            container.innerHTML = products.map(p => `
-                <div onclick='openDetails(${JSON.stringify(p)})' class="bg-white p-4 rounded-[30px] shadow-sm border border-slate-50 flex flex-col items-center">
-                    <img src="${p.images.split(',')[0]}" class="h-32 object-contain mb-4">
-                    <h4 class="text-[12px] font-bold text-center h-8 overflow-hidden">${p.name}</h4>
-                    <span class="text-blue-600 font-black mt-2">${p.price} ₾</span>
+        function renderProducts(items) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = items.map(p => {
+                const discount = p.oldPrice ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : null;
+                return `
+                    <div class="product-card shadow-sm border border-slate-50" onclick='openDetails(${JSON.stringify(p)})'>
+                        ${discount ? `<div class="discount-badge">-${discount}%</div>` : ''}
+                        <div class="h-32 flex items-center justify-center mb-4">
+                            <img src="${p.images.split(',')[0]}" class="max-h-full object-contain drop-shadow-md">
+                        </div>
+                        <h4 class="font-bold text-sm truncate">${p.name}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="font-black text-blue-600">${p.price}₾</span>
+                            ${p.oldPrice ? `<span class="text-[10px] text-slate-300 line-through">${p.oldPrice}₾</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderNavigation(nav) {
+            const container = document.getElementById('bottom-nav');
+            container.innerHTML = nav.map(n => `
+                <div class="nav-item ${n.Status === 'active' ? 'active' : ''}" onclick="this.classList.add('active')">
+                    <i class="fa-solid ${n.Icon} text-xl"></i>
                 </div>
             `).join('');
         }
 
-        function renderNavigation(navData) {
-            const nav = document.getElementById('bottom-nav');
-            // აქ მნიშვნელოვანია: ვიყენებთ დიდ ასოებს (Label, Icon, Action, Status) როგორც შენს შიტშია
-            nav.innerHTML = navData.map(item => `
-                <div class="nav-item ${item.Status === 'active' ? 'active' : ''}" onclick="handleNav('${item.Action}', this)">
-                    <i class="fa-solid ${item.Icon} text-xl"></i>
-                    <span class="nav-label">${item.Label}</span>
-                </div>
-            `).join('');
-        }
-
-        function handleNav(action, el) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            if(action === 'home') closeDetails();
-            // აქ დაამატე სხვა გვერდების ლოგიკა
-        }
-
-        function openDetails(item) {
-            document.getElementById('det-title').innerText = item.name;
-            document.getElementById('det-price').innerText = item.price + " ₾";
-            document.getElementById('desc-container').innerText = item.desc || "";
-            
-            const wrapper = document.getElementById('slider-wrapper');
-            wrapper.innerHTML = item.images.split(',').map(url => `
-                <div class="slide"><img src="${url.trim()}"></div>
-            `).join('');
-
+        function openDetails(p) {
+            document.getElementById('det-img').src = p.images.split(',')[0];
+            document.getElementById('det-title').innerText = p.name;
+            document.getElementById('det-price').innerText = p.price + "₾";
+            document.getElementById('det-desc').innerText = p.desc;
+            document.getElementById('det-cat').innerText = p.category;
             document.getElementById('details-page').classList.add('active');
         }
 
