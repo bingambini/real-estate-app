@@ -3,87 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shoes Store UI Fix</title>
+    <title>Real Estate App v2.0</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f9fc; margin: 0; padding-bottom: 140px; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcff; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
+        .hidden-splash { opacity: 0; visibility: hidden; }
+        
+        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
+        .details-page.active { transform: translateY(0); }
 
-        /* შავი ბანერის გარანტირებული სტილი */
+        .slider-container { position: relative; height: 45vh; width: 100%; overflow: hidden; background: #f8f9fa; }
+        .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
+        .slide { min-width: 100%; height: 100%; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; }
+        
+        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 13px; white-space: nowrap; transition: 0.3s; text-transform: uppercase; }
+        .tab-btn.active { color: #2563eb; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 20px; height: 3px; background: #2563eb; border-radius: 10px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
         #bottom-nav {
-            position: fixed; bottom: 20px; left: 15px; right: 15px;
-            height: 80px; background: #000000; border-radius: 30px;
-            display: grid; grid-template-columns: repeat(4, 1fr); /* 4 თანაბარი სვეტი */
-            align-items: center; z-index: 9999;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px;
+            background: #000; border-radius: 35px; display: flex;
+            justify-content: space-around; align-items: center; z-index: 400;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); padding: 0 10px;
         }
 
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100%; border: none; background: none;
-        }
-
-        .nav-icon { font-size: 20px; margin-bottom: 4px; color: #555; }
-        .nav-text { font-size: 10px; font-weight: 700; color: #555; }
-
-        /* აქტიური ფერი */
-        .nav-item.active .nav-icon,
-        .nav-item.active .nav-text { color: #ffffff !important; }
-
-        /* პროდუქტების სტილი სქრინშოტის მიხედვით */
-        .product-card { background: white; border-radius: 35px; padding: 15px; border: 1px solid #f1f5f9; }
-        .price-text { color: #2563eb; font-weight: 900; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; cursor: pointer; }
+        .nav-item.active { color: white; }
+        .nav-label { font-size: 9px; font-weight: 800; margin-top: 4px; text-transform: uppercase; }
     </style>
 </head>
-<body>
+<body class="pb-32">
 
-    <header class="p-8 pb-4 flex justify-between items-center">
-        <h1 class="font-black text-2xl">ახალი კოლექცია</h1>
-        <i class="fa-solid fa-bell text-slate-200 text-xl"></i>
-    </header>
+    <div id="splash-screen">
+        <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
+    </div>
 
-    <div id="product-grid" class="grid grid-cols-2 gap-4 px-6"></div>
+    <div id="main-content" style="opacity: 0;">
+        <header class="pt-8 px-6 pb-2">
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
+        </header>
 
-    <nav id="bottom-nav"></nav>
+        <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
+    </div>
+
+    <div id="details-page" class="details-page no-scrollbar">
+        <div class="slider-container">
+            <div id="slider-wrapper" class="slider-wrapper"></div>
+            <div class="info-badge">ID: <span id="det-id">---</span></div>
+            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left text-slate-800"></i></button>
+        </div>
+
+        <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20">
+            <div class="mb-4">
+                <h1 id="det-title" class="text-2xl font-black text-[#1e293b]">...</h1>
+                <p id="det-loc" class="text-slate-400 font-bold text-[11px] mt-1 uppercase tracking-widest"></p>
+            </div>
+
+            <div class="flex items-center justify-between mb-8">
+                <span id="det-price" class="text-3xl font-black text-blue-600">0 ₾</span>
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center"><span id="det-bed" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">საძინ.</span></div>
+                    <div class="flex flex-col items-center"><span id="det-bath" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">აბაზანა</span></div>
+                    <div class="flex flex-col items-center"><span id="det-sq" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">კვ.მ</span></div>
+                </div>
+            </div>
+
+            <div class="flex justify-between mb-6 border-b border-slate-50">
+                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
+                <div onclick="switchTab('tab-map', this)" class="tab-btn">რუკა</div>
+                <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
+            </div>
+
+            <div id="tab-desc" class="tab-content active text-slate-500 text-[15px] leading-relaxed pb-10"></div>
+        </div>
+    </div>
+
+    <nav id="bottom-nav">
+        <div class="nav-item active"><i class="fa-solid fa-house text-xl"></i><span class="nav-label">მთავარი</span></div>
+        <div class="nav-item"><i class="fa-solid fa-layer-group text-xl"></i><span class="nav-label">კატეგორია</span></div>
+        <div class="nav-item"><i class="fa-solid fa-heart text-xl"></i><span class="nav-label">რჩეული</span></div>
+        <div class="nav-item"><i class="fa-solid fa-user text-xl"></i><span class="nav-label">პროფილი</span></div>
+    </nav>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyLXPvQ12ZjDavvaPU5sjuUUk2OwUHT2fgtgorDBCtSJV7l5TfdUCPdmzhTZVfTfOMKkQ/exec";
+        const API_URL = "აქ_ჩასვი_უძრავი_ქონების_API_URL";
+        const tg = window.Telegram.WebApp;
 
         async function init() {
+            tg.expand();
+            setTimeout(() => { 
+                document.getElementById('splash-screen').classList.add('hidden-splash'); 
+                document.getElementById('main-content').style.opacity = '1'; 
+            }, 2000);
+            await fetchData();
+        }
+
+        async function fetchData() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                
-                // პროდუქტების გამოტანა
-                const grid = document.getElementById('product-grid');
-                grid.innerHTML = data.products.map(p => `
-                    <div class="product-card">
-                        <img src="${p.images.split(',')[0]}" class="h-32 w-full object-contain mb-2">
-                        <h4 class="font-bold text-[11px] truncate text-slate-800">${p.name}</h4>
-                        <span class="price-text text-sm">${p.price}₾</span>
-                    </div>
-                `).join('');
-
-                // ნავიგაციის გამოტანა
-                const nav = document.getElementById('bottom-nav');
-                nav.innerHTML = data.navigation.map(n => `
-                    <div class="nav-item ${n.Status === 'active' ? 'active' : ''}" onclick="setActive(this)">
-                        <i class="fa-solid ${n.Icon} nav-icon"></i>
-                        <span class="nav-text">${n.Label}</span>
-                    </div>
-                `).join('');
-                
-            } catch (e) { console.error("Error loading data:", e); }
+                renderProperties(data.products);
+            } catch (e) { console.error(e); }
         }
 
-        function setActive(el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        function renderProperties(items) {
+            const container = document.getElementById('property-container');
+            container.innerHTML = items.map(item => `
+                <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white rounded-[35px] overflow-hidden shadow-sm border border-slate-50">
+                    <img src="${item.images.split(',')[0]}" class="h-48 w-full object-cover">
+                    <div class="p-5">
+                        <h4 class="font-bold text-slate-800">${item.name}</h4>
+                        <p class="text-blue-600 font-black mt-1">${item.price} ₾</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openDetails(item) {
+            document.getElementById('det-title').innerText = item.name;
+            document.getElementById('det-price').innerText = item.price + " ₾";
+            document.getElementById('tab-desc').innerText = item.desc;
+            document.getElementById('det-id').innerText = item.id;
+            
+            const wrapper = document.getElementById('slider-wrapper');
+            wrapper.innerHTML = item.images.split(',').map(url => `
+                <div class="slide"><img src="${url.trim()}"></div>
+            `).join('');
+
+            document.getElementById('details-page').classList.add('active');
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
         }
+
+        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
 
         init();
     </script>
