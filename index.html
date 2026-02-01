@@ -18,40 +18,53 @@
         #splash-screen { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; justify-content: center; align-items: center; transition: 0.6s ease; }
         .hidden-splash { opacity: 0; visibility: hidden; }
         
-        .details-page { position: fixed; inset: 0; background: white; z-index: 500; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
-        .details-page.active { transform: translateY(0); }
-
-        .slider-container { position: relative; height: 45vh; width: 100%; overflow: hidden; background: #f8f9fa; }
-        .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s ease-out; }
-        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; p-8}
-        .slide img { max-width: 90%; max-height: 90%; object-fit: contain; drop-shadow: 0 20px 30px rgba(0,0,0,0.1); }
-        
-        .info-badge { position: absolute; top: 20px; right: 20px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; z-index: 30; }
-        .slider-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
-        .dot { width: 6px; height: 6px; background: rgba(0,0,0,0.1); border-radius: 50%; transition: 0.3s; }
-        .dot.active { background: #000; width: 18px; border-radius: 10px; }
-
-        .tab-btn { position: relative; padding-bottom: 8px; font-weight: 800; color: #cbd5e1; cursor: pointer; font-size: 13px; white-space: nowrap; transition: 0.3s; text-transform: uppercase; }
-        .tab-btn.active { color: #2563eb; }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 20px; height: 3px; background: #2563eb; border-radius: 10px; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        /* Fixed Bottom Nav - ზუსტად სურათის მიხედვით */
         #bottom-nav {
-            position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px;
-            background: #000; border-radius: 35px; display: flex;
-            justify-content: space-around; align-items: center; z-index: 400;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); padding: 0 10px;
+            position: fixed;
+            bottom: 25px;
+            left: 20px;
+            right: 20px;
+            height: 75px;
+            background: #000000;
+            border-radius: 38px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 9999; /* ძალიან მაღალი ინდექსი რომ არაფერმა დაფაროს */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            padding: 0 15px;
         }
 
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; width: 25%; cursor: pointer; }
-        .nav-item.active { color: white; }
-        .nav-label { font-size: 9px; font-weight: 800; margin-top: 4px; text-transform: uppercase; }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #4b5563; /* არააქტიური ფერი */
+            transition: 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+        }
 
-        .tag-badge { background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+        .nav-item.active {
+            color: #ffffff !important; /* აქტიური ფერი - თეთრი */
+        }
+
+        .nav-label {
+            font-size: 9px;
+            font-weight: 800;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* სლაიდერის და დეტალების სტილები */
+        .details-page { position: fixed; inset: 0; background: white; z-index: 10000; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
+        .details-page.active { transform: translateY(0); }
+        .slider-container { position: relative; height: 45vh; width: 100%; background: #f8f9fa; }
+        .slider-wrapper { display: flex; height: 100%; transition: transform 0.4s; }
+        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .slide img { max-width: 85%; max-height: 85%; object-fit: contain; }
     </style>
 </head>
 <body class="pb-32">
@@ -64,83 +77,25 @@
         <header class="pt-8 px-6 pb-2 flex justify-between items-center">
             <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Sneaker Store</p>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">რას ეძებთ დღეს?</h1>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">ბოტასების მაღაზია</h1>
             </div>
-            <button class="bg-white shadow-xl w-12 h-12 rounded-2xl text-slate-400 flex items-center justify-center">
-                <i class="fa-solid fa-magnifying-glass text-lg"></i>
-            </button>
+            <i class="fa-solid fa-bell text-slate-300 text-xl"></i>
         </header>
 
-        <section class="px-6 grid grid-cols-2 gap-3 mt-6 mb-8">
-            <div onclick="filterBy('კაცი')" class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:scale-95 transition-all">
-                <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-mars"></i></div>
-                <span class="font-bold text-slate-700 text-[11px] uppercase">კაცი</span>
-            </div>
-            <div onclick="filterBy('ქალი')" class="bg-white p-4 rounded-[22px] shadow-sm border border-slate-50 flex items-center gap-3 active:scale-95 transition-all">
-                <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-venus"></i></div>
-                <span class="font-bold text-slate-700 text-[11px] uppercase">ქალი</span>
-            </div>
-        </section>
-
-        <section>
-            <div class="flex justify-between items-center px-6 mb-4">
-                <h3 class="text-xl font-extrabold text-slate-800">ახალი კოლექცია</h3>
-                <button onclick="filterBy(null)" class="text-blue-600 font-bold text-xs">ყველა</button>
-            </div>
-            <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container"></div>
+        <section class="px-6 mt-6 mb-8">
+            <div id="trending-container" class="grid grid-cols-2 gap-4"></div>
         </section>
     </div>
 
     <div id="details-page" class="details-page no-scrollbar">
-        <div class="slider-container">
+        <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-[10001]"><i class="fa-solid fa-arrow-left"></i></button>
+        <div id="slider-container" class="slider-container">
             <div id="slider-wrapper" class="slider-wrapper"></div>
-            <div id="slider-dots" class="slider-dots"></div>
-            <div class="info-badge">ID: <span id="det-id">---</span></div>
-            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20"><i class="fa-solid fa-arrow-left text-slate-800"></i></button>
         </div>
-
-        <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-            <div class="mb-4">
-                <div id="det-status" class="inline-block bg-red-50 text-red-500 text-[10px] font-black px-3 py-1 rounded-lg uppercase mb-2">New</div>
-                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
-                <p id="det-cat" class="text-slate-400 font-bold text-[11px] mt-1 uppercase tracking-widest"></p>
-            </div>
-
-            <div class="flex items-center justify-between mb-8">
-                <div class="flex flex-col">
-                    <span id="det-price" class="text-3xl font-black text-blue-600 tracking-tighter">0 ₾</span>
-                    <span id="det-old-price" class="text-sm text-slate-300 line-through font-bold"></span>
-                </div>
-                <div class="bg-green-50 text-green-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase">
-                    მარაგშია: <span id="det-stock">დიახ</span>
-                </div>
-            </div>
-
-            <div class="flex justify-between mb-6 border-b border-slate-50 overflow-x-auto no-scrollbar gap-8">
-                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
-                <div onclick="switchTab('tab-sizes', this)" class="tab-btn">ზომები & ფერები</div>
-                <div onclick="switchTab('tab-contact', this)" class="tab-btn">შეკვეთა</div>
-            </div>
-
-            <div id="tab-desc" class="tab-content active">
-                <div id="desc-container" class="text-slate-500 text-[15px] leading-relaxed pb-10"></div>
-            </div>
-
-            <div id="tab-sizes" class="tab-content pb-10">
-                <p class="text-slate-400 font-bold text-[11px] uppercase mb-3">ხელმისაწვდომი ზომები:</p>
-                <div id="det-sizes" class="flex flex-wrap gap-2 mb-6"></div>
-                <p class="text-slate-400 font-bold text-[11px] uppercase mb-3">ფერები:</p>
-                <div id="det-colors" class="flex flex-wrap gap-2"></div>
-            </div>
-
-            <div id="tab-contact" class="tab-content pb-10">
-                <div class="bg-slate-50 rounded-[30px] p-6 text-center border border-slate-100">
-                    <h3 class="text-slate-800 font-black mb-6 text-sm">გსურთ ამ მოდელის შეძენა?</h3>
-                    <a id="btn-order" href="#" class="bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-3 font-bold active:scale-95 transition-all shadow-lg shadow-blue-200">
-                        <i class="fa-brands fa-telegram text-xl"></i> შეკვეთა ტელეგრამით
-                    </a>
-                </div>
-            </div>
+        <div class="p-8">
+            <h1 id="det-title" class="text-2xl font-black mb-2"></h1>
+            <div id="det-price" class="text-3xl font-black text-blue-600 mb-6"></div>
+            <div id="desc-container" class="text-slate-500 leading-relaxed"></div>
         </div>
     </div>
 
@@ -149,19 +104,15 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxAlPBExLcp_uCe2VOA2BtZetujMSdL9_pwzsrfWPTpjNMtznz7-uVmRd_yEZn7UJvntg/exec";
         const tg = window.Telegram.WebApp;
-        let allProducts = [];
 
         async function init() {
             tg.expand();
-            showSplash();
-            await fetchData();
-        }
-
-        function showSplash() {
-            setTimeout(() => { 
-                document.getElementById('splash-screen').classList.add('hidden-splash'); 
-                document.getElementById('main-content').style.opacity = '1'; 
+            // Splash screen-ის გაქრობა
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden-splash');
+                document.getElementById('main-content').style.opacity = '1';
             }, 2000);
+            await fetchData();
         }
 
         async function fetchData() {
@@ -169,17 +120,28 @@
                 const res = await fetch(`${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`);
                 const data = await res.json();
                 
-                if (data.products) {
-                    allProducts = data.products;
-                    renderHome(data.products); 
-                }
-                if (data.navigation) renderFooter(data.navigation);
-            } catch (e) { console.error("Fetch error:", e); }
+                if (data.products) renderProducts(data.products);
+                if (data.navigation) renderNavigation(data.navigation);
+            } catch (e) {
+                console.error("Error:", e);
+            }
         }
 
-        function renderFooter(navData) {
-            const footer = document.getElementById('bottom-nav');
-            footer.innerHTML = navData.map(item => `
+        function renderProducts(products) {
+            const container = document.getElementById('trending-container');
+            container.innerHTML = products.map(p => `
+                <div onclick='openDetails(${JSON.stringify(p)})' class="bg-white p-4 rounded-[30px] shadow-sm border border-slate-50 flex flex-col items-center">
+                    <img src="${p.images.split(',')[0]}" class="h-32 object-contain mb-4">
+                    <h4 class="text-[12px] font-bold text-center h-8 overflow-hidden">${p.name}</h4>
+                    <span class="text-blue-600 font-black mt-2">${p.price} ₾</span>
+                </div>
+            `).join('');
+        }
+
+        function renderNavigation(navData) {
+            const nav = document.getElementById('bottom-nav');
+            // აქ მნიშვნელოვანია: ვიყენებთ დიდ ასოებს (Label, Icon, Action, Status) როგორც შენს შიტშია
+            nav.innerHTML = navData.map(item => `
                 <div class="nav-item ${item.Status === 'active' ? 'active' : ''}" onclick="handleNav('${item.Action}', this)">
                     <i class="fa-solid ${item.Icon} text-xl"></i>
                     <span class="nav-label">${item.Label}</span>
@@ -191,82 +153,24 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             if(action === 'home') closeDetails();
-        }
-
-        function filterBy(category) {
-            const filtered = category ? allProducts.filter(p => p.category === category) : allProducts;
-            renderHome(filtered);
-        }
-
-        function renderHome(items) {
-            const container = document.getElementById('trending-container');
-            container.innerHTML = items.map(item => `
-                <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white p-4 min-w-[260px] rounded-[35px] shadow-sm border border-slate-50 flex-shrink-0 cursor-pointer snap-item active:scale-95 transition-all">
-                    <div class="relative h-40 flex items-center justify-center mb-4">
-                        <img src="${item.images.split(',')[0]}" class="max-h-full object-contain drop-shadow-lg">
-                    </div>
-                    <h4 class="text-sm font-extrabold text-slate-800 px-1 truncate">${item.name}</h4>
-                    <div class="flex items-center justify-between mt-2 px-1">
-                        <span class="text-blue-600 font-black">${item.price} ₾</span>
-                        <span class="text-[10px] text-slate-300 font-bold uppercase">${item.status || ''}</span>
-                    </div>
-                </div>
-            `).join('');
+            // აქ დაამატე სხვა გვერდების ლოგიკა
         }
 
         function openDetails(item) {
-            // Fill Data
-            document.getElementById('det-id').innerText = item.id;
             document.getElementById('det-title').innerText = item.name;
-            document.getElementById('det-cat').innerText = item.category;
             document.getElementById('det-price').innerText = item.price + " ₾";
-            document.getElementById('det-old-price').innerText = item.oldPrice ? item.oldPrice + " ₾" : "";
-            document.getElementById('desc-container').innerText = item.desc || "აღწერა არ არის.";
-            document.getElementById('det-stock').innerText = item.inStock === "Yes" ? "დიახ" : "არა";
-            document.getElementById('det-status').innerText = item.status || "NEW";
-
-            // Sizes & Colors
-            const sizeCont = document.getElementById('det-sizes');
-            sizeCont.innerHTML = (item.sizes || "").split(',').map(s => `<span class="tag-badge">${s.trim()}</span>`).join('');
+            document.getElementById('desc-container').innerText = item.desc || "";
             
-            const colorCont = document.getElementById('det-colors');
-            colorCont.innerHTML = (item.colors || "").split(',').map(c => `<span class="tag-badge">${c.trim()}</span>`).join('');
-
-            // Order Link
-            document.getElementById('btn-order').href = `https://t.me/შენი_ბოტის_სახელი?start=order_${item.id}`;
-
-            // Build Slider
-            buildSlider(item.images);
-            
-            document.getElementById('details-page').classList.add('active');
-            document.getElementById('bottom-nav').style.display = 'none';
-        }
-
-        function buildSlider(photos) {
             const wrapper = document.getElementById('slider-wrapper');
-            const dots = document.getElementById('slider-dots');
-            wrapper.innerHTML = ''; dots.innerHTML = '';
-            const photoArray = photos.split(',');
-            
-            photoArray.forEach((url, index) => {
-                const slide = document.createElement('div'); slide.className = 'slide';
-                slide.innerHTML = `<img src="${url.trim()}">`;
-                wrapper.appendChild(slide);
-                const dot = document.createElement('div'); dot.className = `dot ${index === 0 ? 'active' : ''}`;
-                dots.appendChild(dot);
-            });
+            wrapper.innerHTML = item.images.split(',').map(url => `
+                <div class="slide"><img src="${url.trim()}"></div>
+            `).join('');
+
+            document.getElementById('details-page').classList.add('active');
         }
 
-        function switchTab(tabId, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            el.classList.add('active');
-        }
-
-        function closeDetails() { 
-            document.getElementById('details-page').classList.remove('active'); 
-            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
+        function closeDetails() {
+            document.getElementById('details-page').classList.remove('active');
         }
 
         init();
