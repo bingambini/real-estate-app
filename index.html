@@ -68,6 +68,7 @@
             color: #64748b;
             transition: 0.3s;
             width: 25%;
+            cursor: pointer;
         }
 
         .nav-item.active {
@@ -196,30 +197,15 @@
         </div>
     </div>
 
-    <nav id="bottom-nav">
-        <div class="nav-item active">
-            <i class="fa-solid fa-house text-lg"></i>
-            <span class="nav-label">მთავარი</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-location-dot text-lg"></i>
-            <span class="nav-label">რუკა</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-bell text-lg"></i>
-            <span class="nav-label">ნოტიფიკაცია</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-heart text-lg"></i>
-            <span class="nav-label">რჩეული</span>
-        </div>
-    </nav>
+    <nav id="bottom-nav"></nav>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzoE9ND74hVmD3RwNjcYZUXd6u3dD8GOzbC9_CzjusCOdvFk3nvuCoXGLYz4973PTEgkg/exec";
+        const tg = window.Telegram.WebApp;
         let allProperties = [];
 
         async function init() {
+            tg.expand();
             showSplash();
             await fetchData();
         }
@@ -231,24 +217,51 @@
             }, 2000);
         }
 
-async function fetchData() {
-    try {
-        const url = `${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        // 1. თუ ნავიგაციის მონაცემები მოვიდა, ააწყვე ფუტერი
-        if (data.navigation) {
-            renderFooter(data.navigation);
+        async function fetchData() {
+            try {
+                const url = `${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                // ნავიგაციის რენდერი
+                if (data.navigation) {
+                    renderFooter(data.navigation);
+                }
+
+                // პროდუქტების რენდერი (თუ თქვენს API-ში listings ქვია)
+                if (data.listings) {
+                    allProperties = data.listings;
+                    renderHome(allProperties);
+                }
+                
+                console.log("Orders:", data.orders);
+                
+            } catch (e) {
+                console.error("Fetch error:", e);
+            }
         }
-        
-        // 2. თუ შეკვეთების ისტორია გაინტერესებს (სურვილისამებრ)
-        console.log("Orders:", data.orders);
-        
-    } catch (e) {
-        console.error("Fetch error:", e);
-    }
-}
+
+        function renderFooter(navData) {
+            const footer = document.getElementById('bottom-nav');
+            footer.innerHTML = ''; 
+
+            navData.forEach(item => {
+                const navItem = document.createElement('div');
+                navItem.className = `nav-item ${item.Status === 'active' ? 'active' : ''}`;
+                
+                navItem.onclick = () => {
+                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                    navItem.classList.add('active');
+                    // აქ შეგიძლიათ დაამატოთ გვერდების გადართვის ლოგიკა Action-ის მიხედვით
+                };
+
+                navItem.innerHTML = `
+                    <i class="fa-solid ${item.Icon} text-lg"></i>
+                    <span class="nav-label">${item.Label}</span>
+                `;
+                footer.appendChild(navItem);
+            });
+        }
 
         function filterBy(category) {
             const filtered = category ? allProperties.filter(i => i.PropertyType === category) : allProperties;
@@ -305,9 +318,6 @@ async function fetchData() {
             document.getElementById('p-condition').innerText = item.Condition || "---";
             document.getElementById('p-project').innerText = item.ProjectType || "---";
             document.getElementById('p-heating').innerText = item.Heating || "---";
-            
-            const addr = encodeURIComponent(`${item.City || ''} ${item.Street || ''}`);
-            document.getElementById('btn-google-maps').href = `https://www.google.com/maps/search/?api=1&query=${addr}`;
             
             document.getElementById('btn-call').href = "tel:" + item.Phone;
             document.getElementById('btn-msg').href = "https://t.me/" + (item.TelegramUser || item.Phone);
