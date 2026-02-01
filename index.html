@@ -42,7 +42,10 @@
         
         .snap-x-container { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .snap-item { scroll-snap-align: center; }
-        nav { padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 1rem) !important; }
+
+        /* Navigation styles */
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn span { font-size: 9px; margin-top: 2px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body class="pb-32">
@@ -51,7 +54,7 @@
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" style="opacity: 0;">
+    <div id="page-home" class="page-content">
         <header class="pt-8 px-6 pb-2 flex justify-between items-center">
             <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
@@ -89,6 +92,10 @@
             <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container"></div>
         </section>
     </div>
+
+    <div id="page-location" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">ლოკაციის გვერდი</div>
+    <div id="page-notif" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">შეტყობინებები</div>
+    <div id="page-saved" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">შენახული</div>
 
     <div id="details-page" class="details-page no-scrollbar">
         <div class="slider-container">
@@ -159,11 +166,23 @@
         </div>
     </div>
 
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#1e293b] p-6 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400]">
-        <i class="fa-solid fa-house text-white text-lg"></i>
-        <i class="fa-solid fa-location-dot text-slate-500 text-lg"></i>
-        <i class="fa-solid fa-bell text-slate-500 text-lg"></i>
-        <i class="fa-solid fa-heart text-slate-500 text-lg"></i>
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#1e293b] pt-4 pb-8 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400] transition-transform duration-300">
+        <button onclick="showPage('home')" id="nav-home" class="nav-btn flex flex-col items-center text-white">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>მთავარი</span>
+        </button>
+        <button onclick="showPage('location')" id="nav-location" class="nav-btn flex flex-col items-center text-slate-500">
+            <i class="fa-solid fa-location-dot text-lg"></i>
+            <span>რუკა</span>
+        </button>
+        <button onclick="showPage('notif')" id="nav-notif" class="nav-btn flex flex-col items-center text-slate-500">
+            <i class="fa-solid fa-bell text-lg"></i>
+            <span>ბელი</span>
+        </button>
+        <button onclick="showPage('saved')" id="nav-saved" class="nav-btn flex flex-col items-center text-slate-500">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span>ფავორიტი</span>
+        </button>
     </nav>
 
     <script>
@@ -178,8 +197,24 @@
         function showSplash() {
             setTimeout(() => { 
                 document.getElementById('splash-screen').classList.add('hidden-splash'); 
-                document.getElementById('main-content').style.opacity = '1'; 
+                document.getElementById('page-home').style.opacity = '1'; 
             }, 2000);
+        }
+
+        // გვერდების გადართვის ფუნქცია
+        function showPage(pageId) {
+            // დამალე ყველა გვერდი
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            // აჩვენე არჩეული
+            document.getElementById('page-' + pageId).classList.remove('hidden');
+
+            // იკონკების შეფერვა
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-white');
+                btn.classList.add('text-slate-500');
+            });
+            document.getElementById('nav-' + pageId).classList.remove('text-slate-500');
+            document.getElementById('nav-' + pageId).classList.add('text-white');
         }
 
         async function fetchData() {
@@ -194,6 +229,7 @@
         function filterBy(category) {
             const filtered = category ? allProperties.filter(i => i.PropertyType === category) : allProperties;
             renderHome(filtered);
+            showPage('home'); // ფილტრაციისას ყოველთვის დავბრუნდეთ ჰოუმზე
         }
 
         function renderHome(items) {
@@ -207,7 +243,6 @@
         function createCard(item) {
             const photos = item.Photos || "";
             const firstImg = photos.split(',')[0] || 'https://placehold.co/600x400';
-            // მთავარი გვერდის სათაური
             const fullTitle = `${item.DealType || ""} ${item.PropertyType || ""} ${item.District || ""}`;
 
             const card = document.createElement('div');
@@ -227,21 +262,18 @@
             fillDetailsData(item);
             buildSlider(item.Photos);
             document.getElementById('details-page').classList.add('active');
-            document.getElementById('bottom-nav').style.display = 'none';
+            document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
             handleViews(item);
         }
 
         function fillDetailsData(item) {
-            // სათაურები
             document.getElementById('det-title').innerText = `${item.DealType || ""} ${item.PropertyType || ""} ${item.District || ""}`;
             document.getElementById('det-loc').innerText = `${item.Street || ''}, ${item.City || ''}`;
             document.getElementById('det-id').innerText = item.ID;
             
-            // ფასი
             const curr = (item.Currency === '$' || item.Currency === 'დოლარი') ? '$' : '₾';
             document.getElementById('det-price').innerText = item.TotalPrice + ' ' + curr;
             
-            // აღწერა და პარამეტრები
             document.getElementById('desc-container').innerText = item.Description || "აღწერა არ არის.";
             document.getElementById('det-sqm').innerText = (item.TotalArea || 0) + ' მ²';
             document.getElementById('det-rooms').innerText = item.Rooms || 0;
@@ -251,11 +283,9 @@
             document.getElementById('p-project').innerText = item.ProjectType || "---";
             document.getElementById('p-heating').innerText = item.Heating || "---";
             
-            // რუკა
             const addr = encodeURIComponent(`${item.City || ''} ${item.Street || ''}`);
             document.getElementById('btn-google-maps').href = `https://www.google.com/maps/search/?api=1&query=${addr}`;
             
-            // კონტაქტი
             document.getElementById('btn-call').href = "tel:" + item.Phone;
             document.getElementById('btn-msg').href = "https://t.me/" + (item.TelegramUser || item.Phone);
         }
@@ -295,7 +325,7 @@
 
         function closeDetails() { 
             document.getElementById('details-page').classList.remove('active'); 
-            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
+            setTimeout(() => document.getElementById('bottom-nav').style.transform = 'translateY(0)', 300);
         }
 
         init();
