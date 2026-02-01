@@ -43,9 +43,43 @@
         .snap-x-container { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .snap-item { scroll-snap-align: center; }
 
-        /* Navigation styles */
-        .nav-btn { transition: all 0.3s ease; }
-        .nav-btn span { font-size: 9px; margin-top: 2px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* განახლებული ნავიგაციის სტილები */
+        #bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 75px;
+            background: #1e293b;
+            border-radius: 35px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 400;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 0 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: 0.3s;
+            width: 25%;
+        }
+
+        .nav-item.active {
+            color: white;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="pb-32">
@@ -54,7 +88,7 @@
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="page-home" class="page-content">
+    <div id="main-content" style="opacity: 0;">
         <header class="pt-8 px-6 pb-2 flex justify-between items-center">
             <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
@@ -92,10 +126,6 @@
             <div id="trending-container" class="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-6 snap-x-container"></div>
         </section>
     </div>
-
-    <div id="page-location" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">ლოკაციის გვერდი</div>
-    <div id="page-notif" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">შეტყობინებები</div>
-    <div id="page-saved" class="page-content hidden px-6 pt-10 text-center font-bold text-slate-400">შენახული</div>
 
     <div id="details-page" class="details-page no-scrollbar">
         <div class="slider-container">
@@ -166,23 +196,23 @@
         </div>
     </div>
 
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#1e293b] pt-4 pb-8 flex justify-around items-center rounded-t-[35px] shadow-2xl z-[400] transition-transform duration-300">
-        <button onclick="showPage('home')" id="nav-home" class="nav-btn flex flex-col items-center text-white">
+    <nav id="bottom-nav">
+        <div class="nav-item active">
             <i class="fa-solid fa-house text-lg"></i>
-            <span>მთავარი</span>
-        </button>
-        <button onclick="showPage('location')" id="nav-location" class="nav-btn flex flex-col items-center text-slate-500">
+            <span class="nav-label">მთავარი</span>
+        </div>
+        <div class="nav-item">
             <i class="fa-solid fa-location-dot text-lg"></i>
-            <span>რუკა</span>
-        </button>
-        <button onclick="showPage('notif')" id="nav-notif" class="nav-btn flex flex-col items-center text-slate-500">
+            <span class="nav-label">რუკა</span>
+        </div>
+        <div class="nav-item">
             <i class="fa-solid fa-bell text-lg"></i>
-            <span>ბელი</span>
-        </button>
-        <button onclick="showPage('saved')" id="nav-saved" class="nav-btn flex flex-col items-center text-slate-500">
+            <span class="nav-label">ნოტიფიკაცია</span>
+        </div>
+        <div class="nav-item">
             <i class="fa-solid fa-heart text-lg"></i>
-            <span>ფავორიტი</span>
-        </button>
+            <span class="nav-label">რჩეული</span>
+        </div>
     </nav>
 
     <script>
@@ -197,24 +227,8 @@
         function showSplash() {
             setTimeout(() => { 
                 document.getElementById('splash-screen').classList.add('hidden-splash'); 
-                document.getElementById('page-home').style.opacity = '1'; 
+                document.getElementById('main-content').style.opacity = '1'; 
             }, 2000);
-        }
-
-        // გვერდების გადართვის ფუნქცია
-        function showPage(pageId) {
-            // დამალე ყველა გვერდი
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            // აჩვენე არჩეული
-            document.getElementById('page-' + pageId).classList.remove('hidden');
-
-            // იკონკების შეფერვა
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-white');
-                btn.classList.add('text-slate-500');
-            });
-            document.getElementById('nav-' + pageId).classList.remove('text-slate-500');
-            document.getElementById('nav-' + pageId).classList.add('text-white');
         }
 
         async function fetchData() {
@@ -229,7 +243,6 @@
         function filterBy(category) {
             const filtered = category ? allProperties.filter(i => i.PropertyType === category) : allProperties;
             renderHome(filtered);
-            showPage('home'); // ფილტრაციისას ყოველთვის დავბრუნდეთ ჰოუმზე
         }
 
         function renderHome(items) {
@@ -262,7 +275,7 @@
             fillDetailsData(item);
             buildSlider(item.Photos);
             document.getElementById('details-page').classList.add('active');
-            document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
+            document.getElementById('bottom-nav').style.display = 'none';
             handleViews(item);
         }
 
@@ -325,7 +338,7 @@
 
         function closeDetails() { 
             document.getElementById('details-page').classList.remove('active'); 
-            setTimeout(() => document.getElementById('bottom-nav').style.transform = 'translateY(0)', 300);
+            setTimeout(() => document.getElementById('bottom-nav').style.display = 'flex', 300);
         }
 
         init();
