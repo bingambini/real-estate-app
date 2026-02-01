@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shoes Store Fixed</title>
+    <title>Shoes Store Final UI</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,64 +11,67 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f9fc; margin: 0; padding-bottom: 140px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f9fc; margin: 0; padding-bottom: 150px; }
 
-        /* შავი ბანერი წარწერებით */
+        /* განახლებული შავი ბანერი - უფრო მაღალი და მკაფიო */
         #bottom-nav {
             position: fixed; 
-            bottom: 20px; 
+            bottom: 25px; 
             left: 15px; 
             right: 15px;
-            height: 85px; 
+            height: 90px; /* სიმაღლე გავზარდეთ ტექსტისთვის */
             background: #000000; 
             border-radius: 35px;
             display: flex; 
             justify-content: space-around; 
             align-items: center;
             z-index: 9999;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-            padding: 0 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            padding: 0 5px;
         }
 
         .nav-item {
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
+            display: flex !important;
+            flex-direction: column !important; /* აუცილებელია იკონკა ზემოთ, ტექსტი ქვემოთ */
+            align-items: center !important;
+            justify-content: center !important;
             flex: 1;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            height: 100%;
+            transition: 0.3s;
         }
 
-        /* არააქტიური ღილაკის ფერი */
-        .nav-item .nav-icon, .nav-item .nav-text {
-            color: #64748b; 
+        /* იკონკის სტილი */
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+            color: #4b5563; /* ნაცრისფერი (არააქტიური) */
         }
 
-        /* აქტიური ღილაკის ფერი (თეთრი) */
-        .nav-item.active .nav-icon, .nav-item.active .nav-text {
+        /* ტექსტის სტილი - აქ იყო პრობლემა */
+        .nav-text {
+            font-size: 10px !important;
+            font-weight: 700;
+            color: #4b5563; /* ნაცრისფერი (არააქტიური) */
+            text-transform: none;
+            display: block !important;
+        }
+
+        /* აქტიური ელემენტის ფერი (თეთრი) */
+        .nav-item.active .nav-icon,
+        .nav-item.active .nav-text {
             color: #ffffff !important;
         }
 
-        .nav-icon {
-            font-size: 22px;
-            margin-bottom: 4px;
-        }
-
-        .nav-text {
-            font-size: 10px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        /* პროდუქტების სტილი */
-        .product-card { background: white; border-radius: 30px; padding: 15px; border: 1px solid #f1f5f9; }
+        /* პროდუქტის ბარათი */
+        .product-card { background: white; border-radius: 30px; padding: 15px; border: 1px solid #f1f5f9; position: relative; }
+        .discount-badge { position: absolute; top: 10px; right: 10px; background: #ff5f5f; color: white; padding: 4px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <header class="p-8 pb-4">
+    <header class="p-8 pb-4 flex justify-between items-center">
         <h1 class="font-black text-2xl text-slate-800">ახალი კოლექცია</h1>
+        <i class="fa-solid fa-bell text-slate-300 text-xl"></i>
     </header>
 
     <div id="product-grid" class="grid grid-cols-2 gap-4 px-6"></div>
@@ -89,19 +92,22 @@
 
         function renderProducts(items) {
             const grid = document.getElementById('product-grid');
-            grid.innerHTML = items.map(p => `
+            grid.innerHTML = items.map(p => {
+                const discount = p.oldPrice ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : null;
+                return `
                 <div class="product-card">
+                    ${discount ? `<div class="discount-badge">-${discount}%</div>` : ''}
                     <img src="${p.images.split(',')[0]}" class="h-32 w-full object-contain mb-2">
-                    <h4 class="font-bold text-xs truncate">${p.name}</h4>
-                    <span class="text-blue-600 font-black">${p.price}₾</span>
+                    <h4 class="font-bold text-[11px] truncate text-slate-700">${p.name}</h4>
+                    <span class="text-blue-600 font-black text-sm">${p.price}₾</span>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderNavigation(navData) {
-            const navContainer = document.getElementById('bottom-nav');
-            // ყურადღება: ვიყენებთ n.Label და n.Icon (დიდი ასოებით)
-            navContainer.innerHTML = navData.map(n => `
+            const container = document.getElementById('bottom-nav');
+            // ვიყენებთ ზუსტად იმ სახელებს რაც JSON-შია: Label და Icon
+            container.innerHTML = navData.map(n => `
                 <div class="nav-item ${n.Status === 'active' ? 'active' : ''}" onclick="setActive(this)">
                     <i class="fa-solid ${n.Icon} nav-icon"></i>
                     <span class="nav-text">${n.Label}</span>
@@ -110,7 +116,7 @@
         }
 
         function setActive(el) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
         }
 
