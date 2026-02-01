@@ -231,14 +231,24 @@
             }, 2000);
         }
 
-        async function fetchData() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                allProperties = data.listings;
-                renderHome(allProperties);
-            } catch (e) { console.error("Fetch error"); }
+async function fetchData() {
+    try {
+        const url = `${API_URL}?userId=${tg.initDataUnsafe.user?.id || ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        // 1. თუ ნავიგაციის მონაცემები მოვიდა, ააწყვე ფუტერი
+        if (data.navigation) {
+            renderFooter(data.navigation);
         }
+        
+        // 2. თუ შეკვეთების ისტორია გაინტერესებს (სურვილისამებრ)
+        console.log("Orders:", data.orders);
+        
+    } catch (e) {
+        console.error("Fetch error:", e);
+    }
+}
 
         function filterBy(category) {
             const filtered = category ? allProperties.filter(i => i.PropertyType === category) : allProperties;
