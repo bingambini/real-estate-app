@@ -28,8 +28,10 @@ async function fetchData() {
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        // ვამოწმებთ ორივე ვარიანტს: დიდითაც და პატარათაც
-        window.allMaklers = data.Makler || data.makler || []; 
+        // ვამოწმებთ ყველა შესაძლო დასახელებას და ვინახავთ როგორც მასივს
+        const rawMaklers = data.Makler || data.makler || [];
+        window.allMaklers = Array.isArray(rawMaklers) ? rawMaklers : [];
+        
         const listings = data.listings || data.Listings || [];
 
         if (listings.length === 0) {
@@ -46,13 +48,18 @@ async function fetchData() {
 
 function renderProperties(items) {
     const container = document.getElementById('property-container');
-    if (!container) return;
+    if (!container || !items) return;
     
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
         const formattedPrice = formatPrice(item.TotalPrice);
         
-        const currentMakler = window.allMaklers.find(m => m.ID === item.MaklerID) || window.allMaklers[0];
+        // უსაფრთხო ძებნა მასივში
+        let currentMakler = null;
+        if (window.allMaklers.length > 0) {
+            currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
+        }
+        
         const maklerImg = currentMakler ? currentMakler.Photo : 'https://via.placeholder.com/100';
 
         return `
@@ -93,13 +100,11 @@ function renderProperties(items) {
 document.addEventListener('click', function(e) {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
-        // აქტიური კლასის მართვა
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         navItem.classList.add('active');
 
-        // თუ დავაჭირეთ "პროფილი"-ს (შეგვიძლია შევამოწმოთ ტექსტით ან HTML სტრუქტურით)
         if (navItem.querySelector('.nav-label')?.innerText.includes("პროფილი")) {
-            openProfile(); // გახსნის მთავარ პროფილს
+            openProfile(); 
         }
     }
 });
@@ -151,9 +156,11 @@ function openDetails(item) {
 }
 
 function openProfile(maklerId) {
-    // თუ maklerId არ გვაქვს (ნავიგაციიდან მოსვლისას), ვიღებთ სიიდან პირველს (შენ)
+    // უსაფრთხო ძებნა: თუ მასივი ცარიელია, ვაჩერებთ ფუნქციას
+    if (!Array.isArray(window.allMaklers) || window.allMaklers.length === 0) return;
+
     const m = maklerId 
-        ? window.allMaklers.find(makler => makler.ID === maklerId) 
+        ? window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) 
         : window.allMaklers[0];
 
     if (!m) return;
