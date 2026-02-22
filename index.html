@@ -118,7 +118,7 @@
         <div class="nav-item"><i class="fa-solid fa-user text-xl"></i><span class="nav-label">პროფილი</span></div>
     </nav>
 
-    <script>
+<script>
         // ჩასვი შენი Apps Script Web App URL აქ
         const API_URL = "https://script.google.com/macros/s/AKfycbwkKue2ByuQtoYH8YbeJIHgjgWUNs1hlS5AZgVMmhMFlUWpBBpsNW-jz9rVxSiDTDkS3Q/exec";
         const tg = window.Telegram.WebApp;
@@ -172,6 +172,12 @@
         }
 
         function openDetails(item) {
+            // --- ნახვების დათვლის ჩამატებული ნაწილი ---
+            if (item.ID) {
+                fetch(`${API_URL}?viewId=${item.ID}`).catch(err => console.error("Counter error:", err));
+            }
+            // ----------------------------------------
+
             // ძირითადი ინფო
             document.getElementById('det-title').innerText = `${item.Rooms} ოთახიანი ${item.PropertyType}`;
             document.getElementById('det-loc').innerText = `${item.City}, ${item.District}, ${item.Street || ''}`;
