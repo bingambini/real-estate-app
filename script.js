@@ -132,56 +132,44 @@ function renderProperties(items) {
             const maklerImg = currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent';
             
             return `
-            <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[35px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all duration-300 mb-6 relative">
-                <div class="relative h-72 overflow-hidden">
+            <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4 relative">
+                <div class="relative h-60 overflow-hidden">
                     <img src="${firstImg}" class="w-full h-full object-cover">
                     
-                    <div class="absolute top-5 left-5 bg-black/20 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">ID: ${item.ID}</div>
-                    <div class="absolute top-5 right-5 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-800 uppercase">${item.DealType || 'იყიდება'}</div>
+                    <div class="absolute top-3 left-3 bg-black/30 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-bold text-white uppercase">ID: ${item.ID}</div>
+                    <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-black text-slate-800 uppercase">${item.DealType || 'იყიდება'}</div>
                     
-                    <div class="absolute bottom-5 left-5 bg-blue-600 px-5 py-2.5 rounded-2xl shadow-xl shadow-blue-500/20">
-                        <p class="text-white font-black text-xl leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
+                    <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-xl shadow-lg">
+                        <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
                     </div>
 
-                    <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-5 right-5 w-14 h-14 rounded-2xl border-2 border-white/50 shadow-2xl overflow-hidden active:scale-90 transition-transform cursor-pointer backdrop-blur-sm bg-white/10 p-0.5">
-                        <img src="${maklerImg}" class="w-full h-full object-cover rounded-[14px]">
+                    <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-3 right-3 w-11 h-11 rounded-xl border-2 border-white shadow-xl overflow-hidden active:scale-90 transition-transform cursor-pointer">
+                        <img src="${maklerImg}" class="w-full h-full object-cover">
                     </div>
                 </div>
 
-                <div class="p-6">
-                    <h4 class="font-black text-slate-800 text-xl mb-1 truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
-                    <p class="text-slate-400 text-xs font-bold mb-5 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot text-blue-500"></i> ${item.District || ''}, ${item.City || ''}
+                <div class="px-4 py-3">
+                    <h4 class="font-black text-slate-800 text-base leading-tight truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
+                    <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot text-blue-500/70"></i> ${item.District || ''}, ${item.City || ''}
                     </p>
                     
-                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                                    <i class="fa-solid fa-vector-square text-blue-600 text-[10px]"></i>
-                                </div>
-                                <span class="text-xs font-black text-slate-700">${item.TotalArea || 0} მ²</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                                    <i class="fa-solid fa-layer-group text-blue-600 text-[10px]"></i>
-                                </div>
-                                <span class="text-xs font-black text-slate-700">${item.Floor || 0}/${item.TotalFloors || '?'} სართ.</span>
-                            </div>
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-vector-square text-blue-500 text-[10px]"></i>
+                            <span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                                    <i class="fa-solid fa-bed text-blue-600 text-[10px]"></i>
-                                </div>
-                                <span class="text-xs font-black text-slate-700">${item.Rooms || 0} ოთახი</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                                    <i class="fa-solid fa-paint-roller text-blue-600 text-[10px]"></i>
-                                </div>
-                                <span class="text-xs font-black text-slate-700 truncate text-[11px]">${item.Condition || 'რემონტით'}</span>
-                            </div>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-bed text-blue-500 text-[10px]"></i>
+                            <span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-blue-500 text-[10px]"></i>
+                            <span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 max-w-[80px] truncate">
+                            <i class="fa-solid fa-paint-roller text-blue-500 text-[10px]"></i>
+                            <span class="text-[11px] font-extrabold text-slate-600 truncate">${item.Condition || 'სუფთა'}</span>
                         </div>
                     </div>
                 </div>
