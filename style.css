@@ -175,9 +175,9 @@ body {
     bottom: 20px; 
     left: 20px; 
     right: 20px; 
-    height: 65px; /* დაპატარავდა 75px-დან */
-    background: rgba(255, 255, 255, 0.6); /* მეტი გამჭვირვალობა */
-    backdrop-filter: blur(20px) saturate(180%); /* სარკის ეფექტი გაძლიერდა */
+    height: 65px; 
+    background: rgba(255, 255, 255, 0.6); 
+    backdrop-filter: blur(20px) saturate(180%); 
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 25px; 
     display: flex;
@@ -200,7 +200,7 @@ body {
     cursor: pointer; 
     transition: all 0.3s ease;
     -webkit-tap-highlight-color: transparent;
-    gap: 2px; /* ხატულასა და ტექსტს შორის დაშორება შემცირდა */
+    gap: 2px; 
 }
 
 .nav-item.active { 
@@ -208,8 +208,18 @@ body {
 }
 
 .nav-label { 
-    font-size: 9px; /* ტექსტი ოდნავ დაპატარავდა */
+    font-size: 9px; 
     font-weight: 800; 
     text-transform: uppercase; 
     letter-spacing: 0.5px;
+}
+
+/* PDF Generation Utility - Added for background processing */
+.pdf-hidden-container {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 750px;
+    background: white;
+    visibility: hidden;
 }
