@@ -37,7 +37,8 @@ async function fetchData() {
 async function getBase64Image(url) {
     if (!url) return null;
     try {
-        const response = await fetch(url);
+        // ვამატებთ { mode: 'cors' } რომ ბრაუზერმა ნება დაგვირთოს სურათის წაკითხვაზე
+        const response = await fetch(url, { mode: 'cors' }); 
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -46,7 +47,7 @@ async function getBase64Image(url) {
             reader.readAsDataURL(blob);
         });
     } catch (e) {
-        console.warn("ფოტოს ჩატვირთვა ვერ მოხერხდა:", url);
+        console.warn("ფოტოს ჩატვირთვა ვერ მოხერხდა (CORS):", url);
         return null;
     }
 }
