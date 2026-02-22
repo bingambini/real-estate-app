@@ -1,6 +1,6 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxta9JUYUMBHeB7w22xQGBF4F0wkeSdSbXeU0hMPnctd8YPl9u5fOnkS3Lx224OWpBf3A/exec";
 const tg = window.Telegram.WebApp;
-window.maklerInfo = null;
+window.allMaklers = []; // ყველა მაკლერის სია
 
 // --- დამხმარე ფუნქციები ---
 
@@ -29,8 +29,8 @@ async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        window.maklerInfo = data.makler; // მაკლერის ინფო ჯერ ვინახავთ
-        renderProperties(data.listings); // შემდეგ ვარენდერებთ
+        window.allMaklers = data.makler; // ვინახავთ ყველა მაკლერს მასივში
+        renderProperties(data.listings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
         const container = document.getElementById('property-container');
@@ -45,8 +45,10 @@ function renderProperties(items) {
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
         const formattedPrice = formatPrice(item.TotalPrice);
-        // მაკლერის ფოტო
-        const maklerImg = window.maklerInfo ? window.maklerInfo.Photo : 'https://via.placeholder.com/100';
+        
+        // ვპოულობთ კონკრეტულ მაკლერს MaklerID-ს მიხედვით ამ განცხადებისთვის
+        const currentMakler = window.allMaklers.find(m => m.ID === item.MaklerID) || window.allMaklers[0];
+        const maklerImg = currentMakler ? currentMakler.Photo : 'https://via.placeholder.com/100';
 
         return `
         <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
@@ -76,7 +78,7 @@ function renderProperties(items) {
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-stairs text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Floor} სართ.</span></div>
                 </div>
 
-                <div onclick="event.stopPropagation(); openProfile();" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform cursor-pointer z-20">
+                <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform cursor-pointer z-20">
                     <img src="${maklerImg}" class="w-full h-full object-cover">
                 </div>
             </div>
@@ -84,12 +86,14 @@ function renderProperties(items) {
     }).join('');
 }
 
-// ნავიგაციის ფიქსი - კლიკაბელურობა და აქტიური სტატუსი
+// ნავიგაციის ფიქსი
 document.addEventListener('click', function(e) {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         navItem.classList.add('active');
+        // თუ ნავიგაციიდან ვაჭერთ პროფილს, ვაჩვენებთ პირველ მაკლერს (Default)
+        if(navItem.innerText.includes("პროფილი")) openProfile();
     }
 });
 
@@ -139,9 +143,15 @@ function openDetails(item) {
     document.getElementById('details-page').classList.add('active');
 }
 
-function openProfile() {
-    const m = window.maklerInfo;
+// პროფილი ახლა იღებს კონკრეტულ ID-ს
+function openProfile(maklerId) {
+    // თუ ID გადაცემულია, ვეძებთ მას, თუ არა - ვიღებთ პირველს (M1)
+    const m = maklerId 
+        ? window.allMaklers.find(makler => makler.ID === maklerId) 
+        : window.allMaklers[0];
+
     if (!m) return;
+    
     document.getElementById('m-name').innerText = m.Name;
     document.getElementById('m-photo').src = m.Photo;
     document.getElementById('m-wm').innerText = m.WatermarkText || "---";
