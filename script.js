@@ -1,5 +1,5 @@
 // ბაზის (Google Apps Script) ბმული
-const API_URL = "https://script.google.com/macros/s/AKfycbyDwicnmwT_uFgC6XTsOBcyWUY_Zp5o3nfgn3gixOJTfEpBvBhwY0v9nEHBpYrxe-m3LA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyjM2VGlkCUpMMxPvA-w7ajWt4zemSNt2gUZSByp8Wt86bhfxDbxnmJBsuO9f7V2PnosQ/exec";
 // Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
 // მაკლერების მონაცემების გლობალური მასივი
@@ -75,8 +75,8 @@ async function downloadProfessionalPDF(item) {
     try {
         // ვიძახებთ სერვერულ სკრიპტს
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
-const pdfUrl = await response.text(); 
-alert("სერვერის პასუხი: " + pdfUrl); // ეს დაგვიწერს ზუსტად რა პასუხი მოვიდა
+        const pdfUrl = await response.text(); 
+        
         if (pdfUrl && pdfUrl.startsWith("http")) {
             // Telegram WebApp-ისთვის საუკეთესო მეთოდი ლინკის გასახსნელად
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
