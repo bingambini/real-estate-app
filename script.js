@@ -173,6 +173,8 @@ function renderProperties(items) {
 
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => console.error(e));
+    
+    // ძირითადი ინფორმაციის შევსება
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
     setEl('det-title', `${item.Rooms || 0} ოთახიანი ${item.PropertyType || 'ბინა'}`);
     setEl('det-loc', `${item.City || ''}, ${item.District || ''}, ${item.Street || ''}`);
@@ -183,9 +185,42 @@ function openDetails(item) {
     setEl('det-sq', item.TotalArea || "0");
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
-    const pdfBtn = document.getElementById('download-pdf-btn');
-    if(pdfBtn) pdfBtn.onclick = () => downloadProfessionalPDF(item);
+    // --- კონტაქტის და PDF სექციის განახლება ---
+    const contactContainer = document.getElementById('contact-section-wrapper'); 
+    if (contactContainer) {
+        let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
+            ? (window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0]) 
+            : null;
+        
+        contactContainer.innerHTML = `
+            <div class="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="relative">
+                        <img src="${currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent'}" class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-50">
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-slate-800 text-base leading-none">${currentMakler?.Name || 'აგენტი'}</h4>
+                        <p class="text-slate-400 text-[10px] font-bold mt-1.5 uppercase tracking-wider">ვერიფიცირებული პარტნიორი</p>
+                    </div>
+                </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="tel:${item.Phone}" class="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl active:scale-95 transition-transform shadow-lg shadow-slate-200">
+                        <i class="fa-solid fa-phone text-xs"></i>
+                        <span class="text-xs font-black">დარეკვა</span>
+                    </a>
+                    
+                    <button onclick="downloadProfessionalPDF(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-4 rounded-2xl active:scale-95 transition-transform border border-blue-100">
+                        <i class="fa-solid fa-file-pdf text-xs"></i>
+                        <span class="text-xs font-black">PDF კატალოგი</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // მახასიათებლების სია (Features)
     const featList = document.getElementById('features-list');
     if(featList) {
         const features = [
@@ -195,34 +230,21 @@ function openDetails(item) {
             { label: "ჭერი", val: item.CeilingHeight }, 
             { label: "პარკინგი", val: item.Parking }
         ];
-        featList.innerHTML = features.filter(f => f.val).map(f => `<div class="bg-slate-50 p-3 rounded-2xl"><p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p><p class="text-xs font-black text-slate-700">${f.val}</p></div>`).join('');
+        featList.innerHTML = features.filter(f => f.val).map(f => `
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
+                <p class="text-xs font-black text-slate-700">${f.val}</p>
+            </div>`).join('');
     }
 
-    const phoneEl = document.getElementById('det-phone');
-    if(phoneEl) phoneEl.innerText = item.Phone || "---";
-    const callBtn = document.getElementById('call-btn');
-    if(callBtn) callBtn.href = `tel:${item.Phone}`;
-
+    // სლაიდერი (Photos) - უცვლელად ვტოვებთ
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     if (item.Photos && wrapper && dotsContainer) {
-        let currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
-        const wmText = currentMakler?.WatermarkText || "Real Estate";
-        const logoUrl = currentMakler?.Logo || "";
         const photoList = item.Photos.split(',');
         wrapper.innerHTML = photoList.map(url => `
-            <div class="slide relative h-full w-full flex-shrink-0 overflow-hidden">
-                <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
-                <div class="absolute bottom-16 right-6 flex items-center gap-4 bg-white/5 backdrop-blur-md px-6 py-3 rounded-[24px] border border-white/10 shadow-lg pointer-events-none opacity-80">
-                    <div class="flex items-center justify-center w-10 h-10">${logoUrl ? `<img src="${logoUrl}" class="w-full h-full object-contain">` : `<i class="fa-solid fa-house-chimney text-white/50 text-sm"></i>`}</div>
-                    <div class="flex flex-col justify-center">
-                        <span class="text-white/90 text-xs font-black leading-tight tracking-tight">${wmText}</span>
-                        <div class="flex items-center gap-1.5 mt-1">
-                            <div class="w-1.5 h-1.5 bg-green-500/60 rounded-full animate-pulse"></div>
-                            <span class="text-white/40 text-[8px] font-bold uppercase tracking-[0.15em]">Verified Partner</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="slide relative h-full w-full flex-shrink-0">
+                <img src="${url.trim()}" class="w-full h-full object-cover">
             </div>`).join('');
         dotsContainer.innerHTML = photoList.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
         wrapper.onscroll = () => {
@@ -231,6 +253,7 @@ function openDetails(item) {
         };
         wrapper.scrollLeft = 0;
     }
+    
     document.getElementById('details-page')?.classList.add('active');
 }
 
