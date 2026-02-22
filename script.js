@@ -42,13 +42,15 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         try {
-            const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
+            // შეიცვალა სტაბილური placeholder-ით
+            const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://placehold.co/400x300?text=No+Image';
             
             let currentMakler = null;
             if (window.allMaklers && window.allMaklers.length > 0) {
                 currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
             }
-            const maklerImg = (currentMakler && currentMakler.Photo) ? currentMakler.Photo : 'https://via.placeholder.com/100';
+            // შეიცვალა სტაბილური placeholder-ით
+            const maklerImg = (currentMakler && currentMakler.Photo) ? currentMakler.Photo : 'https://placehold.co/100x100?text=Agent';
 
             return `
             <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
@@ -140,7 +142,7 @@ function openDetails(item) {
         const photoList = item.Photos.split(',');
         wrapper.innerHTML = photoList.map(url => `
             <div class="slide relative h-full w-full flex-shrink-0 overflow-hidden">
-                <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'">
+                <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
                 
                 <div class="absolute bottom-16 right-5 flex items-center gap-3 bg-white/10 backdrop-blur-xl px-4 py-2.5 rounded-[20px] border border-white/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] pointer-events-none animate-in fade-in duration-700">
                     <div class="flex items-center justify-center w-8 h-8 bg-white/90 rounded-xl shadow-lg p-1.5">
@@ -176,7 +178,7 @@ function openProfile(maklerId) {
     const elName = document.getElementById('m-name');
     if(elName) elName.innerText = m.Name || "მაკლერი";
     const elPhoto = document.getElementById('m-photo');
-    if(elPhoto) elPhoto.src = m.Photo || 'https://via.placeholder.com/100';
+    if(elPhoto) elPhoto.src = m.Photo || 'https://placehold.co/100x100?text=Agent';
     const elWm = document.getElementById('m-wm');
     if(elWm) elWm.innerText = m.WatermarkText || "Agent";
     const elId = document.getElementById('m-id');
