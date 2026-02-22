@@ -34,7 +34,6 @@ async function fetchData() {
     }
 }
 
-// დამხმარე ფუნქცია ფოტოს Base64-ში გადასაყვანად CORS-ის გვერდის ავლით
 async function getBase64Image(url) {
     if (!url) return null;
     try {
@@ -56,14 +55,12 @@ async function downloadProfessionalPDF(item) {
     const btn = event.currentTarget;
     const originalContent = btn.innerHTML;
     
-    // ვიზუალური ინდიკაცია
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     btn.disabled = true;
 
     const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
     const photoUrls = item.Photos ? item.Photos.split(',').map(url => url.trim()) : [];
     
-    // ფოტოების მომზადება (Base64) - გარანტირებული ჩატვირთვით
     const [mainPhoto, maklerPhoto, logoImg, ...galleryPhotos] = await Promise.all([
         getBase64Image(photoUrls[0]),
         getBase64Image(currentMakler?.Photo),
@@ -88,7 +85,6 @@ async function downloadProfessionalPDF(item) {
     `).join('');
 
     const pdfContainer = document.createElement('div');
-    // მნიშვნელოვანია: კონტეინერი დროებით უნდა იყოს ხილული ბრაუზერისთვის
     pdfContainer.style.cssText = 'position:fixed; left:-9999px; top:0; width:750px; padding:40px; background:#fff;';
 
     pdfContainer.innerHTML = `
@@ -101,11 +97,9 @@ async function downloadProfessionalPDF(item) {
                 <p style="margin:4px 0; font-size:12px; color:#64748b; font-weight:bold;">ID: ${item.ID}</p>
             </div>
         </div>
-
         <div style="width:100%; height:420px; border-radius:25px; overflow:hidden; margin-bottom:15px; background:#f1f5f9; display:block;">
             ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%; height:100%; object-fit:cover; display:block;">` : ''}
         </div>
-
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px; min-height:100px;">
             ${galleryPhotos.filter(img => img).map(img => `
                 <div style="height:110px; border-radius:15px; overflow:hidden; background:#f1f5f9;">
@@ -113,21 +107,17 @@ async function downloadProfessionalPDF(item) {
                 </div>
             `).join('')}
         </div>
-
         <div style="margin-bottom:25px;">
             <h2 style="font-size:24px; font-weight:900; margin:0 0 5px; color:#0f172a;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
             <p style="font-size:14px; color:#3b82f6; font-weight:600; margin:0;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
         </div>
-
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px;">
             ${detailsGrid}
         </div>
-
         <div style="background:#f1f5f9; padding:25px; border-radius:25px; margin-bottom:35px; min-height:100px;">
             <h4 style="margin:0 0 10px; font-size:11px; text-transform:uppercase; color:#64748b; letter-spacing:1px; font-weight:bold;">აღწერა</h4>
             <p style="margin:0; font-size:13px; line-height:1.6; color:#334155;">${item.Description || 'აღწერა არ არის მითითებული'}</p>
         </div>
-
         <div style="background:#1e293b; padding:25px; border-radius:30px; display:flex; align-items:center; justify-content:space-between; color:#fff;">
             <div style="display:flex; align-items:center;">
                 <div style="width:70px; height:70px; border-radius:20px; overflow:hidden; margin-right:20px; background:#334155;">
@@ -146,21 +136,13 @@ async function downloadProfessionalPDF(item) {
     `;
 
     document.body.appendChild(pdfContainer);
-
-    // პატარა პაუზა, რომ ბრაუზერმა მოასწროს Base64-ის რენდერი
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const opt = {
         margin: [10, 10],
         filename: `Property_ID_${item.ID}.pdf`,
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            logging: false,
-            letterRendering: true,
-            allowTaint: false
-        },
+        html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true, allowTaint: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -172,6 +154,20 @@ async function downloadProfessionalPDF(item) {
         document.body.removeChild(pdfContainer);
         btn.innerHTML = originalContent;
         btn.disabled = false;
+    }
+}
+
+function shareProperty(item) {
+    const shareData = {
+        title: `${item.Rooms} ოთახიანი ბინა - ${item.City}`,
+        text: `ნახეთ ეს განცხადება: ${item.Rooms} ოთახიანი ბინა ${item.District}-ში. ფასი: ${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`,
+        url: window.location.href
+    };
+    if (navigator.share) {
+        navigator.share(shareData).catch(console.error);
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("ბმული დაკოპირებულია!");
     }
 }
 
@@ -237,14 +233,18 @@ function openDetails(item) {
                         <p class="text-slate-400 text-[10px] font-bold mt-0.5">პროფილის ნახვა <i class="fa-solid fa-chevron-right text-[8px]"></i></p>
                     </div>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick='downloadProfessionalPDF(${JSON.stringify(item)})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
-                        <i class="fa-solid fa-file-pdf text-red-500"></i>
-                        <span class="text-slate-700 font-black text-xs uppercase">PDF</span>
+                <div class="flex gap-2">
+                    <button onclick='downloadProfessionalPDF(${JSON.stringify(item)})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
+                        <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+                        <span class="text-slate-700 font-black text-[9px] uppercase">PDF</span>
                     </button>
-                    <a href="tel:${item.Phone || ''}" class="flex-[2] bg-blue-600 py-4 rounded-[20px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-blue-200">
-                        <i class="fa-solid fa-phone text-white"></i>
-                        <span class="text-white font-black text-xs uppercase">დარეკვა</span>
+                    <button onclick='shareProperty(${JSON.stringify(item)})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
+                        <i class="fa-solid fa-share-nodes text-blue-500 text-base"></i>
+                        <span class="text-slate-700 font-black text-[9px] uppercase">გაზიარება</span>
+                    </button>
+                    <a href="tel:${item.Phone || ''}" class="flex-1 bg-blue-600 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-lg shadow-blue-100">
+                        <i class="fa-solid fa-phone text-white text-base"></i>
+                        <span class="text-white font-black text-[9px] uppercase">დარეკვა</span>
                     </a>
                 </div>
             </div>
