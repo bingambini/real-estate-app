@@ -43,12 +43,12 @@ async function getBase64Image(url) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
-            reader.onerror = () => resolve(null); // შეცდომისას ვაბრუნებთ null-ს
+            reader.onerror = () => resolve(null);
             reader.readAsDataURL(blob);
         });
     } catch (e) {
         console.warn("CORS Error for URL:", url);
-        return null; // თუ სერვერი ბლოკავს, ვაგრძელებთ მუშაობას სურათის გარეშე
+        return null;
     }
 }
 
@@ -56,23 +56,29 @@ async function downloadProfessionalPDF(item) {
     const btn = event.currentTarget;
     const originalContent = btn.innerHTML;
     
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
     btn.disabled = true;
 
     try {
-        // 1. ვუგზავნით მოთხოვნას სერვერს
+        // 1. ვუგზავნით მოთხოვნას სერვერს PDF ლინკისთვის
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
-        const pdfUrl = await response.text(); // სერვერი გვიბრუნებს Drive-ის ლინკს
+        const pdfUrl = await response.text(); 
 
-        if (pdfUrl.includes("http")) {
-            // 2. ვხსნით მიღებულ ლინკს ახალ ფანჯარაში
-            window.open(pdfUrl, '_blank');
+        // 2. ვამოწმებთ მივიღეთ თუ არა ვალიდური ლინკი
+        if (pdfUrl && pdfUrl.startsWith("http")) {
+            // ვხსნით ახალ ფანჯარაში/ტაბში
+            const newWindow = window.open(pdfUrl, '_blank');
+            if (!newWindow) {
+                // თუ ბრაუზერმა დაბლოკა popup, ვაძლევთ პირდაპირ ლინკს
+                window.location.href = pdfUrl;
+            }
         } else {
-            alert("შეცდომა PDF-ის გენერირებისას: " + pdfUrl);
+            console.error("Server Response:", pdfUrl);
+            alert("PDF-ის მომზადება ვერ მოხერხდა. სცადეთ მოგვიანებით.");
         }
     } catch (err) {
         console.error("PDF Error:", err);
-        alert("კავშირის შეცდომა.");
+        alert("კავშირის შეცდომა სერვერთან.");
     } finally {
         btn.innerHTML = originalContent;
         btn.disabled = false;
