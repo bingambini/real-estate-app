@@ -134,7 +134,7 @@ function openDetails(item) {
     
     if (item.Photos && wrapper && dotsContainer) {
         let currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
-        const wmText = currentMakler?.WatermarkText || "";
+        const wmText = currentMakler?.WatermarkText || "Real Estate";
         const logoUrl = currentMakler?.Logo || "";
 
         const photoList = item.Photos.split(',');
@@ -142,9 +142,17 @@ function openDetails(item) {
             <div class="slide relative h-full w-full flex-shrink-0">
                 <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'">
                 
-                <div class="absolute bottom-14 right-4 flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 pointer-events-none transition-opacity duration-300">
-                    ${logoUrl ? `<img src="${logoUrl}" class="w-5 h-5 object-contain opacity-80">` : ''}
-                    ${wmText ? `<span class="text-white/90 text-[9px] font-bold uppercase tracking-wider">${wmText}</span>` : ''}
+                <div class="absolute bottom-14 right-5 flex items-center gap-2.5 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-2xl border border-white/20 shadow-2xl pointer-events-none transform translate-y-0 opacity-90 transition-all duration-300">
+                    <div class="flex items-center justify-center w-7 h-7 bg-white rounded-xl shadow-inner p-1">
+                        ${logoUrl ? 
+                            `<img src="${logoUrl}" class="w-full h-full object-contain">` : 
+                            `<i class="fa-solid fa-house-chimney text-blue-600 text-[10px]"></i>`
+                        }
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-white text-[10px] font-black leading-none tracking-tight">${wmText}</span>
+                        <span class="text-white/60 text-[7px] font-bold uppercase tracking-[0.1em] mt-0.5">Verified Agent</span>
+                    </div>
                 </div>
             </div>`).join('');
 
