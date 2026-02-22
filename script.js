@@ -2,11 +2,18 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxta9JUYUMBHeB7w22xQGBF
 const tg = window.Telegram.WebApp;
 window.maklerInfo = null;
 
+// --- დამხმარე ფუნქციები ---
+
+// თანხის ფორმატირება (მაგ: 1 000 000)
+function formatPrice(price) {
+    if (!price) return "0";
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
 async function init() {
     tg.expand();
     tg.ready();
     
-    // Splash screen-ის გაქრობა
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
@@ -36,26 +43,34 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
+        // ვიყენებთ ფასის ფორმატირებას
+        const formattedPrice = formatPrice(item.TotalPrice);
+
         return `
         <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2">
             <div class="relative h-64 overflow-hidden">
                 <img src="${firstImg}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                
+                <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-bold text-white z-10">
+                    ID: ${item.ID}
+                </div>
+
                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase text-slate-800 shadow-sm">
                     ${item.DealType || 'იყიდება'}
                 </div>
                 <div class="absolute bottom-4 left-4 bg-blue-600 px-4 py-2 rounded-2xl shadow-lg">
-                    <p class="text-white font-black text-lg leading-none">${item.TotalPrice} ${item.Currency === 'USD' ? '$' : '₾'}</p>
+                    <p class="text-white font-black text-lg leading-none">${formattedPrice} ${item.Currency === 'USD' ? '$' : '₾'}</p>
                 </div>
             </div>
             <div class="p-5">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-black text-slate-800 text-lg leading-tight truncate w-2/3">${item.Street || item.PropertyType}</h4>
-                    <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg uppercase tracking-tighter">ID: ${item.ID}</span>
+                <div class="flex justify-between items-start mb-1">
+                    <h4 class="font-black text-slate-800 text-lg leading-tight truncate w-full">${item.Street || item.PropertyType}</h4>
                 </div>
-                <p class="text-slate-400 text-xs font-medium mb-4 flex items-center gap-1">
+                <p class="text-slate-400 text-xs font-medium mb-3 flex items-center gap-1">
                     <i class="fa-solid fa-location-dot text-blue-500"></i> ${item.District}, ${item.City}
                 </p>
-                <div class="flex items-center gap-4 border-t border-slate-50 pt-4">
+                
+                <div class="flex items-center gap-4 border-t border-slate-50 pt-3">
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Rooms}</span></div>
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.TotalArea} მ²</span></div>
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-stairs text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Floor} სართ.</span></div>
@@ -70,7 +85,7 @@ function openDetails(item) {
     
     document.getElementById('det-title').innerText = `${item.Rooms} ოთახიანი ${item.PropertyType}`;
     document.getElementById('det-loc').innerText = `${item.City}, ${item.District}, ${item.Street || ''}`;
-    document.getElementById('det-price').innerText = `${item.TotalPrice} ${item.Currency === 'USD' ? '$' : '₾'}`;
+    document.getElementById('det-price').innerText = `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`;
     document.getElementById('det-id').innerText = item.ID;
     document.getElementById('det-rooms').innerText = item.Rooms || "0";
     document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '?'}`;
@@ -132,5 +147,4 @@ function switchTab(tabId, el) {
     el.classList.add('active');
 }
 
-// აპლიკაციის გაშვება
 init();
