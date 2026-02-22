@@ -56,18 +56,20 @@ async function downloadProfessionalPDF(item) {
     const btn = event.currentTarget;
     const originalContent = btn.innerHTML;
     
-    // ვიზუალური ინდიკაცია ჩატვირთვისას
+    // ვიზუალური ინდიკაცია
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     btn.disabled = true;
 
     const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
     const photoUrls = item.Photos ? item.Photos.split(',').map(url => url.trim()) : [];
     
-    // ფოტოების მომზადება (Base64)
-    const mainPhotoBase64 = await getBase64Image(photoUrls[0]);
-    const galleryBase64 = await Promise.all(photoUrls.slice(1, 5).map(url => getBase64Image(url)));
-    const maklerPhotoBase64 = await getBase64Image(currentMakler?.Photo);
-    const logoBase64 = await getBase64Image(currentMakler?.Logo);
+    // ფოტოების მომზადება (Base64) - გარანტირებული ჩატვირთვით
+    const [mainPhoto, maklerPhoto, logoImg, ...galleryPhotos] = await Promise.all([
+        getBase64Image(photoUrls[0]),
+        getBase64Image(currentMakler?.Photo),
+        getBase64Image(currentMakler?.Logo),
+        ...photoUrls.slice(1, 5).map(url => getBase64Image(url))
+    ]);
 
     const detailsGrid = [
         { l: 'ფართი', v: item.TotalArea ? item.TotalArea + ' მ²' : null },
@@ -79,68 +81,95 @@ async function downloadProfessionalPDF(item) {
         { l: 'ჭერი', v: item.CeilingHeight },
         { l: 'პარკინგი', v: item.Parking }
     ].filter(f => f.v).map(f => `
-        <div style="background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0; text-align:center;">
+        <div style="background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0; text-align:center; min-height:45px;">
             <p style="margin:0; font-size:8px; color:#64748b; font-weight:bold; text-transform:uppercase;">${f.l}</p>
             <p style="margin:2px 0 0; font-size:11px; color:#1e293b; font-weight:800;">${f.v}</p>
         </div>
     `).join('');
 
-    const pdfTemplate = document.createElement('div');
-    pdfTemplate.style.cssText = 'width: 700px; padding: 30px; background: #fff; color: #1e293b; font-family: sans-serif;';
+    const pdfContainer = document.createElement('div');
+    // მნიშვნელოვანია: კონტეინერი დროებით უნდა იყოს ხილული ბრაუზერისთვის
+    pdfContainer.style.cssText = 'position:fixed; left:-9999px; top:0; width:750px; padding:40px; background:#fff;';
 
-    pdfTemplate.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #f1f5f9; padding-bottom:15px; margin-bottom:20px;">
-            ${logoBase64 ? `<img src="${logoBase64}" style="height:45px; max-width:160px; object-fit:contain;">` : '<div></div>'}
+    pdfContainer.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #f1f5f9; padding-bottom:20px; margin-bottom:25px;">
+            <div style="height:55px;">
+                ${logoImg ? `<img src="${logoImg}" style="height:100%; max-width:200px; object-fit:contain;">` : ''}
+            </div>
             <div style="text-align:right;">
-                <h1 style="margin:0; font-size:28px; color:#2563eb; font-weight:900;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h1>
-                <p style="margin:2px 0; font-size:10px; color:#64748b; font-weight:800;">ID: ${item.ID}</p>
+                <h1 style="margin:0; font-size:32px; color:#2563eb; font-weight:900;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h1>
+                <p style="margin:4px 0; font-size:12px; color:#64748b; font-weight:bold;">ID: ${item.ID}</p>
             </div>
         </div>
-        <div style="width:100%; height:380px; border-radius:20px; overflow:hidden; margin-bottom:15px; background:#f1f5f9;">
-            ${mainPhotoBase64 ? `<img src="${mainPhotoBase64}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+
+        <div style="width:100%; height:420px; border-radius:25px; overflow:hidden; margin-bottom:15px; background:#f1f5f9; display:block;">
+            ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%; height:100%; object-fit:cover; display:block;">` : ''}
         </div>
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-            ${galleryBase64.filter(img => img).map(img => `
-                <div style="height:90px; border-radius:12px; overflow:hidden; background:#f1f5f9;">
-                    <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
+
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px; min-height:100px;">
+            ${galleryPhotos.filter(img => img).map(img => `
+                <div style="height:110px; border-radius:15px; overflow:hidden; background:#f1f5f9;">
+                    <img src="${img}" style="width:100%; height:100%; object-fit:cover; display:block;">
                 </div>
             `).join('')}
         </div>
+
         <div style="margin-bottom:25px;">
-            <h2 style="font-size:20px; font-weight:900; margin:0 0 5px; color:#0f172a;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
-            <p style="font-size:13px; color:#3b82f6; font-weight:600; margin:0;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
+            <h2 style="font-size:24px; font-weight:900; margin:0 0 5px; color:#0f172a;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
+            <p style="font-size:14px; color:#3b82f6; font-weight:600; margin:0;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
         </div>
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:25px;">
+
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px;">
             ${detailsGrid}
         </div>
-        <div style="background:#f8fafc; padding:20px; border-radius:20px; border:1px solid #f1f5f9; margin-bottom:25px;">
-            <p style="margin:0; font-size:12px; line-height:1.5; color:#334155;">${item.Description || 'აღწერა არ არის მითითებული'}</p>
+
+        <div style="background:#f1f5f9; padding:25px; border-radius:25px; margin-bottom:35px; min-height:100px;">
+            <h4 style="margin:0 0 10px; font-size:11px; text-transform:uppercase; color:#64748b; letter-spacing:1px; font-weight:bold;">აღწერა</h4>
+            <p style="margin:0; font-size:13px; line-height:1.6; color:#334155;">${item.Description || 'აღწერა არ არის მითითებული'}</p>
         </div>
-        <div style="background:#1e293b; padding:20px; border-radius:25px; display:flex; align-items:center; justify-content:space-between; color:#fff;">
+
+        <div style="background:#1e293b; padding:25px; border-radius:30px; display:flex; align-items:center; justify-content:space-between; color:#fff;">
             <div style="display:flex; align-items:center;">
-                ${maklerPhotoBase64 ? `<img src="${maklerPhotoBase64}" style="width:60px; height:60px; border-radius:15px; object-fit:cover; margin-right:15px; border:2px solid rgba(255,255,255,0.1);">` : ''}
+                <div style="width:70px; height:70px; border-radius:20px; overflow:hidden; margin-right:20px; background:#334155;">
+                    ${maklerPhoto ? `<img src="${maklerPhoto}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+                </div>
                 <div>
-                    <p style="margin:0; font-size:16px; font-weight:900;">${currentMakler?.Name || 'პროფესიონალი აგენტი'}</p>
-                    <p style="margin:2px 0 0; font-size:13px; color:#60a5fa; font-weight:bold;">${item.Phone || ''}</p>
+                    <p style="margin:0; font-size:11px; color:#94a3b8; text-transform:uppercase; font-weight:bold;">პასუხისმგებელი აგენტი</p>
+                    <p style="margin:3px 0; font-weight:900; font-size:20px;">${currentMakler?.Name || 'აგენტი'}</p>
                 </div>
             </div>
-            <div style="text-align:right; font-size:9px; color:#94a3b8; font-weight:bold; text-transform:uppercase;">Property Expo</div>
+            <div style="text-align:right;">
+                <p style="margin:0; font-size:20px; font-weight:900; color:#60a5fa;">${item.Phone || ''}</p>
+                <p style="margin:2px 0 0; font-size:11px; color:#94a3b8;">PROPERTY EXPO</p>
+            </div>
         </div>
     `;
 
+    document.body.appendChild(pdfContainer);
+
+    // პატარა პაუზა, რომ ბრაუზერმა მოასწროს Base64-ის რენდერი
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     const opt = {
-        margin: 10,
-        filename: `Expo_ID_${item.ID}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        margin: [10, 10],
+        filename: `Property_ID_${item.ID}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false,
+            letterRendering: true,
+            allowTaint: false
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-        await html2pdf().set(opt).from(pdfTemplate).save();
+        await html2pdf().set(opt).from(pdfContainer).save();
     } catch (err) {
-        console.error("PDF-ის გენერაცია ჩაიშალა:", err);
+        console.error("PDF Error:", err);
     } finally {
+        document.body.removeChild(pdfContainer);
         btn.innerHTML = originalContent;
         btn.disabled = false;
     }
