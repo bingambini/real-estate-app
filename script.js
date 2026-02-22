@@ -28,16 +28,16 @@ async function fetchData() {
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        // ვამოწმებთ ყველა შესაძლო დასახელებას და ვინახავთ როგორც მასივს
-        const rawMaklers = data.Makler || data.makler || [];
-        window.allMaklers = Array.isArray(rawMaklers) ? rawMaklers : [];
+        // მონაცემების ფორმატირება მასივად, რაც არ უნდა მოვიდეს Sheets-იდან
+        let rawMaklers = data.Makler || data.makler || [];
+        if (!Array.isArray(rawMaklers)) {
+            // თუ მხოლოდ ერთი მაკლერი მოვიდა ობიექტად, ჩავსვათ მასივში
+            window.allMaklers = [rawMaklers];
+        } else {
+            window.allMaklers = rawMaklers;
+        }
         
         const listings = data.listings || data.Listings || [];
-
-        if (listings.length === 0) {
-            console.warn("მონაცემები ცარიელია");
-        }
-
         renderProperties(listings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
@@ -48,19 +48,21 @@ async function fetchData() {
 
 function renderProperties(items) {
     const container = document.getElementById('property-container');
-    if (!container || !items) return;
+    if (!container || !Array.isArray(items)) return;
     
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
         const formattedPrice = formatPrice(item.TotalPrice);
         
-        // უსაფრთხო ძებნა მასივში
+        // უსაფრთხო ძებნა მასივში - თუ find არ არსებობს, ვიყენებთ null-ს
         let currentMakler = null;
-        if (window.allMaklers.length > 0) {
-            currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
+        if (Array.isArray(window.allMaklers) && window.allMaklers.length > 0) {
+            currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID));
+            // თუ კონკრეტული ID-ით ვერ იპოვა, ავიღოთ სიიდან პირველივე
+            if (!currentMakler) currentMakler = window.allMaklers[0];
         }
         
-        const maklerImg = currentMakler ? currentMakler.Photo : 'https://via.placeholder.com/100';
+        const maklerImg = (currentMakler && currentMakler.Photo) ? currentMakler.Photo : 'https://via.placeholder.com/100';
 
         return `
         <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
@@ -75,9 +77,7 @@ function renderProperties(items) {
                 </div>
             </div>
             <div class="p-5 relative">
-                <div class="flex justify-between items-start mb-1">
-                    <h4 class="font-black text-slate-800 text-lg leading-tight truncate w-full">${item.Street || item.PropertyType}</h4>
-                </div>
+                <h4 class="font-black text-slate-800 text-lg leading-tight truncate w-full">${item.Street || item.PropertyType}</h4>
                 <p class="text-slate-400 text-xs font-medium mb-3 flex items-center gap-1">
                     <i class="fa-solid fa-location-dot text-blue-500"></i> ${item.District}, ${item.City}
                 </p>
@@ -85,7 +85,6 @@ function renderProperties(items) {
                 <div class="flex items-center gap-4 border-t border-slate-50 pt-3">
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Rooms}</span></div>
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.TotalArea} მ²</span></div>
-                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-stairs text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Floor} სართ.</span></div>
                 </div>
 
                 <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform cursor-pointer z-20">
@@ -96,14 +95,16 @@ function renderProperties(items) {
     }).join('');
 }
 
-// ნავიგაციის ფიქსი - პროფილის გახსნა ნავიგაციიდან
+// ნავიგაციის ივენთი
 document.addEventListener('click', function(e) {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         navItem.classList.add('active');
 
-        if (navItem.querySelector('.nav-label')?.innerText.includes("პროფილი")) {
+        // თუ ნავიგაციის ტექსტი შეიცავს სიტყვას "პროფილი"
+        const label = navItem.querySelector('.nav-label')?.innerText;
+        if (label && label.includes("პროფილი")) {
             openProfile(); 
         }
     }
@@ -156,7 +157,6 @@ function openDetails(item) {
 }
 
 function openProfile(maklerId) {
-    // უსაფრთხო ძებნა: თუ მასივი ცარიელია, ვაჩერებთ ფუნქციას
     if (!Array.isArray(window.allMaklers) || window.allMaklers.length === 0) return;
 
     const m = maklerId 
@@ -165,10 +165,10 @@ function openProfile(maklerId) {
 
     if (!m) return;
     
-    document.getElementById('m-name').innerText = m.Name;
-    document.getElementById('m-photo').src = m.Photo;
+    document.getElementById('m-name').innerText = m.Name || "სახელი არ არის";
+    document.getElementById('m-photo').src = m.Photo || 'https://via.placeholder.com/100';
     document.getElementById('m-wm').innerText = m.WatermarkText || "---";
-    document.getElementById('m-id').innerText = m.ID;
+    document.getElementById('m-id').innerText = m.ID || "0";
     document.getElementById('m-call').href = `tel:${m.Phone}`;
     document.getElementById('profile-page').classList.add('active');
 }
