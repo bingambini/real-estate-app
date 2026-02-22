@@ -111,6 +111,7 @@ function renderProperties(items) {
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span></div>
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span></div>
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span></div>
+                        <div class="flex items-center gap-1.5 max-w-[85px]"><i class="fa-solid fa-paint-roller text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600 truncate">${item.Condition || 'სუფთა'}</span></div>
                     </div>
                 </div>
             </div>`;
