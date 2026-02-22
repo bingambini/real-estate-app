@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyz7o2uUksv7t-084OvwoXiREX9xbFBlk3HgMgj0KzyY17MJTjnIeF_0F3egI3GYRzO7g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbznDwIprAJewyBQ_AN2haEpT4iry8c-aeLH4vmTChAui_RcguLGU017H7HVHltlW-oLoQ/exec";
 const tg = window.Telegram.WebApp;
 window.allMaklers = []; 
 
