@@ -111,17 +111,59 @@
         </div>
     </div>
 
+    <div id="profile-page" class="details-page no-scrollbar">
+        <div class="p-8 text-center">
+            <div class="relative w-32 h-32 mx-auto mb-6">
+                <img id="m-photo" src="https://via.placeholder.com/150" class="w-full h-full object-cover rounded-[40px] shadow-2xl border-4 border-white">
+                <div class="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white"></div>
+            </div>
+            
+            <h2 id="m-name" class="text-2xl font-black text-slate-800">...</h2>
+            <p id="m-agency" class="text-blue-600 font-bold text-sm uppercase tracking-widest mb-8">პროფესიონალი მაკლერი</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-slate-50 p-5 rounded-[30px] border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">ვოტერმარკი</p>
+                    <p id="m-wm" class="text-slate-700 font-bold text-xs italic">---</p>
+                </div>
+                <div class="bg-slate-50 p-5 rounded-[30px] border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">სტატუსი</p>
+                    <p class="text-green-600 font-bold text-xs uppercase">აქტიური</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-left">
+                <a id="m-call" href="#" class="flex items-center justify-between bg-white border border-slate-100 p-5 rounded-2xl shadow-sm active:scale-95 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-phone"></i></div>
+                        <span class="font-bold text-slate-700">დარეკვა</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                </a>
+                
+                <div class="flex items-center justify-between bg-white border border-slate-100 p-5 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"><i class="fa-solid fa-id-card"></i></div>
+                        <span class="font-bold text-slate-700">ID: <span id="m-id">---</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeProfile()" class="mt-12 text-slate-400 font-bold text-sm uppercase tracking-widest underline decoration-2 underline-offset-8">დახურვა</button>
+        </div>
+    </div>
+
     <nav id="bottom-nav">
         <div class="nav-item active"><i class="fa-solid fa-house text-xl"></i><span class="nav-label">მთავარი</span></div>
         <div class="nav-item"><i class="fa-solid fa-layer-group text-xl"></i><span class="nav-label">კატეგორია</span></div>
         <div class="nav-item"><i class="fa-solid fa-heart text-xl"></i><span class="nav-label">რჩეული</span></div>
-        <div class="nav-item"><i class="fa-solid fa-user text-xl"></i><span class="nav-label">პროფილი</span></div>
+        <div class="nav-item" onclick="openProfile()"><i class="fa-solid fa-user text-xl"></i><span class="nav-label">პროფილი</span></div>
     </nav>
 
-<script>
-        // ჩასვი შენი Apps Script Web App URL აქ
-        const API_URL = "https://script.google.com/macros/s/AKfycbxta9JUYUMBHeB7w22xQGBF4F0wkeSdSbXeU0hMPnctd8YPl9u5fOnkS3Lx224OWpBf3A/exec";
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwkKue2ByuQtoYH8YbeJIHgjgWUNs1hlS5AZgVMmhMFlUWpBBpsNW-jz9rVxSiDTDkS3Q/exec";
         const tg = window.Telegram.WebApp;
+        window.maklerInfo = null;
 
         async function init() {
             tg.expand();
@@ -135,21 +177,20 @@
             await fetchData();
         }
 
-async function fetchData() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        
-        // მონაცემების განაწილება
-        renderProperties(data.listings); // აქ დაემატა .listings
-        
-        // მაკლერის ინფოს შენახვა გლობალურად, რომ პროფილის ტაბში გამოვიყენოთ
-        window.maklerInfo = data.makler; 
-        
-    } catch (e) { 
-        console.error("Error:", e);
-    }
-}
+        async function fetchData() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                
+                // მონაცემების განაწილება
+                renderProperties(data.listings);
+                window.maklerInfo = data.makler;
+                
+            } catch (e) { 
+                console.error("Error fetching data:", e);
+                document.getElementById('property-container').innerHTML = "<p class='text-center text-red-500'>მონაცემების ჩატვირთვა ვერ მოხერხდა</p>";
+            }
+        }
 
         function renderProperties(items) {
             const container = document.getElementById('property-container');
@@ -177,28 +218,19 @@ async function fetchData() {
         }
 
         function openDetails(item) {
-            // --- ნახვების დათვლის ჩამატებული ნაწილი ---
             if (item.ID) {
                 fetch(`${API_URL}?viewId=${item.ID}`).catch(err => console.error("Counter error:", err));
             }
-            // ----------------------------------------
 
-            // ძირითადი ინფო
             document.getElementById('det-title').innerText = `${item.Rooms} ოთახიანი ${item.PropertyType}`;
             document.getElementById('det-loc').innerText = `${item.City}, ${item.District}, ${item.Street || ''}`;
             document.getElementById('det-price').innerText = `${item.TotalPrice} ${item.Currency}`;
             document.getElementById('det-id').innerText = item.ID;
-            
-            // სპეციფიკაციები
             document.getElementById('det-rooms').innerText = item.Rooms || "0";
             document.getElementById('det-floor').innerText = `${item.Floor}/${item.TotalFloors || '?'}`;
             document.getElementById('det-sq').innerText = item.TotalArea || "0";
-
-            // აღწერა
             document.getElementById('tab-desc').innerText = item.Description || "აღწერა არ არის მითითებული";
 
-            // დეტალების ტაბი (Features)
-            const featuresList = document.getElementById('features-list');
             const features = [
                 { label: "მდგომარეობა", val: item.Condition },
                 { label: "პროექტი", val: item.ProjectType },
@@ -206,36 +238,44 @@ async function fetchData() {
                 { label: "ჭერი", val: item.CeilingHeight },
                 { label: "პარკინგი", val: item.Parking }
             ];
-            featuresList.innerHTML = features.filter(f => f.val).map(f => `
+            document.getElementById('features-list').innerHTML = features.filter(f => f.val).map(f => `
                 <div class="bg-slate-50 p-3 rounded-2xl">
                     <p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p>
                     <p class="text-xs font-black text-slate-700">${f.val}</p>
                 </div>
             `).join('');
 
-            // კონტაქტი
             document.getElementById('det-phone').innerText = item.Phone || "არ არის მითითებული";
             document.getElementById('call-btn').href = `tel:${item.Phone}`;
 
-            // სლაიდერი
             const wrapper = document.getElementById('slider-wrapper');
             if (item.Photos) {
                 wrapper.innerHTML = item.Photos.split(',').map(url => `
                     <div class="slide"><img src="${url.trim()}" onerror="this.src='https://via.placeholder.com/400x300?text=Error'"></div>
                 `).join('');
             }
-
             document.getElementById('details-page').classList.add('active');
         }
 
+        function openProfile() {
+            const m = window.maklerInfo;
+            if (!m) return;
+            document.getElementById('m-name').innerText = m.Name || "მაკლერი";
+            document.getElementById('m-photo').src = m.Photo || "https://via.placeholder.com/150";
+            document.getElementById('m-wm').innerText = m.WatermarkText || "---";
+            document.getElementById('m-id').innerText = m.ID || "---";
+            document.getElementById('m-call').href = `tel:${m.Phone}`;
+            document.getElementById('profile-page').classList.add('active');
+        }
+
+        function closeProfile() { document.getElementById('profile-page').classList.remove('active'); }
+        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
         }
-
-        function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
 
         init();
     </script>
