@@ -78,15 +78,17 @@ async function downloadProfessionalPDF(item) {
         const pdfUrl = await response.text(); 
 
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+            // Telegram-ის გარემოში გახსნის საუკეთესო პრაქტიკა
+            if (tg.openLink) {
                 tg.openLink(pdfUrl);
             } else {
-                window.location.assign(pdfUrl);
+                window.open(pdfUrl, '_blank');
             }
         } else {
             alert("PDF-ის მომზადება ვერ მოხერხდა.");
         }
     } catch (err) {
+        console.error("PDF Error:", err);
         alert("კავშირის შეცდომა სერვერთან.");
     } finally {
         if (btn) {
@@ -123,10 +125,11 @@ function renderProperties(items) {
     container.innerHTML = items.map(item => {
         try {
             const firstImg = item.Photos ? fixImageUrl(item.Photos.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
+            const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
             return `
-            <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
+            <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
                 <div class="relative h-60 overflow-hidden">
-                    <img src="${firstImg}" class="w-full h-full object-cover">
+                    <img src="${firstImg}" class="w-full h-full object-cover" loading="lazy">
                     <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
                     <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-xl shadow-lg">
                         <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
@@ -167,6 +170,7 @@ function openDetails(item) {
             ? (window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0]) 
             : null;
         
+        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
         contactTab.innerHTML = `
             <div class="flex flex-col gap-5 py-2">
                 <div onclick="openProfile('${currentMakler?.ID}')" class="bg-slate-50 rounded-[24px] p-4 flex items-center gap-4 border border-slate-100 active:scale-95 transition-all cursor-pointer">
@@ -177,11 +181,11 @@ function openDetails(item) {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick='downloadProfessionalPDF(${JSON.stringify(item)})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
+                    <button onclick='downloadProfessionalPDF(${itemJson})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
                         <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
                         <span class="text-slate-700 font-black text-[9px] uppercase">PDF</span>
                     </button>
-                    <button onclick='shareProperty(${JSON.stringify(item)})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
+                    <button onclick='shareProperty(${itemJson})' class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-sm">
                         <i class="fa-solid fa-share-nodes text-blue-500 text-base"></i>
                         <span class="text-slate-700 font-black text-[9px] uppercase">გაზიარება</span>
                     </button>
@@ -204,7 +208,7 @@ function openDetails(item) {
             { label: "მდგომარეობა", val: item.Condition }
         ];
         featList.innerHTML = allFields
-            .filter(f => f.val && f.val !== "0")
+            .filter(f => f.val && f.val !== "0" && f.val !== "")
             .map(f => `
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
                     <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
