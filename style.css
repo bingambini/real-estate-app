@@ -94,19 +94,20 @@ body {
     z-index: 30; 
 }
 
-/* ID on Listing Photo */
+/* ID on Listing Photo - მარჯვენა ზედა კუთხე */
 .id-on-photo {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.5); /* ოდნავ უფრო გამჭვირვალე უკეთესი ეფექტისთვის */
+    backdrop-filter: blur(6px);
     color: white;
-    padding: 4px 10px;
-    border-radius: 10px;
+    padding: 5px 12px;
+    border-radius: 12px;
     font-size: 10px;
     font-weight: 800;
     z-index: 10;
+    letter-spacing: 0.5px;
 }
 
 /* Tabs */
@@ -148,36 +149,38 @@ body {
     bottom: 25px; 
     left: 20px; 
     right: 20px; 
-    height: 70px;
-    background: rgba(255, 255, 255, 0.7); /* გამჭვირვალე თეთრი */
-    backdrop-filter: blur(15px); /* სარკისებრი დანისლვა */
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 25px; 
+    height: 75px; /* ოდნავ მეტი სიმაღლე უკეთესი ბალანსისთვის */
+    background: rgba(255, 255, 255, 0.75); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 30px; 
     display: flex;
     justify-content: space-around; 
     align-items: center; 
     z-index: 400;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-    padding: 0 10px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
+    padding: 0 15px;
 }
 
 .nav-item { 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    color: #94a3b8; /* არააქტიური ღილაკის ფერი */
+    color: #94a3b8; 
     cursor: pointer; 
-    transition: 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item.active { 
-    color: #2563eb; /* აქტიური ღილაკი - ლურჯი */
+    color: #2563eb; 
+    transform: translateY(-2px); /* მცირე ანიმაცია აქტიურზე */
 }
 
 .nav-label { 
-    font-size: 9px; 
+    font-size: 10px; 
     font-weight: 800; 
-    margin-top: 4px; 
+    margin-top: 5px; 
     text-transform: uppercase; 
+    letter-spacing: 0.3px;
 }
