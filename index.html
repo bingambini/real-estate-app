@@ -11,11 +11,12 @@
     
     <link rel="stylesheet" href="style.css">
     <style>
-        /* აღწერის ტაბის სქროლი */
+        /* აღწერის ტაბის სქროლი და ვიზუალური გაუმჯობესება */
         #tab-desc {
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch; /* გლუვი სქროლი iPhone-ზე */
         }
         #tab-desc::-webkit-scrollbar {
             width: 4px;
@@ -24,9 +25,16 @@
             background: #e2e8f0;
             border-radius: 10px;
         }
+        /* Splash screen-ის ფონი ჩატვირთვამდე */
+        #splash-screen {
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
-<body class="pb-32 bg-slate-50">
+<body class="pb-32 bg-slate-50 font-sans">
 
     <div id="splash-screen">
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
