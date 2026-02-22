@@ -1,10 +1,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxta9JUYUMBHeB7w22xQGBF4F0wkeSdSbXeU0hMPnctd8YPl9u5fOnkS3Lx224OWpBf3A/exec";
 const tg = window.Telegram.WebApp;
-window.allMaklers = []; // ყველა მაკლერის სია
+window.allMaklers = []; 
 
 // --- დამხმარე ფუნქციები ---
 
-// თანხის ფორმატირება (მაგ: 1 000 000)
 function formatPrice(price) {
     if (!price) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -14,7 +13,6 @@ async function init() {
     tg.expand();
     tg.ready();
     
-    // Splash screen-ის გაქრობა
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
@@ -29,7 +27,7 @@ async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        window.allMaklers = data.makler; // ვინახავთ ყველა მაკლერს მასივში
+        window.allMaklers = data.makler; 
         renderProperties(data.listings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
@@ -46,7 +44,6 @@ function renderProperties(items) {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
         const formattedPrice = formatPrice(item.TotalPrice);
         
-        // ვპოულობთ კონკრეტულ მაკლერს MaklerID-ს მიხედვით ამ განცხადებისთვის
         const currentMakler = window.allMaklers.find(m => m.ID === item.MaklerID) || window.allMaklers[0];
         const maklerImg = currentMakler ? currentMakler.Photo : 'https://via.placeholder.com/100';
 
@@ -54,9 +51,7 @@ function renderProperties(items) {
         <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
             <div class="relative h-64 overflow-hidden">
                 <img src="${firstImg}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                
                 <div class="id-on-photo">ID: ${item.ID}</div>
-                
                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase text-slate-800 shadow-sm">
                     ${item.DealType || 'იყიდება'}
                 </div>
@@ -86,14 +81,18 @@ function renderProperties(items) {
     }).join('');
 }
 
-// ნავიგაციის ფიქსი
+// ნავიგაციის ფიქსი - პროფილის გახსნა ნავიგაციიდან
 document.addEventListener('click', function(e) {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
+        // აქტიური კლასის მართვა
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         navItem.classList.add('active');
-        // თუ ნავიგაციიდან ვაჭერთ პროფილს, ვაჩვენებთ პირველ მაკლერს (Default)
-        if(navItem.innerText.includes("პროფილი")) openProfile();
+
+        // თუ დავაჭირეთ "პროფილი"-ს (შეგვიძლია შევამოწმოთ ტექსტით ან HTML სტრუქტურით)
+        if (navItem.querySelector('.nav-label')?.innerText.includes("პროფილი")) {
+            openProfile(); // გახსნის მთავარ პროფილს
+        }
     }
 });
 
@@ -143,9 +142,8 @@ function openDetails(item) {
     document.getElementById('details-page').classList.add('active');
 }
 
-// პროფილი ახლა იღებს კონკრეტულ ID-ს
 function openProfile(maklerId) {
-    // თუ ID გადაცემულია, ვეძებთ მას, თუ არა - ვიღებთ პირველს (M1)
+    // თუ maklerId არ გვაქვს (ნავიგაციიდან მოსვლისას), ვიღებთ სიიდან პირველს (შენ)
     const m = maklerId 
         ? window.allMaklers.find(makler => makler.ID === maklerId) 
         : window.allMaklers[0];
@@ -170,5 +168,4 @@ function switchTab(tabId, el) {
     el.classList.add('active');
 }
 
-// აპლიკაციის გაშვება
 init();
