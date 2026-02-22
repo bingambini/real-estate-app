@@ -34,78 +34,91 @@ async function fetchData() {
     }
 }
 
-// --- ოპტიმიზებული PDF შაბლონი (მსოფლიო სტანდარტი) ---
+// --- პროფესიონალური PDF გენერაცია 10 ხატულით და ყველა სვეტით ---
 async function downloadProfessionalPDF(item) {
     const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
     const photoList = item.Photos ? item.Photos.split(',') : [];
-    
+
+    // ყველა ველის დინამიური შეგროვება (გარდა სისტემურისა)
+    const dynamicFields = Object.entries(item)
+        .filter(([key, val]) => val && !['Photos', 'ID', 'MaklerID', 'Description', 'TotalPrice', 'Currency', 'Street', 'City', 'District', 'DealType', 'Phone'].includes(key))
+        .map(([key, val]) => `
+            <div style="background:#f8fafc; padding:10px 15px; border-radius:12px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase;">${key}</span>
+                <span style="font-size:12px; color:#1e293b; font-weight:800;">${val}</span>
+            </div>
+        `).join('');
+
     const pdfTemplate = document.createElement('div');
-    pdfTemplate.style.cssText = 'width: 800px; padding: 40px; background: #fff; color: #1e293b; font-family: "Helvetica", sans-serif;';
+    pdfTemplate.style.cssText = 'width: 800px; padding: 40px; background: #fff; color: #1e293b; font-family: sans-serif;';
 
     pdfTemplate.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px;">
-            <img src="${currentMakler?.Logo || ''}" style="height: 50px; max-width: 150px; object-fit: contain;">
-            <div style="text-align: right;">
-                <h1 style="margin: 0; font-size: 26px; color: #1d4ed8;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h1>
-                <p style="margin: 5px 0 0; font-size: 12px; color: #64748b; font-weight: 800; letter-spacing: 1px;">PROPERTY ID: ${item.ID}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #f1f5f9; padding-bottom:20px; margin-bottom:25px;">
+            <img src="${currentMakler?.Logo || ''}" style="height:45px; max-width:160px; object-fit:contain;">
+            <div style="text-align:right;">
+                <h1 style="margin:0; font-size:28px; color:#1d4ed8;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h1>
+                <p style="margin:2px 0; font-size:11px; color:#64748b; font-weight:800;">PROPERTY ID: ${item.ID}</p>
             </div>
         </div>
 
-        <div style="width: 100%; height: 420px; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-            <img src="${photoList[0]?.trim()}" style="width: 100%; height: 100%; object-fit: cover;">
+        <img src="${photoList[0]?.trim()}" style="width:100%; height:400px; border-radius:24px; object-fit:cover; margin-bottom:25px; box-shadow:0 10px 15px rgba(0,0,0,0.05);">
+
+        <div style="margin-bottom:25px;">
+            <h2 style="font-size:22px; margin:0 0 5px; color:#0f172a;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
+            <p style="color:#3b82f6; font-size:14px; font-weight:600; margin:0;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
-            <div style="flex: 1;">
-                <h2 style="font-size: 24px; margin: 0 0 8px 0; color: #0f172a;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
-                <p style="color: #3b82f6; font-size: 15px; font-weight: 600; margin: 0;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;">
+        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:30px;">
             ${[
-                {l: 'ფართი', v: item.TotalArea + ' მ²'},
-                {l: 'საძინებელი', v: item.Rooms},
-                {l: 'სართული', v: item.Floor + '/' + (item.TotalFloors || '?')},
-                {l: 'პროექტი', v: item.ProjectType || '---'}
+                {i:'fa-vector-square', l:'ფართი', v: (item.TotalArea || 0)+' მ²'},
+                {i:'fa-bed', l:'ოთახები', v: item.Rooms || 0},
+                {i:'fa-layer-group', l:'სართული', v: (item.Floor || 0)+'/'+(item.TotalFloors || '?')},
+                {i:'fa-paint-roller', l:'რემონტი', v: item.Condition || '---'},
+                {i:'fa-blueprint', l:'პროექტი', v: item.ProjectType || '---'},
+                {i:'fa-fire-flame-simple', l:'გათბობა', v: item.Heating || '---'},
+                {i:'fa-car', l:'პარკინგი', v: item.Parking || '---'},
+                {i:'fa-arrows-up-down', l:'ჭერი', v: item.CeilingHeight || '---'},
+                {i:'fa-cloud-sun', l:'აივანი', v: item.Balcony || '---'},
+                {i:'fa-mountain-city', l:'ხედი', v: item.View || '---'}
             ].map(f => `
-                <div style="background: #f8fafc; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #f1f5f9;">
-                    <p style="font-size: 10px; color: #94a3b8; text-transform: uppercase; margin: 0; font-weight: 700; letter-spacing: 0.5px;">${f.l}</p>
-                    <p style="font-size: 16px; font-weight: 800; margin: 8px 0 0; color: #1e293b;">${f.v}</p>
+                <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:12px 5px; border-radius:16px; text-align:center;">
+                    <i class="fa-solid ${f.i}" style="color:#3b82f6; font-size:14px; margin-bottom:6px;"></i>
+                    <p style="font-size:8px; color:#94a3b8; text-transform:uppercase; margin:0; font-weight:bold;">${f.l}</p>
+                    <p style="font-size:11px; color:#1e293b; font-weight:800; margin:3px 0 0;">${f.v}</p>
                 </div>
             `).join('')}
         </div>
 
-        <div style="margin-bottom: 40px;">
-            <h3 style="font-size: 14px; text-transform: uppercase; color: #64748b; margin-bottom: 15px; letter-spacing: 1px; border-left: 4px solid #3b82f6; padding-left: 12px;">ქონების აღწერა</h3>
-            <p style="font-size: 14px; line-height: 1.8; color: #475569; white-space: pre-line;">${item.Description || 'აღწერა არ არის მითითებული.'}</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:30px;">
+            ${dynamicFields}
         </div>
 
-        <div style="background: #1e293b; padding: 30px; border-radius: 24px; display: flex; align-items: center; justify-content: space-between; color: #fff;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <img src="${currentMakler?.Photo || ''}" style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); object-fit: cover;">
+        <div style="margin-bottom:30px;">
+            <p style="font-size:13px; line-height:1.6; color:#475569; background:#fff9f0; padding:15px; border-radius:16px; border-left:4px solid #f59e0b;">${item.Description || ''}</p>
+        </div>
+
+        <div style="background:#1e293b; padding:25px; border-radius:24px; display:flex; align-items:center; justify-content:space-between; color:#fff;">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <img src="${currentMakler?.Photo || ''}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.2);">
                 <div>
-                    <p style="margin: 0; font-weight: 800; font-size: 18px;">${currentMakler?.Name}</p>
-                    <p style="margin: 4px 0 0; color: #94a3b8; font-size: 12px; font-weight: 600;">Verified Real Estate Partner</p>
-                    <p style="margin: 10px 0 0; color: #60a5fa; font-size: 16px; font-weight: 800;">${item.Phone || ''}</p>
+                    <p style="margin:0; font-weight:800; font-size:16px;">${currentMakler?.Name}</p>
+                    <p style="margin:2px 0 0; color:#60a5fa; font-size:14px; font-weight:bold;">${item.Phone || ''}</p>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <p style="font-size: 11px; color: #64748b; margin: 0;">GENERATE DATE</p>
-                <p style="font-size: 13px; font-weight: 700; margin: 5px 0 0;">${new Date().toLocaleDateString()}</p>
+            <div style="text-align:right; opacity:0.6;">
+                <p style="font-size:10px; margin:0;">VERIFIED REAL ESTATE AGENT</p>
+                <p style="font-size:10px; margin:0;">DATE: ${new Date().toLocaleDateString()}</p>
             </div>
         </div>
     `;
 
-    const opt = {
+    html2pdf().set({
         margin: 0,
         filename: `Expose_ID_${item.ID}.pdf`,
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(pdfTemplate).save();
+    }).from(pdfTemplate).save();
 }
 
 function renderProperties(items) {
@@ -114,11 +127,9 @@ function renderProperties(items) {
     container.innerHTML = items.map(item => {
         try {
             const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://placehold.co/400x300?text=No+Image';
-            let currentMakler = null;
-            if (window.allMaklers && window.allMaklers.length > 0) {
-                currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
-            }
-            const maklerImg = (currentMakler && currentMakler.Photo) ? currentMakler.Photo : 'https://placehold.co/100x100?text=Agent';
+            let currentMakler = (window.allMaklers && window.allMaklers.length > 0) ? (window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0]) : null;
+            const maklerImg = currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent';
+            
             return `
             <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
                 <div class="relative h-64 overflow-hidden">
@@ -131,11 +142,27 @@ function renderProperties(items) {
                 </div>
                 <div class="p-5 relative">
                     <h4 class="font-black text-slate-800 text-lg truncate w-[80%]">${item.Street || item.PropertyType || 'ბინა'}</h4>
-                    <p class="text-slate-400 text-xs mb-3"><i class="fa-solid fa-location-dot text-blue-500"></i> ${item.District || ''}, ${item.City || ''}</p>
-                    <div class="flex items-center gap-4 border-t border-slate-50 pt-3">
-                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Rooms || 0}</span></div>
-                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.TotalArea || 0} მ²</span></div>
+                    <p class="text-slate-400 text-[11px] mb-4">📍 ${item.District || ''}, ${item.City || ''}</p>
+                    
+                    <div class="grid grid-cols-2 gap-y-2 gap-x-4 border-t border-slate-50 pt-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-vector-square text-blue-500 text-[10px]"></i>
+                            <span class="text-xs font-bold text-slate-600">${item.TotalArea || 0} მ²</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-bed text-blue-500 text-[10px]"></i>
+                            <span class="text-xs font-bold text-slate-600">${item.Rooms || 0} ოთახი</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-blue-500 text-[10px]"></i>
+                            <span class="text-xs font-bold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} სართ.</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-paint-roller text-blue-500 text-[10px]"></i>
+                            <span class="text-xs font-bold text-slate-600 truncate">${item.Condition || 'რემონტით'}</span>
+                        </div>
                     </div>
+
                     <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform cursor-pointer z-20">
                         <img src="${maklerImg}" class="w-full h-full object-cover">
                     </div>
@@ -157,15 +184,18 @@ function openDetails(item) {
     setEl('det-sq', item.TotalArea || "0");
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
-    // PDF ღილაკისთვის მოვლენის მიბმა
     const pdfBtn = document.getElementById('download-pdf-btn');
-    if(pdfBtn) {
-        pdfBtn.onclick = () => downloadProfessionalPDF(item);
-    }
+    if(pdfBtn) pdfBtn.onclick = () => downloadProfessionalPDF(item);
 
     const featList = document.getElementById('features-list');
     if(featList) {
-        const features = [{ label: "მდგომარეობა", val: item.Condition }, { label: "პროექტი", val: item.ProjectType }, { label: "გათბობა", val: item.Heating }, { label: "ჭერი", val: item.CeilingHeight }, { label: "პარკინგი", val: item.Parking }];
+        const features = [
+            { label: "მდგომარეობა", val: item.Condition }, 
+            { label: "პროექტი", val: item.ProjectType }, 
+            { label: "გათბობა", val: item.Heating }, 
+            { label: "ჭერი", val: item.CeilingHeight }, 
+            { label: "პარკინგი", val: item.Parking }
+        ];
         featList.innerHTML = features.filter(f => f.val).map(f => `<div class="bg-slate-50 p-3 rounded-2xl"><p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p><p class="text-xs font-black text-slate-700">${f.val}</p></div>`).join('');
     }
 
