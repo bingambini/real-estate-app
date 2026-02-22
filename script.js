@@ -42,14 +42,12 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         try {
-            // შეიცვალა სტაბილური placeholder-ით
             const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://placehold.co/400x300?text=No+Image';
             
             let currentMakler = null;
             if (window.allMaklers && window.allMaklers.length > 0) {
                 currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
             }
-            // შეიცვალა სტაბილური placeholder-ით
             const maklerImg = (currentMakler && currentMakler.Photo) ? currentMakler.Photo : 'https://placehold.co/100x100?text=Agent';
 
             return `
@@ -144,18 +142,18 @@ function openDetails(item) {
             <div class="slide relative h-full w-full flex-shrink-0 overflow-hidden">
                 <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
                 
-                <div class="absolute bottom-16 right-5 flex items-center gap-3 bg-white/10 backdrop-blur-xl px-4 py-2.5 rounded-[20px] border border-white/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] pointer-events-none animate-in fade-in duration-700">
-                    <div class="flex items-center justify-center w-8 h-8 bg-white/90 rounded-xl shadow-lg p-1.5">
+                <div class="absolute bottom-16 right-6 flex items-center gap-4 bg-white/5 backdrop-blur-md px-6 py-3 rounded-[24px] border border-white/10 shadow-lg pointer-events-none opacity-80 animate-in fade-in duration-700">
+                    <div class="flex items-center justify-center w-10 h-10">
                         ${logoUrl ? 
                             `<img src="${logoUrl}" class="w-full h-full object-contain">` : 
-                            `<i class="fa-solid fa-house-chimney text-blue-600 text-[10px]"></i>`
+                            `<i class="fa-solid fa-house-chimney text-white/50 text-sm"></i>`
                         }
                     </div>
                     <div class="flex flex-col justify-center">
-                        <span class="text-white text-[11px] font-black leading-tight tracking-tight drop-shadow-md">${wmText}</span>
-                        <div class="flex items-center gap-1 mt-0.5">
-                            <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                            <span class="text-white/70 text-[7px] font-bold uppercase tracking-[0.12em]">Verified Partner</span>
+                        <span class="text-white/90 text-xs font-black leading-tight tracking-tight">${wmText}</span>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <div class="w-1.5 h-1.5 bg-green-500/60 rounded-full animate-pulse"></div>
+                            <span class="text-white/40 text-[8px] font-bold uppercase tracking-[0.15em]">Verified Partner</span>
                         </div>
                     </div>
                 </div>
