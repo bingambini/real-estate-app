@@ -35,19 +35,20 @@ async function fetchData() {
 }
 
 async function getBase64Image(url) {
-    if (!url) return null;
+    if (!url || url.includes('placeholder') || url.includes('pngtree')) return null; 
     try {
-        const response = await fetch(url, { mode: 'cors' }); 
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Network response was not ok');
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onerror = () => resolve(null); // შეცდომისას ვაბრუნებთ null-ს
             reader.readAsDataURL(blob);
         });
     } catch (e) {
-        console.warn("ფოტოს ჩატვირთვა ვერ მოხერხდა (CORS):", url);
-        return null;
+        console.warn("CORS Error for URL:", url);
+        return null; // თუ სერვერი ბლოკავს, ვაგრძელებთ მუშაობას სურათის გარეშე
     }
 }
 
