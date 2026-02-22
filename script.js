@@ -57,94 +57,16 @@ async function downloadProfessionalPDF(item) {
     const originalContent = btn.innerHTML;
     
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    btn.disabled = true;
+    
+    // API_URL არის შენი Google Script-ის ბმული
+    const downloadUrl = `https://script.google.com/macros/s/შენი_სკრიპტის_აიდი/exec?action=pdf&id=${item.ID}`;
+    
+    // Telegram-ში ბმულის გახსნა
+    window.open(downloadUrl, '_blank');
 
-    try {
-        const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
-        const photoUrls = item.Photos ? item.Photos.split(',').map(url => url.trim()) : [];
-        
-        // 1. სურათების ჩატვირთვა
-        const [mainPhoto, maklerPhoto, logoImg] = await Promise.all([
-            getBase64Image(photoUrls[0]),
-            getBase64Image(currentMakler?.Photo),
-            getBase64Image(currentMakler?.Logo)
-        ]);
-
-        // 2. ვქმნით ელემენტს, რომელსაც დროებით პირდაპირ ეკრანის თავზე დავაფარებთ
-        // ეს აიძულებს ბრაუზერს "დაინახოს" კონტენტი 100% ხილვადობით
-        const pdfContainer = document.createElement('div');
-        pdfContainer.id = "FINAL_PDF_WRAPPER";
-        pdfContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            background: white;
-            z-index: 999999;
-            padding: 20px;
-            color: black;
-            font-family: Arial, sans-serif;
-        `;
-
-        pdfContainer.innerHTML = `
-            <div style="max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div style="height: 40px;">${logoImg ? `<img src="${logoImg}" style="height: 100%;">` : '<strong>PROPERTY EXPO</strong>'}</div>
-                    <div style="text-align: right;">
-                        <h2 style="margin: 0; color: #2563eb;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h2>
-                    </div>
-                </div>
-
-                <div style="width: 100%; height: 300px; margin-bottom: 20px; overflow: hidden; border-radius: 10px;">
-                    ${mainPhoto ? `<img src="${mainPhoto}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
-                </div>
-
-                <h3 style="margin: 0 0 10px 0;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h3>
-                <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">📍 ${item.City}, ${item.District}</p>
-
-                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
-                    ${item.Description || 'აღწერა არ არის'}
-                </div>
-
-                <div style="border-top: 1px solid #eee; pt-4; display: flex; align-items: center; justify-content: space-between; padding-top: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        ${maklerPhoto ? `<img src="${maklerPhoto}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">` : ''}
-                        <span style="font-weight: bold; font-size: 14px;">${currentMakler?.Name || 'აგენტი'}</span>
-                    </div>
-                    <div style="font-weight: bold; color: #2563eb;">${item.Phone || ''}</div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(pdfContainer);
-
-        // 3. ველოდებით ცოტას რენდერისთვის
-        await new Promise(r => setTimeout(r, 500));
-
-        const opt = {
-            margin: 0,
-            filename: `House_ID_${item.ID}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true,
-                scrollY: 0,
-                windowWidth: document.documentElement.offsetWidth
-            },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        // 4. გენერაცია
-        await html2pdf().set(opt).from(pdfContainer).save();
-
-    } catch (err) {
-        console.error("PDF Fatal Error:", err);
-    } finally {
-        const el = document.getElementById("FINAL_PDF_WRAPPER");
-        if (el) el.remove();
+    setTimeout(() => {
         btn.innerHTML = originalContent;
-        btn.disabled = false;
-    }
+    }, 3000);
 }
 
 function shareProperty(item) {
