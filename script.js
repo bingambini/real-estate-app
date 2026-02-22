@@ -37,7 +37,6 @@ async function fetchData() {
 async function getBase64Image(url) {
     if (!url) return null;
     try {
-        // ვამატებთ { mode: 'cors' } რომ ბრაუზერმა ნება დაგვირთოს სურათის წაკითხვაზე
         const response = await fetch(url, { mode: 'cors' }); 
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
@@ -62,6 +61,7 @@ async function downloadProfessionalPDF(item) {
     const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
     const photoUrls = item.Photos ? item.Photos.split(',').map(url => url.trim()) : [];
     
+    // სურათების წინასწარი ჩატვირთვა Base64-ში
     const [mainPhoto, maklerPhoto, logoImg, ...galleryPhotos] = await Promise.all([
         getBase64Image(photoUrls[0]),
         getBase64Image(currentMakler?.Photo),
@@ -86,7 +86,8 @@ async function downloadProfessionalPDF(item) {
     `).join('');
 
     const pdfContainer = document.createElement('div');
-    pdfContainer.style.cssText = 'position:fixed; left:-9999px; top:0; width:750px; padding:40px; background:#fff;';
+    // მნიშვნელოვანი: კონტეინერი უნდა იყოს ხილული (მაგრამ ეკრანს გარეთ), რომ html2pdf-მა აღიქვას
+    pdfContainer.style.cssText = 'position:absolute; left:-10000px; top:0; width:750px; padding:40px; background:#fff; font-family: sans-serif;';
 
     pdfContainer.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #f1f5f9; padding-bottom:20px; margin-bottom:25px;">
@@ -98,13 +99,13 @@ async function downloadProfessionalPDF(item) {
                 <p style="margin:4px 0; font-size:12px; color:#64748b; font-weight:bold;">ID: ${item.ID}</p>
             </div>
         </div>
-        <div style="width:100%; height:420px; border-radius:25px; overflow:hidden; margin-bottom:15px; background:#f1f5f9; display:block;">
-            ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%; height:100%; object-fit:cover; display:block;">` : ''}
+        <div style="width:100%; height:420px; border-radius:25px; overflow:hidden; margin-bottom:15px; background:#f1f5f9;">
+            ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%; height:100%; object-fit:cover;">` : ''}
         </div>
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px; min-height:100px;">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px;">
             ${galleryPhotos.filter(img => img).map(img => `
                 <div style="height:110px; border-radius:15px; overflow:hidden; background:#f1f5f9;">
-                    <img src="${img}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
                 </div>
             `).join('')}
         </div>
@@ -115,7 +116,7 @@ async function downloadProfessionalPDF(item) {
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:30px;">
             ${detailsGrid}
         </div>
-        <div style="background:#f1f5f9; padding:25px; border-radius:25px; margin-bottom:35px; min-height:100px;">
+        <div style="background:#f1f5f9; padding:25px; border-radius:25px; margin-bottom:35px;">
             <h4 style="margin:0 0 10px; font-size:11px; text-transform:uppercase; color:#64748b; letter-spacing:1px; font-weight:bold;">აღწერა</h4>
             <p style="margin:0; font-size:13px; line-height:1.6; color:#334155;">${item.Description || 'აღწერა არ არის მითითებული'}</p>
         </div>
@@ -137,13 +138,21 @@ async function downloadProfessionalPDF(item) {
     `;
 
     document.body.appendChild(pdfContainer);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // ვაძლევთ ბრაუზერს დროს, რომ სურათები ეკრანზე "დახატოს"
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const opt = {
         margin: [10, 10],
         filename: `Property_ID_${item.ID}.pdf`,
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true, allowTaint: false },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false, 
+            letterRendering: true,
+            windowWidth: 750 // ვაფიქსირებთ სიგანეს გენერაციის დროს
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
