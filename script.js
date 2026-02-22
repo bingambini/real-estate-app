@@ -97,7 +97,6 @@ document.addEventListener('click', function(e) {
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => console.error(e));
     
-    // უსაფრთხო ჩაწერა details გვერდისთვის
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
     
     setEl('det-title', `${item.Rooms || 0} ოთახიანი ${item.PropertyType || 'ბინა'}`);
@@ -131,12 +130,26 @@ function openDetails(item) {
     const callBtn = document.getElementById('call-btn');
     if(callBtn) callBtn.href = `tel:${item.Phone}`;
 
+    // --- ვატერმარკის და სლაიდერის ლოგიკა ---
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     
     if (item.Photos && wrapper && dotsContainer) {
+        // ვიპოვოთ მაკლერის მონაცემები ვატერმარკისთვის
+        let currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
+        const wmText = currentMakler?.WatermarkText || "Real Estate";
+        const logoUrl = currentMakler?.Logo || "";
+
         const photoList = item.Photos.split(',');
-        wrapper.innerHTML = photoList.map(url => `<div class="slide"><img src="${url.trim()}" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'"></div>`).join('');
+        wrapper.innerHTML = photoList.map(url => `
+            <div class="slide relative">
+                <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'">
+                <div class="absolute bottom-12 right-6 flex items-center gap-3 bg-black/20 backdrop-blur-[2px] px-3 py-2 rounded-xl pointer-events-none border border-white/10">
+                    ${logoUrl ? `<img src="${logoUrl}" class="w-6 h-6 object-contain">` : ''}
+                    <span class="text-white text-[10px] font-black uppercase tracking-widest shadow-sm">${wmText}</span>
+                </div>
+            </div>`).join('');
+
         dotsContainer.innerHTML = photoList.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
         wrapper.onscroll = () => {
             const scrollIndex = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
@@ -149,29 +162,18 @@ function openDetails(item) {
 
 function openProfile(maklerId) {
     if (!window.allMaklers || window.allMaklers.length === 0) return;
-
-    const m = maklerId 
-        ? window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) 
-        : window.allMaklers[0];
-
+    const m = maklerId ? window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) : window.allMaklers[0];
     if (!m) return;
-    
-    // უსაფრთხო ჩაწერა: ვამოწმებთ არსებობს თუ არა ელემენტი სანამ მნიშვნელობას მივანიჭებთ
     const elName = document.getElementById('m-name');
     if(elName) elName.innerText = m.Name || "მაკლერი";
-    
     const elPhoto = document.getElementById('m-photo');
     if(elPhoto) elPhoto.src = m.Photo || 'https://via.placeholder.com/100';
-    
     const elWm = document.getElementById('m-wm');
     if(elWm) elWm.innerText = m.WatermarkText || "Agent";
-    
     const elId = document.getElementById('m-id');
     if(elId) elId.innerText = m.ID || "---";
-    
     const elCall = document.getElementById('m-call');
     if(elCall) elCall.href = `tel:${m.Phone}`;
-    
     document.getElementById('profile-page')?.classList.add('active');
 }
 
