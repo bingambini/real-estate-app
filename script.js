@@ -128,48 +128,41 @@ function renderProperties(items) {
     container.innerHTML = items.map(item => {
         try {
             const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://placehold.co/400x300?text=No+Image';
-            let currentMakler = (window.allMaklers && window.allMaklers.length > 0) ? (window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0]) : null;
-            const maklerImg = currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent';
             
             return `
-            <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4 relative">
+            <div onclick='openDetails(${JSON.stringify(item)})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
                 <div class="relative h-60 overflow-hidden">
                     <img src="${firstImg}" class="w-full h-full object-cover">
                     
-                    <div class="absolute top-3 left-3 bg-black/30 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-bold text-white uppercase">ID: ${item.ID}</div>
-                    <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-black text-slate-800 uppercase">${item.DealType || 'იყიდება'}</div>
+                    <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
                     
                     <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-xl shadow-lg">
                         <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
                     </div>
-
-                    <div onclick="event.stopPropagation(); openProfile('${item.MaklerID}');" class="absolute bottom-3 right-3 w-11 h-11 rounded-xl border-2 border-white shadow-xl overflow-hidden active:scale-90 transition-transform cursor-pointer">
-                        <img src="${maklerImg}" class="w-full h-full object-cover">
-                    </div>
                 </div>
 
-                <div class="px-4 py-3">
-                    <h4 class="font-black text-slate-800 text-base leading-tight truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
-                    <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+                <div class="px-5 py-4">
+                    <h4 class="font-black text-slate-800 text-lg leading-tight truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
+                    <p class="text-slate-400 text-[11px] font-bold mt-1 flex items-center gap-1">
                         <i class="fa-solid fa-location-dot text-blue-500/70"></i> ${item.District || ''}, ${item.City || ''}
                     </p>
                     
-                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
                         <div class="flex items-center gap-1.5">
                             <i class="fa-solid fa-vector-square text-blue-500 text-[10px]"></i>
-                            <span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span>
+                            <span class="text-[12px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <i class="fa-solid fa-bed text-blue-500 text-[10px]"></i>
-                            <span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span>
+                            <span class="text-[12px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <i class="fa-solid fa-layer-group text-blue-500 text-[10px]"></i>
-                            <span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span>
+                            <span class="text-[12px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span>
                         </div>
-                        <div class="flex items-center gap-1.5 max-w-[80px] truncate">
+                        <div class="flex items-center gap-1.5 max-w-[90px]">
                             <i class="fa-solid fa-paint-roller text-blue-500 text-[10px]"></i>
-                            <span class="text-[11px] font-extrabold text-slate-600 truncate">${item.Condition || 'სუფთა'}</span>
+                            <span class="text-[12px] font-extrabold text-slate-600 truncate">${item.Condition || 'სუფთა'}</span>
                         </div>
                     </div>
                 </div>
