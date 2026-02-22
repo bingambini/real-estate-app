@@ -57,16 +57,26 @@ async function downloadProfessionalPDF(item) {
     const originalContent = btn.innerHTML;
     
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    
-    // API_URL არის შენი Google Script-ის ბმული
-    const downloadUrl = `https://script.google.com/macros/s/შენი_სკრიპტის_აიდი/exec?action=pdf&id=${item.ID}`;
-    
-    // Telegram-ში ბმულის გახსნა
-    window.open(downloadUrl, '_blank');
+    btn.disabled = true;
 
-    setTimeout(() => {
+    try {
+        // 1. ვუგზავნით მოთხოვნას სერვერს
+        const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
+        const pdfUrl = await response.text(); // სერვერი გვიბრუნებს Drive-ის ლინკს
+
+        if (pdfUrl.includes("http")) {
+            // 2. ვხსნით მიღებულ ლინკს ახალ ფანჯარაში
+            window.open(pdfUrl, '_blank');
+        } else {
+            alert("შეცდომა PDF-ის გენერირებისას: " + pdfUrl);
+        }
+    } catch (err) {
+        console.error("PDF Error:", err);
+        alert("კავშირის შეცდომა.");
+    } finally {
         btn.innerHTML = originalContent;
-    }, 3000);
+        btn.disabled = false;
+    }
 }
 
 function shareProperty(item) {
