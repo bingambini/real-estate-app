@@ -63,88 +63,84 @@ async function downloadProfessionalPDF(item) {
         const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
         const photoUrls = item.Photos ? item.Photos.split(',').map(url => url.trim()) : [];
         
-        // 1. სურათების ჩატვირთვა (გამოვიყენოთ წინა getBase64Image)
+        // 1. სურათების ჩატვირთვა
         const [mainPhoto, maklerPhoto, logoImg] = await Promise.all([
             getBase64Image(photoUrls[0]),
             getBase64Image(currentMakler?.Photo),
             getBase64Image(currentMakler?.Logo)
         ]);
 
-        // 2. ვქმნით კონტეინერს, რომელიც დროებით იქნება ხილული
+        // 2. ვქმნით ელემენტს, რომელსაც დროებით პირდაპირ ეკრანის თავზე დავაფარებთ
+        // ეს აიძულებს ბრაუზერს "დაინახოს" კონტენტი 100% ხილვადობით
         const pdfContainer = document.createElement('div');
-        pdfContainer.id = "REAL_PDF_RENDER";
-        // ვსვამთ ძალიან შორს დაბლა, რომ მომხმარებელმა ვერ დაინახოს, მაგრამ ბრაუზერმა "დახატოს"
-        pdfContainer.style.cssText = 'position: absolute; top: 10000px; left: 0; width: 700px; background: white; padding: 40px; color: black;';
+        pdfContainer.id = "FINAL_PDF_WRAPPER";
+        pdfContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            background: white;
+            z-index: 999999;
+            padding: 20px;
+            color: black;
+            font-family: Arial, sans-serif;
+        `;
 
         pdfContainer.innerHTML = `
-            <div style="border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="height: 50px;">
-                        ${logoImg ? `<img src="${logoImg}" style="height: 100%;">` : '<h2 style="margin:0;">PROPERTY EXPO</h2>'}
-                    </div>
+            <div style="max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div style="height: 40px;">${logoImg ? `<img src="${logoImg}" style="height: 100%;">` : '<strong>PROPERTY EXPO</strong>'}</div>
                     <div style="text-align: right;">
-                        <h1 style="margin: 0; color: #2563eb; font-size: 28px;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h1>
-                        <p style="margin:0; color: #64748b;">ID: ${item.ID}</p>
+                        <h2 style="margin: 0; color: #2563eb;">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</h2>
                     </div>
                 </div>
-            </div>
 
-            <div style="width: 100%; height: 400px; border-radius: 20px; overflow: hidden; margin-bottom: 25px;">
-                ${mainPhoto ? `<img src="${mainPhoto}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
-            </div>
-
-            <div style="margin-bottom: 30px;">
-                <h2 style="font-size: 24px; margin-bottom: 10px;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h2>
-                <p style="color: #3b82f6; font-size: 16px;">📍 ${item.City}, ${item.District}, ${item.Street}</p>
-            </div>
-
-            <div style="background: #f8fafc; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
-                <h4 style="margin: 0 0 10px; font-size: 12px; color: #64748b; text-transform: uppercase;">აღწერა</h4>
-                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #334155;">${item.Description || 'აღწერა არ არის'}</p>
-            </div>
-
-            <div style="background: #1e293b; padding: 25px; border-radius: 25px; display: flex; justify-content: space-between; align-items: center; color: white;">
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    ${maklerPhoto ? `<img src="${maklerPhoto}" style="width: 60px; height: 60px; border-radius: 15px; object-fit: cover; border: 2px solid #334155;">` : ''}
-                    <div>
-                        <p style="margin: 0; font-size: 18px; font-weight: bold;">${currentMakler?.Name || 'აგენტი'}</p>
-                        <p style="margin: 0; font-size: 11px; color: #94a3b8;">PROPERTY EXPO</p>
-                    </div>
+                <div style="width: 100%; height: 300px; margin-bottom: 20px; overflow: hidden; border-radius: 10px;">
+                    ${mainPhoto ? `<img src="${mainPhoto}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
                 </div>
-                <div style="text-align: right;">
-                    <p style="margin: 0; font-size: 20px; font-weight: bold; color: #60a5fa;">${item.Phone || ''}</p>
+
+                <h3 style="margin: 0 0 10px 0;">${item.Rooms} ოთახიანი ${item.PropertyType || 'ბინა'}</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">📍 ${item.City}, ${item.District}</p>
+
+                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+                    ${item.Description || 'აღწერა არ არის'}
+                </div>
+
+                <div style="border-top: 1px solid #eee; pt-4; display: flex; align-items: center; justify-content: space-between; padding-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        ${maklerPhoto ? `<img src="${maklerPhoto}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">` : ''}
+                        <span style="font-weight: bold; font-size: 14px;">${currentMakler?.Name || 'აგენტი'}</span>
+                    </div>
+                    <div style="font-weight: bold; color: #2563eb;">${item.Phone || ''}</div>
                 </div>
             </div>
         `;
 
         document.body.appendChild(pdfContainer);
 
-        // 3. მთავარი მომენტი: ველოდებით 1 წამს, რომ ბრაუზერმა "გააცნობიეროს" ახალი ელემენტი
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 3. ველოდებით ცოტას რენდერისთვის
+        await new Promise(r => setTimeout(r, 500));
 
         const opt = {
-            margin: [10, 10],
-            filename: `Property_${item.ID}.pdf`,
+            margin: 0,
+            filename: `House_ID_${item.ID}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
                 scale: 2, 
-                useCORS: true, 
-                logging: false,
-                width: 700, // ვაფიქსირებთ სიგანეს
-                scrollY: -window.scrollY // აგვარებს "თეთრი ადგილების" პრობლემას სქროლის დროს
+                useCORS: true,
+                scrollY: 0,
+                windowWidth: document.documentElement.offsetWidth
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        // 4. გენერაცია პირდაპირ DOM ელემენტიდან
+        // 4. გენერაცია
         await html2pdf().set(opt).from(pdfContainer).save();
 
     } catch (err) {
-        console.error("PDF ERROR:", err);
-        alert("შეცდომა PDF-ის შექმნისას.");
+        console.error("PDF Fatal Error:", err);
     } finally {
-        // ვშლით დროებით ელემენტს
-        const el = document.getElementById("REAL_PDF_RENDER");
+        const el = document.getElementById("FINAL_PDF_WRAPPER");
         if (el) el.remove();
         btn.innerHTML = originalContent;
         btn.disabled = false;
