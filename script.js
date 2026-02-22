@@ -38,15 +38,6 @@ async function downloadProfessionalPDF(item) {
     const currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
     const photoList = item.Photos ? item.Photos.split(',') : [];
 
-    const dynamicFields = Object.entries(item)
-        .filter(([key, val]) => val && !['Photos', 'ID', 'MaklerID', 'Description', 'TotalPrice', 'Currency', 'Street', 'City', 'District', 'DealType', 'Phone'].includes(key))
-        .map(([key, val]) => `
-            <div style="background:#f8fafc; padding:10px 15px; border-radius:12px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase;">${key}</span>
-                <span style="font-size:12px; color:#1e293b; font-weight:800;">${val}</span>
-            </div>
-        `).join('');
-
     const pdfTemplate = document.createElement('div');
     pdfTemplate.style.cssText = 'width: 800px; padding: 40px; background: #fff; color: #1e293b; font-family: sans-serif;';
 
@@ -65,11 +56,11 @@ async function downloadProfessionalPDF(item) {
         </div>
         <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:30px;">
             ${[
-                {i:'fa-vector-square', l:'ფართი', v: (item.TotalArea || 0)+' მ²'},
-                {i:'fa-bed', l:'ოთახები', v: item.Rooms || 0},
-                {i:'fa-layer-group', l:'სართული', v: (item.Floor || 0)+'/'+(item.TotalFloors || '?')},
-                {i:'fa-paint-roller', l:'რემონტი', v: item.Condition || '---'},
-                {i:'fa-blueprint', l:'პროექტი', v: item.ProjectType || '---'}
+                {l:'ფართი', v: (item.TotalArea || 0)+' მ²'},
+                {l:'ოთახები', v: item.Rooms || 0},
+                {l:'სართული', v: (item.Floor || 0)+'/'+(item.TotalFloors || '?')},
+                {l:'რემონტი', v: item.Condition || '---'},
+                {l:'პროექტი', v: item.ProjectType || '---'}
             ].map(f => `
                 <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:12px 5px; border-radius:16px; text-align:center;">
                     <p style="font-size:8px; color:#94a3b8; text-transform:uppercase; margin:0;">${f.l}</p>
@@ -120,7 +111,6 @@ function renderProperties(items) {
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span></div>
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span></div>
                         <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span></div>
-                        <div class="flex items-center gap-1.5 max-w-[85px]"><i class="fa-solid fa-paint-roller text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600 truncate">${item.Condition || 'სუფთა'}</span></div>
                     </div>
                 </div>
             </div>`;
@@ -136,12 +126,9 @@ function openDetails(item) {
     setEl('det-loc', `${item.City || ''}, ${item.District || ''}, ${item.Street || ''}`);
     setEl('det-price', `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`);
     setEl('det-id', item.ID);
-    setEl('det-rooms', item.Rooms || "0");
-    setEl('det-floor', `${item.Floor || 0}/${item.TotalFloors || '?'}`);
-    setEl('det-sq', item.TotalArea || "0");
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
-    // --- კონტაქტის ტაბის (tab-contact) დინამიური განახლება ---
+    // --- კონტაქტის ტაბი კლიკაბელური მაკლერის ბანერით ---
     const contactTab = document.getElementById('tab-contact'); 
     if (contactTab) {
         let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
@@ -149,36 +136,58 @@ function openDetails(item) {
             : null;
         
         contactTab.innerHTML = `
-            <div class="flex flex-col gap-6 py-4">
-                <div class="bg-slate-50 rounded-[24px] p-5 flex items-center gap-4 border border-slate-100">
+            <div class="flex flex-col gap-5 py-2">
+                <div onclick="openProfile('${currentMakler?.ID}')" class="bg-slate-50 rounded-[24px] p-4 flex items-center gap-4 border border-slate-100 active:scale-95 transition-all cursor-pointer">
                     <div class="relative">
-                        <img src="${currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent'}" class="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm">
-                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                        <img src="${currentMakler?.Photo || 'https://placehold.co/100x100?text=Agent'}" class="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm">
+                        <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-[10px] font-bold text-blue-500 uppercase tracking-tight mb-1">უძრავი ქონების აგენტი</span>
-                        <h4 class="font-black text-slate-800 text-lg leading-tight">${currentMakler?.Name || 'პროფესიონალი აგენტი'}</h4>
-                        <p class="text-slate-400 text-[11px] font-bold mt-1">ID: ${currentMakler?.ID || '---'}</p>
+                        <span class="text-[9px] font-bold text-blue-500 uppercase tracking-tight">მაკლერი</span>
+                        <h4 class="font-black text-slate-800 text-base leading-tight">${currentMakler?.Name || 'პროფესიონალი აგენტი'}</h4>
+                        <p class="text-slate-400 text-[10px] font-bold mt-0.5">პროფილის ნახვა <i class="fa-solid fa-chevron-right text-[8px]"></i></p>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="downloadProfessionalPDF(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="flex-1 bg-white border-2 border-slate-100 py-4 rounded-[20px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm">
-                        <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
-                        <span class="text-slate-700 font-black text-xs uppercase tracking-wider">PDF ფაილი</span>
+                    <button onclick="downloadProfessionalPDF(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="flex-1 bg-white border border-slate-200 py-4 rounded-[20px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
+                        <i class="fa-solid fa-file-pdf text-red-500"></i>
+                        <span class="text-slate-700 font-black text-xs uppercase">PDF</span>
                     </button>
-                    <a href="tel:${item.Phone || ''}" class="flex-[1.5] bg-blue-600 py-4 rounded-[20px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg shadow-blue-200">
-                        <i class="fa-solid fa-phone text-white text-lg"></i>
-                        <span class="text-white font-black text-xs uppercase tracking-wider">დარეკვა</span>
+                    <a href="tel:${item.Phone || ''}" class="flex-[2] bg-blue-600 py-4 rounded-[20px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-blue-200">
+                        <i class="fa-solid fa-phone text-white"></i>
+                        <span class="text-white font-black text-xs uppercase">დარეკვა</span>
                     </a>
                 </div>
             </div>
         `;
     }
 
+    // --- დეტალები: ყველა ინფორმაცია გუგლის დოკუმენტიდან ორ სვეტად ---
     const featList = document.getElementById('features-list');
     if(featList) {
-        const features = [{ label: "მდგომარეობა", val: item.Condition }, { label: "პროექტი", val: item.ProjectType }, { label: "გათბობა", val: item.Heating }, { label: "ჭერი", val: item.CeilingHeight }, { label: "პარკინგი", val: item.Parking }];
-        featList.innerHTML = features.filter(f => f.val).map(f => `<div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50"><p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p><p class="text-xs font-black text-slate-700">${f.val}</p></div>`).join('');
+        const allFields = [
+            { label: "ქალაქი", val: item.City },
+            { label: "რაიონი", val: item.District },
+            { label: "ქუჩა", val: item.Street },
+            { label: "ტიპი", val: item.PropertyType },
+            { label: "გარიგება", val: item.DealType },
+            { label: "ფართი", val: item.TotalArea ? item.TotalArea + " მ²" : null },
+            { label: "ოთახები", val: item.Rooms },
+            { label: "სართული", val: item.Floor ? `${item.Floor}/${item.TotalFloors || '?'}` : null },
+            { label: "მდგომარეობა", val: item.Condition },
+            { label: "პროექტი", val: item.ProjectType },
+            { label: "გათბობა", val: item.Heating },
+            { label: "ჭერი", val: item.CeilingHeight },
+            { label: "პარკინგი", val: item.Parking }
+        ];
+        featList.innerHTML = allFields
+            .filter(f => f.val && f.val !== "0" && f.val !== "")
+            .map(f => `
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                    <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
+                    <p class="text-xs font-black text-slate-700">${f.val}</p>
+                </div>
+            `).join('');
     }
 
     const wrapper = document.getElementById('slider-wrapper');
@@ -200,14 +209,10 @@ function openProfile(maklerId) {
     if (!window.allMaklers || window.allMaklers.length === 0) return;
     const m = maklerId ? window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) : window.allMaklers[0];
     if (!m) return;
-    const elName = document.getElementById('m-name');
-    if(elName) elName.innerText = m.Name || "მაკლერი";
-    const elPhoto = document.getElementById('m-photo');
-    if(elPhoto) elPhoto.src = m.Photo || 'https://placehold.co/100x100?text=Agent';
-    const elId = document.getElementById('m-id');
-    if(elId) elId.innerText = m.ID || "---";
-    const elCall = document.getElementById('m-call');
-    if(elCall) elCall.href = `tel:${m.Phone}`;
+    document.getElementById('m-name').innerText = m.Name || "მაკლერი";
+    document.getElementById('m-photo').src = m.Photo || 'https://placehold.co/100x100?text=Agent';
+    document.getElementById('m-id').innerText = m.ID || "---";
+    document.getElementById('m-call').href = `tel:${m.Phone}`;
     document.getElementById('profile-page')?.classList.add('active');
 }
 
