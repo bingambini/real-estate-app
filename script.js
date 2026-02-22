@@ -1,30 +1,49 @@
+// ბაზის (Google Apps Script) ბმული
 const API_URL = "https://script.google.com/macros/s/AKfycbzMT5njH3zr3cb1tSBetL3ChqXn6iJGMQDYvkrDWLfr5Qh1qGF6PcXzVDT2daEOEuoB-g/exec";
+// Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
+// მაკლერების მონაცემების გლობალური მასივი
 window.allMaklers = []; 
 
+/**
+ * ფასის ფორმატირება: ამატებს გამოყოფებს ციფრებს შორის (მაგ: 100 000)
+ */
 function formatPrice(price) {
     if (!price) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
+/**
+ * აპლიკაციის საწყისი ინიციალიზაცია
+ */
 async function init() {
-    tg.expand();
-    tg.ready();
+    tg.expand(); // აპლიკაციის სრულ ეკრანზე გაშლა
+    tg.ready();  // Telegram-ისთვის სიგნალის მიცემა, რომ აპი მზადაა
+    
+    // Splash screen-ის გაქრობა 2 წამში
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
         if (splash) splash.classList.add('hidden-splash'); 
         if (content) content.style.opacity = '1'; 
     }, 2000);
-    await fetchData();
+    
+    await fetchData(); // მონაცემების წამოღება
 }
 
+/**
+ * მონაცემების წამოღება Google Sheets-იდან API-ს მეშვეობით
+ */
 async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
+        
+        // მაკლერების სიის შენახვა
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
+        
+        // განცხადებების სიის რენდერი
         const listings = data.listings || data.Listings || [];
         renderProperties(listings); 
     } catch (e) { 
@@ -34,6 +53,9 @@ async function fetchData() {
     }
 }
 
+/**
+ * სურათის გადაყვანა Base64 ფორმატში (გამოიყენება შიდა დამუშავებისთვის)
+ */
 async function getBase64Image(url) {
     if (!url || url.includes('placeholder') || url.includes('pngtree')) return null; 
     try {
@@ -52,26 +74,27 @@ async function getBase64Image(url) {
     }
 }
 
+/**
+ * სერვერზე PDF-ის გენერირება და გადმოწერა
+ */
 async function downloadProfessionalPDF(item) {
-    const btn = event.currentTarget;
+    // აქ ვასწორებთ ღილაკის აღებას event-დან
+    const btn = window.event ? window.event.currentTarget : null;
+    if (!btn) return;
+
     const originalContent = btn.innerHTML;
-    
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
     btn.disabled = true;
 
     try {
-        // 1. ვუგზავნით მოთხოვნას სერვერს PDF ლინკისთვის
+        // 1. სერვერს ვთხოვთ PDF-ის შექმნას და ლინკის დაბრუნებას
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
 
-        // 2. ვამოწმებთ მივიღეთ თუ არა ვალიდური ლინკი
+        // 2. ვალიდაცია და ლინკის გახსნა
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            // ვხსნით ახალ ფანჯარაში/ტაბში
-            const newWindow = window.open(pdfUrl, '_blank');
-            if (!newWindow) {
-                // თუ ბრაუზერმა დაბლოკა popup, ვაძლევთ პირდაპირ ლინკს
-                window.location.href = pdfUrl;
-            }
+            // Telegram-ის სპეციალური მეთოდი ბმულის გახსნისთვის
+            tg.openLink(pdfUrl);
         } else {
             console.error("Server Response:", pdfUrl);
             alert("PDF-ის მომზადება ვერ მოხერხდა. სცადეთ მოგვიანებით.");
@@ -85,6 +108,9 @@ async function downloadProfessionalPDF(item) {
     }
 }
 
+/**
+ * განცხადების გაზიარების ფუნქცია
+ */
 function shareProperty(item) {
     const shareData = {
         title: `${item.Rooms} ოთახიანი ბინა - ${item.City}`,
@@ -99,6 +125,9 @@ function shareProperty(item) {
     }
 }
 
+/**
+ * მთავარ გვერდზე განცხადებების ბარათების აწყობა
+ */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
@@ -132,7 +161,11 @@ function renderProperties(items) {
     }).join('');
 }
 
+/**
+ * დეტალური გვერდის გახსნა და მონაცემების შევსება
+ */
 function openDetails(item) {
+    // ნახვების რაოდენობის აღრიცხვა სერვერზე
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => console.error(e));
     
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
@@ -142,6 +175,7 @@ function openDetails(item) {
     setEl('det-id', item.ID);
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
+    // საკონტაქტო ჩანართის და მაკლერის ინფორმაციის აწყობა
     const contactTab = document.getElementById('tab-contact'); 
     if (contactTab) {
         let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
@@ -179,6 +213,7 @@ function openDetails(item) {
         `;
     }
 
+    // მახასიათებლების სიის შევსება
     const featList = document.getElementById('features-list');
     if(featList) {
         const allFields = [
@@ -206,6 +241,7 @@ function openDetails(item) {
             `).join('');
     }
 
+    // ფოტოების სლაიდერის აწყობა
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     if (item.Photos && wrapper && dotsContainer) {
@@ -221,6 +257,9 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
+/**
+ * მაკლერის პროფილის გვერდის გახსნა
+ */
 function openProfile(maklerId) {
     if (!window.allMaklers || window.allMaklers.length === 0) return;
     const m = maklerId ? window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) : window.allMaklers[0];
@@ -232,8 +271,15 @@ function openProfile(maklerId) {
     document.getElementById('profile-page')?.classList.add('active');
 }
 
+/**
+ * პროფილის და დეტალების გვერდების დახურვა
+ */
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
+
+/**
+ * ტაბებს (აღწერა/კონტაქტი) შორის გადართვა
+ */
 function switchTab(tabId, el) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -241,4 +287,5 @@ function switchTab(tabId, el) {
     el.classList.add('active');
 }
 
+// აპლიკაციის გაშვება
 init();
