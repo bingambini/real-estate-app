@@ -24,7 +24,6 @@ async function fetchData() {
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        // ვინახავთ მაკლერებს (ამოწმებს ორივე ვარიანტს: Makler და makler)
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
         
@@ -45,7 +44,6 @@ function renderProperties(items) {
         try {
             const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
             
-            // მაკლერის ლოგიკა: ვეძებთ MaklerID-ს მიხედვით
             let currentMakler = null;
             if (window.allMaklers && window.allMaklers.length > 0) {
                 currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
@@ -79,13 +77,11 @@ function renderProperties(items) {
                 </div>
             </div>`;
         } catch (err) {
-            console.error("Error rendering item:", err);
             return ""; 
         }
     }).join('');
 }
 
-// ნავიგაციის ფიქსი
 document.addEventListener('click', function(e) {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
@@ -101,14 +97,17 @@ document.addEventListener('click', function(e) {
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => console.error(e));
     
-    document.getElementById('det-title').innerText = `${item.Rooms || 0} ოთახიანი ${item.PropertyType || 'ბინა'}`;
-    document.getElementById('det-loc').innerText = `${item.City || ''}, ${item.District || ''}, ${item.Street || ''}`;
-    document.getElementById('det-price').innerText = `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`;
-    document.getElementById('det-id').innerText = item.ID;
-    document.getElementById('det-rooms').innerText = item.Rooms || "0";
-    document.getElementById('det-floor').innerText = `${item.Floor || 0}/${item.TotalFloors || '?'}`;
-    document.getElementById('det-sq').innerText = item.TotalArea || "0";
-    document.getElementById('tab-desc').innerText = item.Description || "აღწერა არ არის მითითებული";
+    // უსაფრთხო ჩაწერა details გვერდისთვის
+    const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+    
+    setEl('det-title', `${item.Rooms || 0} ოთახიანი ${item.PropertyType || 'ბინა'}`);
+    setEl('det-loc', `${item.City || ''}, ${item.District || ''}, ${item.Street || ''}`);
+    setEl('det-price', `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`);
+    setEl('det-id', item.ID);
+    setEl('det-rooms', item.Rooms || "0");
+    setEl('det-floor', `${item.Floor || 0}/${item.TotalFloors || '?'}`);
+    setEl('det-sq', item.TotalArea || "0");
+    setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
     const features = [
         { label: "მდგომარეობა", val: item.Condition },
@@ -118,19 +117,24 @@ function openDetails(item) {
         { label: "პარკინგი", val: item.Parking }
     ];
     
-    document.getElementById('features-list').innerHTML = features.filter(f => f.val).map(f => `
-        <div class="bg-slate-50 p-3 rounded-2xl">
-            <p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p>
-            <p class="text-xs font-black text-slate-700">${f.val}</p>
-        </div>`).join('');
+    const featList = document.getElementById('features-list');
+    if(featList) {
+        featList.innerHTML = features.filter(f => f.val).map(f => `
+            <div class="bg-slate-50 p-3 rounded-2xl">
+                <p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p>
+                <p class="text-xs font-black text-slate-700">${f.val}</p>
+            </div>`).join('');
+    }
 
-    document.getElementById('det-phone').innerText = item.Phone || "---";
-    document.getElementById('call-btn').href = `tel:${item.Phone}`;
+    const phoneEl = document.getElementById('det-phone');
+    if(phoneEl) phoneEl.innerText = item.Phone || "---";
+    const callBtn = document.getElementById('call-btn');
+    if(callBtn) callBtn.href = `tel:${item.Phone}`;
 
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     
-    if (item.Photos) {
+    if (item.Photos && wrapper && dotsContainer) {
         const photoList = item.Photos.split(',');
         wrapper.innerHTML = photoList.map(url => `<div class="slide"><img src="${url.trim()}" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'"></div>`).join('');
         dotsContainer.innerHTML = photoList.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
@@ -140,7 +144,7 @@ function openDetails(item) {
         };
         wrapper.scrollLeft = 0;
     }
-    document.getElementById('details-page').classList.add('active');
+    document.getElementById('details-page')?.classList.add('active');
 }
 
 function openProfile(maklerId) {
@@ -152,21 +156,32 @@ function openProfile(maklerId) {
 
     if (!m) return;
     
-    document.getElementById('m-name').innerText = m.Name || "მაკლერი";
-    document.getElementById('m-photo').src = m.Photo || 'https://via.placeholder.com/100';
-    document.getElementById('m-wm').innerText = m.WatermarkText || "Agent";
-    document.getElementById('m-id').innerText = m.ID || "---";
-    document.getElementById('m-call').href = `tel:${m.Phone}`;
-    document.getElementById('profile-page').classList.add('active');
+    // უსაფრთხო ჩაწერა: ვამოწმებთ არსებობს თუ არა ელემენტი სანამ მნიშვნელობას მივანიჭებთ
+    const elName = document.getElementById('m-name');
+    if(elName) elName.innerText = m.Name || "მაკლერი";
+    
+    const elPhoto = document.getElementById('m-photo');
+    if(elPhoto) elPhoto.src = m.Photo || 'https://via.placeholder.com/100';
+    
+    const elWm = document.getElementById('m-wm');
+    if(elWm) elWm.innerText = m.WatermarkText || "Agent";
+    
+    const elId = document.getElementById('m-id');
+    if(elId) elId.innerText = m.ID || "---";
+    
+    const elCall = document.getElementById('m-call');
+    if(elCall) elCall.href = `tel:${m.Phone}`;
+    
+    document.getElementById('profile-page')?.classList.add('active');
 }
 
-function closeProfile() { document.getElementById('profile-page').classList.remove('active'); }
-function closeDetails() { document.getElementById('details-page').classList.remove('active'); }
+function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
+function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 function switchTab(tabId, el) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+    document.getElementById(tabId)?.classList.add('active');
     el.classList.add('active');
 }
 
