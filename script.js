@@ -27,8 +27,16 @@ async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        window.allMaklers = data.makler; 
-        renderProperties(data.listings); 
+        
+        // ვამოწმებთ ორივე ვარიანტს: დიდითაც და პატარათაც
+        window.allMaklers = data.Makler || data.makler || []; 
+        const listings = data.listings || data.Listings || [];
+
+        if (listings.length === 0) {
+            console.warn("მონაცემები ცარიელია");
+        }
+
+        renderProperties(listings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
         const container = document.getElementById('property-container');
