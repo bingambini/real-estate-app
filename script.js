@@ -75,8 +75,8 @@ async function downloadProfessionalPDF(item) {
     try {
         // ვიძახებთ სერვერულ სკრიპტს
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
-        const pdfUrl = await response.text(); 
-
+const pdfUrl = await response.text(); 
+alert("სერვერის პასუხი: " + pdfUrl); // ეს დაგვიწერს ზუსტად რა პასუხი მოვიდა
         if (pdfUrl && pdfUrl.startsWith("http")) {
             // Telegram WebApp-ისთვის საუკეთესო მეთოდი ლინკის გასახსნელად
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
