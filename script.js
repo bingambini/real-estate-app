@@ -139,19 +139,22 @@ function openDetails(item) {
 
         const photoList = item.Photos.split(',');
         wrapper.innerHTML = photoList.map(url => `
-            <div class="slide relative h-full w-full flex-shrink-0">
+            <div class="slide relative h-full w-full flex-shrink-0 overflow-hidden">
                 <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'">
                 
-                <div class="absolute bottom-14 right-5 flex items-center gap-2.5 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-2xl border border-white/20 shadow-2xl pointer-events-none transform translate-y-0 opacity-90 transition-all duration-300">
-                    <div class="flex items-center justify-center w-7 h-7 bg-white rounded-xl shadow-inner p-1">
+                <div class="absolute bottom-16 right-5 flex items-center gap-3 bg-white/10 backdrop-blur-xl px-4 py-2.5 rounded-[20px] border border-white/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] pointer-events-none animate-in fade-in duration-700">
+                    <div class="flex items-center justify-center w-8 h-8 bg-white/90 rounded-xl shadow-lg p-1.5">
                         ${logoUrl ? 
                             `<img src="${logoUrl}" class="w-full h-full object-contain">` : 
                             `<i class="fa-solid fa-house-chimney text-blue-600 text-[10px]"></i>`
                         }
                     </div>
-                    <div class="flex flex-col">
-                        <span class="text-white text-[10px] font-black leading-none tracking-tight">${wmText}</span>
-                        <span class="text-white/60 text-[7px] font-bold uppercase tracking-[0.1em] mt-0.5">Verified Agent</span>
+                    <div class="flex flex-col justify-center">
+                        <span class="text-white text-[11px] font-black leading-tight tracking-tight drop-shadow-md">${wmText}</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-white/70 text-[7px] font-bold uppercase tracking-[0.12em]">Verified Partner</span>
+                        </div>
                     </div>
                 </div>
             </div>`).join('');
