@@ -43,18 +43,15 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
-        // ვიყენებთ ფასის ფორმატირებას
         const formattedPrice = formatPrice(item.TotalPrice);
+        // მაკლერის ფოტო (თუ არ არის, placeholder)
+        const maklerImg = window.maklerInfo ? window.maklerInfo.Photo : 'https://via.placeholder.com/100';
 
         return `
-        <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2">
+        <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
             <div class="relative h-64 overflow-hidden">
-                <img src="${firstImg}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                
-                <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-bold text-white z-10">
-                    ID: ${item.ID}
-                </div>
-
+                <img src="${firstImg}" class="w-full h-full object-cover">
+                <div class="id-on-photo">ID: ${item.ID}</div>
                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase text-slate-800 shadow-sm">
                     ${item.DealType || 'იყიდება'}
                 </div>
@@ -62,7 +59,7 @@ function renderProperties(items) {
                     <p class="text-white font-black text-lg leading-none">${formattedPrice} ${item.Currency === 'USD' ? '$' : '₾'}</p>
                 </div>
             </div>
-            <div class="p-5">
+            <div class="p-5 relative">
                 <div class="flex justify-between items-start mb-1">
                     <h4 class="font-black text-slate-800 text-lg leading-tight truncate w-full">${item.Street || item.PropertyType}</h4>
                 </div>
@@ -75,10 +72,22 @@ function renderProperties(items) {
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.TotalArea} მ²</span></div>
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-stairs text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Floor} სართ.</span></div>
                 </div>
+
+                <div onclick="event.stopPropagation(); openProfile();" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform">
+                    <img src="${maklerImg}" class="w-full h-full object-cover">
+                </div>
             </div>
         </div>`;
     }).join('');
 }
+
+// ნავიგაციის აქტივაციის ფუნქცია (დაამატე ფაილის ბოლოში)
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
 
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => console.error(e));
