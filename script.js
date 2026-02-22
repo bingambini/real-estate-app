@@ -14,6 +14,7 @@ async function init() {
     tg.expand();
     tg.ready();
     
+    // Splash screen-ის გაქრობა
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
@@ -28,8 +29,8 @@ async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        renderProperties(data.listings);
-        window.maklerInfo = data.makler;
+        window.maklerInfo = data.makler; // მაკლერის ინფო ჯერ ვინახავთ
+        renderProperties(data.listings); // შემდეგ ვარენდერებთ
     } catch (e) { 
         console.error("Error fetching data:", e);
         const container = document.getElementById('property-container');
@@ -44,14 +45,16 @@ function renderProperties(items) {
     container.innerHTML = items.map(item => {
         const firstImg = item.Photos ? item.Photos.split(',')[0].trim() : 'https://via.placeholder.com/400x300?text=No+Image';
         const formattedPrice = formatPrice(item.TotalPrice);
-        // მაკლერის ფოტო (თუ არ არის, placeholder)
+        // მაკლერის ფოტო
         const maklerImg = window.maklerInfo ? window.maklerInfo.Photo : 'https://via.placeholder.com/100';
 
         return `
         <div onclick='openDetails(${JSON.stringify(item)})' class="group bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.97] transition-all duration-300 mb-2 relative">
             <div class="relative h-64 overflow-hidden">
-                <img src="${firstImg}" class="w-full h-full object-cover">
+                <img src="${firstImg}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                
                 <div class="id-on-photo">ID: ${item.ID}</div>
+                
                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase text-slate-800 shadow-sm">
                     ${item.DealType || 'იყიდება'}
                 </div>
@@ -73,7 +76,7 @@ function renderProperties(items) {
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-stairs text-slate-300 text-xs"></i><span class="text-xs font-bold text-slate-600">${item.Floor} სართ.</span></div>
                 </div>
 
-                <div onclick="event.stopPropagation(); openProfile();" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform">
+                <div onclick="event.stopPropagation(); openProfile();" class="absolute bottom-4 right-5 w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden active:scale-90 transition-transform cursor-pointer z-20">
                     <img src="${maklerImg}" class="w-full h-full object-cover">
                 </div>
             </div>
@@ -81,12 +84,13 @@ function renderProperties(items) {
     }).join('');
 }
 
-// ნავიგაციის აქტივაციის ფუნქცია (დაამატე ფაილის ბოლოში)
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function() {
+// ნავიგაციის ფიქსი - კლიკაბელურობა და აქტიური სტატუსი
+document.addEventListener('click', function(e) {
+    const navItem = e.target.closest('.nav-item');
+    if (navItem) {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-    });
+        navItem.classList.add('active');
+    }
 });
 
 function openDetails(item) {
@@ -156,4 +160,5 @@ function switchTab(tabId, el) {
     el.classList.add('active');
 }
 
+// აპლიკაციის გაშვება
 init();
