@@ -94,7 +94,7 @@ body {
     z-index: 30; 
 }
 
-/* ID on Listing Photo - მარჯვენა ზედა კუთხე */
+/* ID on Listing Photo */
 .id-on-photo {
     position: absolute;
     top: 15px;
@@ -110,7 +110,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* მაკლერის ბეიჯი ბარათზე (Floating Badge) */
+/* მაკლერის ბეიჯი ბარათზე */
 .makler-floating-badge {
     position: absolute;
     bottom: 15px;
@@ -169,23 +169,23 @@ body {
     to { opacity: 1; transform: translateY(0); } 
 }
 
-/* Bottom Navigation - Glassmorphism Effect */
+/* Bottom Navigation - Enhanced Glassmorphism & Compact Size */
 #bottom-nav {
     position: fixed; 
-    bottom: 25px; 
+    bottom: 20px; 
     left: 20px; 
     right: 20px; 
-    height: 75px; 
-    background: rgba(255, 255, 255, 0.75); 
-    backdrop-filter: blur(20px); 
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 30px; 
+    height: 65px; /* დაპატარავდა 75px-დან */
+    background: rgba(255, 255, 255, 0.6); /* მეტი გამჭვირვალობა */
+    backdrop-filter: blur(20px) saturate(180%); /* სარკის ეფექტი გაძლიერდა */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 25px; 
     display: flex;
     justify-content: space-around; 
     align-items: center; 
     z-index: 400;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
     padding: 0 10px;
 }
 
@@ -198,8 +198,9 @@ body {
     justify-content: center;
     color: #94a3b8; 
     cursor: pointer; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     -webkit-tap-highlight-color: transparent;
+    gap: 2px; /* ხატულასა და ტექსტს შორის დაშორება შემცირდა */
 }
 
 .nav-item.active { 
@@ -207,9 +208,8 @@ body {
 }
 
 .nav-label { 
-    font-size: 10px; 
+    font-size: 9px; /* ტექსტი ოდნავ დაპატარავდა */
     font-weight: 800; 
-    margin-top: 5px; 
     text-transform: uppercase; 
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
 }
