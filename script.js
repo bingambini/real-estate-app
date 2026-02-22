@@ -90,7 +90,8 @@ async function downloadProfessionalPDF(item) {
             }
         } else {
             console.error("Server response:", pdfUrl);
-            alert("PDF-ის მომზადება ვერ მოხერხდა. სერვერის პასუხი არასწორია.");
+            // დიაგნოსტიკური alert, რომელიც გვეტყვის რა შეცდომაა
+            alert("სერვერის შეცდომა: " + pdfUrl);
         }
     } catch (err) {
         console.error("PDF Error:", err);
