@@ -11,6 +11,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* აღწერის ტაბის სქროლი 200 სიმბოლოზე მეტი ტექსტისთვის */
+        #tab-desc {
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        #tab-desc::-webkit-scrollbar {
+            width: 4px;
+        }
+        #tab-desc::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body class="pb-32">
 
@@ -38,17 +53,12 @@
 
         <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20 shadow-2xl">
             <div class="mb-4">
-                <h1 id="det-title" class="text-2xl font-black text-[#1e293b] leading-tight">...</h1>
+                <h1 id="det-title" class="text-xl font-black text-[#1e293b] leading-tight">...</h1>
                 <p id="det-loc" class="text-slate-400 font-bold text-[11px] mt-1 uppercase tracking-widest"></p>
             </div>
 
             <div class="flex items-center justify-between mb-8">
-                <span id="det-price" class="text-3xl font-black text-blue-600">0 ₾</span>
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center"><span id="det-rooms" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">ოთახი</span></div>
-                    <div class="flex flex-col items-center"><span id="det-floor" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">სართ.</span></div>
-                    <div class="flex flex-col items-center"><span id="det-sq" class="font-black text-slate-800">0</span><span class="text-[9px] font-bold text-slate-400 uppercase">კვ.მ</span></div>
-                </div>
+                <span id="det-price" class="text-2xl font-black text-blue-600">0 ₾</span>
             </div>
 
             <div class="flex justify-between mb-6 border-b border-slate-50">
@@ -58,9 +68,12 @@
             </div>
 
             <div id="tab-desc" class="tab-content active text-slate-500 text-[15px] leading-relaxed pb-10"></div>
-            <div id="tab-features" class="tab-content text-slate-500 pb-10"><div class="grid grid-cols-2 gap-4" id="features-list"></div></div>
             
-            <div id="tab-contact" class="tab-content pb-10">
+            <div id="tab-features" class="tab-content text-slate-500 pb-10">
+                <div class="grid grid-cols-2 gap-4" id="features-list"></div>
+            </div>
+            
+            <div id="tab-contact" class="tab-content pb-10 -mt-4">
                 </div>
         </div>
     </div>
