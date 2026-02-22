@@ -61,31 +61,36 @@ async function fetchData() {
     }
 }
 
-/**
- * სერვერზე PDF-ის გენერირება და გადმოწერა
- */
 async function downloadProfessionalPDF(item) {
     const btn = window.event ? window.event.currentTarget : null;
     const originalContent = btn ? btn.innerHTML : '';
     
     if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
+        // ვაჩვენებთ დატრიალების ეფექტს
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         btn.disabled = true;
+        btn.style.opacity = "0.7";
     }
 
     try {
+        // ვიძახებთ სერვერულ სკრიპტს
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
 
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            // Telegram-ის გარემოში გახსნის საუკეთესო პრაქტიკა
-            if (tg.openLink) {
-                tg.openLink(pdfUrl);
+            // Telegram WebApp-ისთვის საუკეთესო მეთოდი ლინკის გასახსნელად
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                window.Telegram.WebApp.openLink(pdfUrl);
             } else {
-                window.open(pdfUrl, '_blank');
+                // ბრაუზერისთვის
+                const newWindow = window.open(pdfUrl, '_blank');
+                if (!newWindow) {
+                    alert("გთხოვთ ჩართოთ Pop-ups ამ საიტისთვის, რომ PDF გაიხსნას.");
+                }
             }
         } else {
-            alert("PDF-ის მომზადება ვერ მოხერხდა.");
+            console.error("Server response:", pdfUrl);
+            alert("PDF-ის მომზადება ვერ მოხერხდა. სერვერის პასუხი არასწორია.");
         }
     } catch (err) {
         console.error("PDF Error:", err);
@@ -94,6 +99,7 @@ async function downloadProfessionalPDF(item) {
         if (btn) {
             btn.innerHTML = originalContent;
             btn.disabled = false;
+            btn.style.opacity = "1";
         }
     }
 }
