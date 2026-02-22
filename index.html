@@ -7,14 +7,13 @@
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="style.css">
     <style>
-        /* აღწერის ტაბის სქროლი 200 სიმბოლოზე მეტი ტექსტისთვის */
+        /* აღწერის ტაბის სქროლი */
         #tab-desc {
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             scrollbar-width: thin;
         }
@@ -27,17 +26,18 @@
         }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-32 bg-slate-50">
 
     <div id="splash-screen">
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
     </div>
 
-    <div id="main-content" style="opacity: 0;">
+    <div id="main-content" style="opacity: 0; transition: opacity 0.5s ease-in;">
         <header class="pt-8 px-6 pb-2">
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
+            <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
         </header>
+        
         <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
     </div>
 
@@ -46,7 +46,7 @@
             <div id="slider-wrapper" class="slider-wrapper"></div>
             <div id="slider-dots" class="slider-dots"></div>
             <div class="info-badge">ID: <span id="det-id">---</span></div>
-            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20">
+            <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20 active:scale-90 transition-all">
                 <i class="fa-solid fa-arrow-left text-slate-800"></i>
             </button>
         </div>
@@ -98,7 +98,7 @@
                     </div>
                     
                     <h2 id="m-name" class="text-2xl font-black text-slate-800 mb-1 text-center">...</h2>
-                    <p id="m-wm" class="text-blue-600 font-bold text-[10px] uppercase tracking-widest mb-6">პროფესიონალი მაკლერი</p>
+                    <p class="text-blue-600 font-bold text-[10px] uppercase tracking-widest mb-6">პროფესიონალი მაკლერი</p>
                     
                     <div class="flex gap-3 w-full">
                         <a id="m-call" href="#" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-200 flex items-center justify-center gap-2 active:scale-95 transition-all">
