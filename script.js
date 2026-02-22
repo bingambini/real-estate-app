@@ -74,37 +74,48 @@ async function getBase64Image(url) {
     }
 }
 
-/**
+
  * სერვერზე PDF-ის გენერირება და გადმოწერა
  */
 async function downloadProfessionalPDF(item) {
-    // აქ ვასწორებთ ღილაკის აღებას event-დან
+    // ღილაკის აღება უსაფრთხოდ
     const btn = window.event ? window.event.currentTarget : null;
-    if (!btn) return;
-
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
-    btn.disabled = true;
+    const originalContent = btn ? btn.innerHTML : '';
+    
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
+        btn.disabled = true;
+    }
 
     try {
-        // 1. სერვერს ვთხოვთ PDF-ის შექმნას და ლინკის დაბრუნებას
+        // 1. სერვერს ვთხოვთ PDF-ის ბმულს
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
 
-        // 2. ვალიდაცია და ლინკის გახსნა
+        // 2. ვალიდაცია და გახსნა
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            // Telegram-ის სპეციალური მეთოდი ბმულის გახსნისთვის
-            tg.openLink(pdfUrl);
+            
+            // ვამოწმებთ, ვართ თუ არა Telegram-ის გარემოში
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                // Telegram აპლიკაციისთვის
+                tg.openLink(pdfUrl);
+            } else {
+                // ჩვეულებრივი ბრაუზერისთვის (პოპაპ ბლოკერის ასარიდებლად)
+                window.location.href = pdfUrl;
+            }
+            
         } else {
             console.error("Server Response:", pdfUrl);
-            alert("PDF-ის მომზადება ვერ მოხერხდა. სცადეთ მოგვიანებით.");
+            alert("PDF-ის მომზადება ვერ მოხერხდა.");
         }
     } catch (err) {
         console.error("PDF Error:", err);
         alert("კავშირის შეცდომა სერვერთან.");
     } finally {
-        btn.innerHTML = originalContent;
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
     }
 }
 
