@@ -108,16 +108,15 @@ function openDetails(item) {
     setEl('det-sq', item.TotalArea || "0");
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
 
-    const features = [
-        { label: "მდგომარეობა", val: item.Condition },
-        { label: "პროექტი", val: item.ProjectType },
-        { label: "გათბობა", val: item.Heating },
-        { label: "ჭერი", val: item.CeilingHeight },
-        { label: "პარკინგი", val: item.Parking }
-    ];
-    
     const featList = document.getElementById('features-list');
     if(featList) {
+        const features = [
+            { label: "მდგომარეობა", val: item.Condition },
+            { label: "პროექტი", val: item.ProjectType },
+            { label: "გათბობა", val: item.Heating },
+            { label: "ჭერი", val: item.CeilingHeight },
+            { label: "პარკინგი", val: item.Parking }
+        ];
         featList.innerHTML = features.filter(f => f.val).map(f => `
             <div class="bg-slate-50 p-3 rounded-2xl">
                 <p class="text-[9px] uppercase font-bold text-slate-400">${f.label}</p>
@@ -130,23 +129,22 @@ function openDetails(item) {
     const callBtn = document.getElementById('call-btn');
     if(callBtn) callBtn.href = `tel:${item.Phone}`;
 
-    // --- ვატერმარკის და სლაიდერის ლოგიკა ---
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     
     if (item.Photos && wrapper && dotsContainer) {
-        // ვიპოვოთ მაკლერის მონაცემები ვატერმარკისთვის
         let currentMakler = window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0];
-        const wmText = currentMakler?.WatermarkText || "Real Estate";
+        const wmText = currentMakler?.WatermarkText || "";
         const logoUrl = currentMakler?.Logo || "";
 
         const photoList = item.Photos.split(',');
         wrapper.innerHTML = photoList.map(url => `
-            <div class="slide relative">
+            <div class="slide relative h-full w-full flex-shrink-0">
                 <img src="${url.trim()}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Error'">
-                <div class="absolute bottom-12 right-6 flex items-center gap-3 bg-black/20 backdrop-blur-[2px] px-3 py-2 rounded-xl pointer-events-none border border-white/10">
-                    ${logoUrl ? `<img src="${logoUrl}" class="w-6 h-6 object-contain">` : ''}
-                    <span class="text-white text-[10px] font-black uppercase tracking-widest shadow-sm">${wmText}</span>
+                
+                <div class="absolute bottom-14 right-4 flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 pointer-events-none transition-opacity duration-300">
+                    ${logoUrl ? `<img src="${logoUrl}" class="w-5 h-5 object-contain opacity-80">` : ''}
+                    ${wmText ? `<span class="text-white/90 text-[9px] font-bold uppercase tracking-wider">${wmText}</span>` : ''}
                 </div>
             </div>`).join('');
 
