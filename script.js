@@ -1,5 +1,5 @@
 // ბაზის (Google Apps Script) ბმული
-const API_URL = "https://script.google.com/macros/s/AKfycbwWCE8NgSO9UmYMfXhfQtLa8rQeWfaKsm2mFEFksNbjobKhG5-_3KvxYIsOcFcK-bHoFg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby7UvxDh0N3lMOaDGLUwj_QCW3rP5JRDzfNEGjzzzecyNHmG2n0otQ8jcDyonEecOYcPg/exec";
 // Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
 // მაკლერების მონაცემების გლობალური მასივი
