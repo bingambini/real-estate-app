@@ -66,35 +66,28 @@ async function downloadProfessionalPDF(item) {
     const originalContent = btn ? btn.innerHTML : '';
     
     if (btn) {
-        // ვაჩვენებთ დატრიალების ეფექტს
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         btn.disabled = true;
         btn.style.opacity = "0.7";
     }
 
     try {
-        // ვიძახებთ სერვერულ სკრიპტს
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
         
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            // Telegram WebApp-ისთვის საუკეთესო მეთოდი ლინკის გასახსნელად
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
                 window.Telegram.WebApp.openLink(pdfUrl);
             } else {
-                // ბრაუზერისთვის
                 const newWindow = window.open(pdfUrl, '_blank');
                 if (!newWindow) {
                     alert("გთხოვთ ჩართოთ Pop-ups ამ საიტისთვის, რომ PDF გაიხსნას.");
                 }
             }
         } else {
-            console.error("Server response:", pdfUrl);
-            // დიაგნოსტიკური alert, რომელიც გვეტყვის რა შეცდომაა
             alert("სერვერის შეცდომა: " + pdfUrl);
         }
     } catch (err) {
-        console.error("PDF Error:", err);
         alert("კავშირის შეცდომა სერვერთან.");
     } finally {
         if (btn) {
@@ -123,7 +116,7 @@ function shareProperty(item) {
 }
 
 /**
- * ბარათების რენდერი
+ * ბარათების რენდერი (გასწორებული ფოტოს სვეტისთვის)
  */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
@@ -131,7 +124,10 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         try {
-            const firstImg = item.Photos ? fixImageUrl(item.Photos.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
+            // აქ შევცვალე: ჯერ ამოწმებს MainPhoto-ს, მერე ძველ Photos სვეტს
+            const rawImgUrl = item.MainPhoto || item.Photos || "";
+            const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
+            
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
             return `
             <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
@@ -159,7 +155,7 @@ function renderProperties(items) {
 }
 
 /**
- * დეტალური გვერდი
+ * დეტალური გვერდი (გასწორებული ფოტოგალერეისთვის)
  */
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => {});
@@ -225,10 +221,21 @@ function openDetails(item) {
 
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
-    if (item.Photos && wrapper && dotsContainer) {
-        const photoList = item.Photos.split(',');
-        wrapper.innerHTML = photoList.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url.trim())}" class="w-full h-full object-cover"></div>`).join('');
-        dotsContainer.innerHTML = photoList.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
+    
+    // გალერეისთვის ვაგროვებთ ყველა ფოტოს (MainPhoto + Photo1...Photo7)
+    let allPhotos = [];
+    if (item.MainPhoto) allPhotos.push(item.MainPhoto);
+    for (let k = 1; k <= 7; k++) {
+        if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]);
+    }
+    // თუ ზედა სვეტები ცარიელია, ვიყენებთ ძველ Photos სვეტს
+    if (allPhotos.length === 0 && item.Photos) {
+        allPhotos = item.Photos.split(',').map(p => p.trim());
+    }
+
+    if (allPhotos.length > 0 && wrapper && dotsContainer) {
+        wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
+        dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
         wrapper.onscroll = () => {
             const scrollIndex = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
             document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === scrollIndex));
