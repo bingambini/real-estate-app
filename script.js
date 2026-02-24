@@ -4,6 +4,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzYtpO1i0fKqwDkBE9wEOa4
 const tg = window.Telegram.WebApp;
 // მაკლერების მონაცემების გლობალური მასივი
 window.allMaklers = []; 
+// მომხმარებლის მონაცემები
+window.currentUser = null;
 
 /**
  * ფასის ფორმატირება
@@ -33,6 +35,9 @@ async function init() {
     tg.expand();
     tg.ready();
     
+    // 1. მომხმარებლის რეგისტრაცია/შემოწმება ბაზაში
+    await registerUser();
+    
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
@@ -41,6 +46,25 @@ async function init() {
     }, 2000);
     
     await fetchData();
+}
+
+/**
+ * მომხმარებლის რეგისტრაცია Google Sheets-ში
+ */
+async function registerUser() {
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+        try {
+            // ვუგზავნით მონაცემებს doGet-ს რეგისტრაციისთვის
+            const regUrl = `${API_URL}?action=register&chatId=${user.id}&firstName=${encodeURIComponent(user.first_name || '')}&lastName=${encodeURIComponent(user.last_name || '')}`;
+            const res = await fetch(regUrl);
+            const status = await res.json();
+            window.currentUser = status; // აქ შეინახება Tier სტატუსი (Free, Premium და ა.შ.)
+            console.log("User Tier:", window.currentUser.tier);
+        } catch (e) {
+            console.error("User registration failed", e);
+        }
+    }
 }
 
 /**
@@ -62,6 +86,12 @@ async function fetchData() {
 }
 
 async function downloadProfessionalPDF(item) {
+    // აქ შეგვიძლია დავამატოთ Tier-ის შემოწმება
+    if (window.currentUser && window.currentUser.tier === "Free") {
+        alert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
+        return;
+    }
+
     const btn = window.event ? window.event.currentTarget : null;
     const originalContent = btn ? btn.innerHTML : '';
     
@@ -124,7 +154,6 @@ function renderProperties(items) {
     
     container.innerHTML = items.map(item => {
         try {
-            // აქ შევცვალე: ჯერ ამოწმებს MainPhoto-ს, მერე ძველ Photos სვეტს
             const rawImgUrl = item.MainPhoto || item.Photos || "";
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
             
@@ -155,7 +184,7 @@ function renderProperties(items) {
 }
 
 /**
- * დეტალური გვერდი (გასწორებული ფოტოგალერეისთვის)
+ * დეტალური გვერდი
  */
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => {});
@@ -222,13 +251,11 @@ function openDetails(item) {
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
     
-    // გალერეისთვის ვაგროვებთ ყველა ფოტოს (MainPhoto + Photo1...Photo7)
     let allPhotos = [];
     if (item.MainPhoto) allPhotos.push(item.MainPhoto);
     for (let k = 1; k <= 7; k++) {
         if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]);
     }
-    // თუ ზედა სვეტები ცარიელია, ვიყენებთ ძველ Photos სვეტს
     if (allPhotos.length === 0 && item.Photos) {
         allPhotos = item.Photos.split(',').map(p => p.trim());
     }
