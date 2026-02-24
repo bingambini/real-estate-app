@@ -55,11 +55,10 @@ async function registerUser() {
     const user = tg.initDataUnsafe?.user;
     if (user) {
         try {
-            // ვუგზავნით მონაცემებს doGet-ს რეგისტრაციისთვის
             const regUrl = `${API_URL}?action=register&chatId=${user.id}&firstName=${encodeURIComponent(user.first_name || '')}&lastName=${encodeURIComponent(user.last_name || '')}`;
             const res = await fetch(regUrl);
             const status = await res.json();
-            window.currentUser = status; // აქ შეინახება Tier სტატუსი (Free, Premium და ა.შ.)
+            window.currentUser = status; 
             console.log("User Tier:", window.currentUser.tier);
         } catch (e) {
             console.error("User registration failed", e);
@@ -86,9 +85,8 @@ async function fetchData() {
 }
 
 async function downloadProfessionalPDF(item) {
-    // აქ შეგვიძლია დავამატოთ Tier-ის შემოწმება
     if (window.currentUser && window.currentUser.tier === "Free") {
-        alert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
+        tg.showAlert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
         return;
     }
 
@@ -109,10 +107,7 @@ async function downloadProfessionalPDF(item) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
                 window.Telegram.WebApp.openLink(pdfUrl);
             } else {
-                const newWindow = window.open(pdfUrl, '_blank');
-                if (!newWindow) {
-                    alert("გთხოვთ ჩართოთ Pop-ups ამ საიტისთვის, რომ PDF გაიხსნას.");
-                }
+                window.open(pdfUrl, '_blank');
             }
         } else {
             alert("სერვერის შეცდომა: " + pdfUrl);
@@ -146,7 +141,7 @@ function shareProperty(item) {
 }
 
 /**
- * ბარათების რენდერი (გასწორებული ფოტოს სვეტისთვის)
+ * ბარათების რენდერი
  */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
@@ -272,13 +267,42 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
+/**
+ * პროფილის გახსნა (მაკლერი ან მომხმარებელი)
+ */
 function openProfile(maklerId) {
-    if (!window.allMaklers || window.allMaklers.length === 0) return;
-    const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
-    document.getElementById('m-name').innerText = m.Name || "მაკლერი";
-    document.getElementById('m-photo').src = fixImageUrl(m.Photo);
-    document.getElementById('m-id').innerText = m.ID || "---";
-    document.getElementById('m-call').href = `tel:${m.Phone}`;
+    const tierBadge = document.getElementById('user-tier-badge');
+    
+    // თუ ფუნქცია გამოიძახა მაკლერზე დაჭერამ
+    if (maklerId && maklerId !== "undefined") {
+        if (!window.allMaklers || window.allMaklers.length === 0) return;
+        const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
+        document.getElementById('m-name').innerText = m.Name || "მაკლერი";
+        document.getElementById('m-photo').src = fixImageUrl(m.Photo);
+        document.getElementById('m-id').innerText = m.ID || "---";
+        document.getElementById('m-call').href = `tel:${m.Phone}`;
+        if(tierBadge) tierBadge.classList.add('hidden');
+    } 
+    // თუ ფუნქცია გამოიძახა მომხმარებლის საკუთარმა პროფილმა
+    else {
+        const user = tg.initDataUnsafe?.user;
+        const tier = window.currentUser?.tier || "Free";
+        
+        document.getElementById('m-name').innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
+        document.getElementById('m-photo').src = user?.photo_url || 'https://placehold.co/100x100?text=User';
+        document.getElementById('m-id').innerText = user?.id || "---";
+        
+        if(tierBadge) {
+            tierBadge.classList.remove('hidden');
+            tierBadge.innerText = tier.toUpperCase();
+            
+            // სტილი ტაირის მიხედვით
+            tierBadge.className = "mt-1 px-3 py-1 rounded-full text-[10px] font-black inline-block ";
+            if(tier === "Premium") tierBadge.className += "bg-amber-100 text-amber-600 border border-amber-200";
+            else if(tier === "Pro") tierBadge.className += "bg-purple-100 text-purple-600 border border-purple-200";
+            else tierBadge.className += "bg-slate-100 text-slate-500 border border-slate-200";
+        }
+    }
     document.getElementById('profile-page')?.classList.add('active');
 }
 
