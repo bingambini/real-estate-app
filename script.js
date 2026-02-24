@@ -1,5 +1,5 @@
 // ბაზის (Google Apps Script) ბმული
-const API_URL = "https://script.google.com/macros/s/AKfycbxB5_g8pB0odPLB1k22z-yfh41zd33qa_ihhpwbhowlUiLErUT0zroZ0CyKxQqxE88/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbymkMjyFslxw2yZdFdJXU3gUSF_MgZAqlszywXYZXhJgwB4lwyORpTuofyDwbzuSgfQcQ/exec";
 // Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
 // მაკლერების მონაცემების გლობალური მასივი
@@ -61,9 +61,11 @@ async function registerUser() {
             window.currentUser = status; 
             console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
             
-            // თუ აგენტია, აქ შეგვიძლია გამოვაჩინოთ დამატების ღილაკი მომავალში
+            // როლებზე დაფუძნებული შეტყობინება კონსოლში
             if (status.role === "Agent") {
                 console.log("Welcome Agent:", status.maklerId);
+            } else if (status.role === "Owner") {
+                console.log("System Administrator Access Granted");
             }
         } catch (e) {
             console.error("User registration failed", e);
@@ -273,22 +275,22 @@ function openDetails(item) {
 }
 
 /**
- * პროფილის გახსნა (მაკლერი ან მომხმარებელი)
+ * პროფილის გახსნა - განახლებული Role-Based ლოგიკით
  */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const headerTitle = document.getElementById('profile-header-title');
     const callBtn = document.getElementById('m-call');
+    const user = tg.initDataUnsafe?.user;
     
-    // თუ ფუნქცია გამოიძახა მაკლერზე დაჭერამ (სხვისი პროფილი)
+    // 1. სხვისი (აგენტის) პროფილის ნახვა განცხადებიდან
     if (maklerId && maklerId !== "undefined") {
-        if (!window.allMaklers || window.allMaklers.length === 0) return;
         const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         
-        document.getElementById('m-name').innerText = m.Name || "მაკლერი";
+        document.getElementById('m-name').innerText = m.Name || "აგენტი";
         document.getElementById('m-photo').src = fixImageUrl(m.Photo);
         document.getElementById('m-id').innerText = m.ID || "---";
-        if(headerTitle) headerTitle.innerText = "მაკლერის პროფილი";
+        if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         
         if (callBtn) {
             callBtn.href = `tel:${m.Phone}`;
@@ -296,27 +298,32 @@ function openProfile(maklerId) {
         }
         if(tierBadge) tierBadge.classList.add('hidden');
     } 
-    // თუ ფუნქცია გამოიძახა მომხმარებლის საკუთარმა პროფილმა
+    // 2. საკუთარი პროფილის ნახვა (მენიუდან)
     else {
-        const user = tg.initDataUnsafe?.user;
-        if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
+        const role = window.currentUser?.role || "Client";
+        const tier = window.currentUser?.tier || "Free";
         
-        // თუ მიმდინარე იუზერი აგენტია, ამოვიღოთ მისი აგენტის მონაცემები
-        if (window.currentUser?.role === "Agent" && window.currentUser?.maklerId) {
+        if(headerTitle) {
+            headerTitle.innerText = (role === "Owner") ? "ადმინისტრატორი" : "ჩემი პროფილი";
+        }
+        
+        // თუ აგენტია
+        if (role === "Agent" && window.currentUser?.maklerId) {
             const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
             document.getElementById('m-name').innerText = m?.Name || user?.first_name || "აგენტი";
             document.getElementById('m-photo').src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=Agent');
-            document.getElementById('m-id').innerText = window.currentUser.maklerId;
-            if(callBtn) callBtn.classList.add('hidden'); // საკუთარ თავთან დარეკვა არ გვინდა
-        } else {
-            // ჩვეულებრივი იუზერი
+            document.getElementById('m-id').innerText = `ID: ${window.currentUser.maklerId}`;
+        } 
+        // თუ ჩვეულებრივი მომხმარებელია ან Owner
+        else {
             document.getElementById('m-name').innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
             document.getElementById('m-photo').src = user?.photo_url || 'https://placehold.co/100x100?text=User';
-            document.getElementById('m-id').innerText = user?.id || "---";
-            if(callBtn) callBtn.classList.add('hidden');
+            document.getElementById('m-id').innerText = `Role: ${role}`;
         }
 
-        const tier = window.currentUser?.tier || "Free";
+        if(callBtn) callBtn.classList.add('hidden');
+
+        // Tier ბეიჯის მართვა
         if(tierBadge) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
