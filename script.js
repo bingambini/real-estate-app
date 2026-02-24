@@ -274,60 +274,51 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/**
- * პროფილის გახსნა - განახლებული Role-Based ლოგიკით
- */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
+    const roleBadge = document.getElementById('user-role-badge');
     const headerTitle = document.getElementById('profile-header-title');
-    const callBtn = document.getElementById('m-call');
     const user = tg.initDataUnsafe?.user;
     
-    // 1. სხვისი (აგენტის) პროფილის ნახვა განცხადებიდან
+    // აუცილებელი ელემენტები
+    const nameEl = document.getElementById('m-name');
+    const photoEl = document.getElementById('m-photo');
+    const idEl = document.getElementById('m-id');
+
+    // 1. სხვისი აგენტის ნახვა
     if (maklerId && maklerId !== "undefined") {
         const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
-        
-        document.getElementById('m-name').innerText = m.Name || "აგენტი";
-        document.getElementById('m-photo').src = fixImageUrl(m.Photo);
-        document.getElementById('m-id').innerText = m.ID || "---";
+        nameEl.innerText = m.Name || "აგენტი";
+        photoEl.src = fixImageUrl(m.Photo);
+        idEl.innerText = m.ID || "---";
+        roleBadge.innerText = "AGENT";
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
-        
-        if (callBtn) {
-            callBtn.href = `tel:${m.Phone}`;
-            callBtn.classList.remove('hidden');
-        }
         if(tierBadge) tierBadge.classList.add('hidden');
     } 
-    // 2. საკუთარი პროფილის ნახვა (მენიუდან)
+    // 2. საკუთარი პროფილი
     else {
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
         
-        if(headerTitle) {
-            headerTitle.innerText = (role === "Owner") ? "ადმინისტრატორი" : "ჩემი პროფილი";
-        }
+        if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
+        roleBadge.innerText = role.toUpperCase();
         
-        // თუ აგენტია
         if (role === "Agent" && window.currentUser?.maklerId) {
             const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
-            document.getElementById('m-name').innerText = m?.Name || user?.first_name || "აგენტი";
-            document.getElementById('m-photo').src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=Agent');
-            document.getElementById('m-id').innerText = `ID: ${window.currentUser.maklerId}`;
-        } 
-        // თუ ჩვეულებრივი მომხმარებელია ან Owner
-        else {
-            document.getElementById('m-name').innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
-            document.getElementById('m-photo').src = user?.photo_url || 'https://placehold.co/100x100?text=User';
-            document.getElementById('m-id').innerText = `Role: ${role}`;
+            nameEl.innerText = m?.Name || user?.first_name || "აგენტი";
+            photoEl.src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
+            idEl.innerText = window.currentUser.maklerId;
+        } else {
+            nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
+            photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
+            idEl.innerText = user?.id || "---";
         }
 
-        if(callBtn) callBtn.classList.add('hidden');
-
-        // Tier ბეიჯის მართვა
+        // Tier ბეიჯის ლამაზი სტილი
         if(tierBadge) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            tierBadge.className = "mt-1 px-3 py-1 rounded-full text-[10px] font-black inline-block ";
+            tierBadge.className = "px-2 py-0.5 rounded-lg text-[10px] font-black inline-block ";
             if(tier === "Premium") tierBadge.className += "bg-amber-100 text-amber-600 border border-amber-200";
             else if(tier === "Pro") tierBadge.className += "bg-purple-100 text-purple-600 border border-purple-200";
             else tierBadge.className += "bg-slate-100 text-slate-500 border border-slate-200";
