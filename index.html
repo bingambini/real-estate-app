@@ -93,30 +93,31 @@
         </div>
 
         <div class="p-6">
-            <div class="bg-white rounded-[30px] p-5 shadow-sm border border-slate-100 mb-6">
+            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500">
                 <div class="flex items-center gap-5">
                     <div class="relative flex-shrink-0">
-                        <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-slate-50 shadow-sm">
-                        <div class="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>
+                        <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
+                        
+                        <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">
+                            FREE
+                        </div>
+
+                        <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
 
-                    <div class="flex flex-col justify-between h-24 py-1 overflow-hidden flex-1">
-                        <div>
+                    <div class="flex flex-col justify-center h-24 py-1 overflow-hidden flex-1">
+                        <div class="mb-2">
                             <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate">...</h2>
-                            <p class="text-slate-400 text-[10px] font-bold mt-0.5">
-                                ID: <span id="m-id" class="text-slate-600 font-extrabold">---</span>
+                            <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+                                <i class="fa-solid fa-hashtag text-[8px]"></i> <span id="m-id" class="text-slate-600 font-extrabold">---</span>
                             </p>
                         </div>
                         
-                        <div class="space-y-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
-                                <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[9px] font-black uppercase">---</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">წევრობა:</span>
-                                <div id="user-tier-badge" class="hidden">FREE</div>
-                            </div>
+                        <div class="flex items-center gap-2 mt-auto">
+                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
+                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">
+                                ---
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -124,7 +125,7 @@
 
             <div class="space-y-3">
                 <a id="m-call" href="#" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-100 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hidden">
-                    <i class="fa-solid fa-phone"></i> დარეკვა მაკლერთან
+                    <i class="fa-solid fa-phone"></i> დარეკვა
                 </a>
                 
                 <div class="bg-white p-5 rounded-[25px] border border-slate-100">
