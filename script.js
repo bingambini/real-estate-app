@@ -59,7 +59,12 @@ async function registerUser() {
             const res = await fetch(regUrl);
             const status = await res.json();
             window.currentUser = status; 
-            console.log("User Tier:", window.currentUser.tier);
+            console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
+            
+            // თუ აგენტია, აქ შეგვიძლია გამოვაჩინოთ დამატების ღილაკი მომავალში
+            if (status.role === "Agent") {
+                console.log("Welcome Agent:", status.maklerId);
+            }
         } catch (e) {
             console.error("User registration failed", e);
         }
@@ -272,31 +277,49 @@ function openDetails(item) {
  */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
+    const headerTitle = document.getElementById('profile-header-title');
+    const callBtn = document.getElementById('m-call');
     
-    // თუ ფუნქცია გამოიძახა მაკლერზე დაჭერამ
+    // თუ ფუნქცია გამოიძახა მაკლერზე დაჭერამ (სხვისი პროფილი)
     if (maklerId && maklerId !== "undefined") {
         if (!window.allMaklers || window.allMaklers.length === 0) return;
         const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
+        
         document.getElementById('m-name').innerText = m.Name || "მაკლერი";
         document.getElementById('m-photo').src = fixImageUrl(m.Photo);
         document.getElementById('m-id').innerText = m.ID || "---";
-        document.getElementById('m-call').href = `tel:${m.Phone}`;
+        if(headerTitle) headerTitle.innerText = "მაკლერის პროფილი";
+        
+        if (callBtn) {
+            callBtn.href = `tel:${m.Phone}`;
+            callBtn.classList.remove('hidden');
+        }
         if(tierBadge) tierBadge.classList.add('hidden');
     } 
     // თუ ფუნქცია გამოიძახა მომხმარებლის საკუთარმა პროფილმა
     else {
         const user = tg.initDataUnsafe?.user;
+        if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
+        
+        // თუ მიმდინარე იუზერი აგენტია, ამოვიღოთ მისი აგენტის მონაცემები
+        if (window.currentUser?.role === "Agent" && window.currentUser?.maklerId) {
+            const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
+            document.getElementById('m-name').innerText = m?.Name || user?.first_name || "აგენტი";
+            document.getElementById('m-photo').src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=Agent');
+            document.getElementById('m-id').innerText = window.currentUser.maklerId;
+            if(callBtn) callBtn.classList.add('hidden'); // საკუთარ თავთან დარეკვა არ გვინდა
+        } else {
+            // ჩვეულებრივი იუზერი
+            document.getElementById('m-name').innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
+            document.getElementById('m-photo').src = user?.photo_url || 'https://placehold.co/100x100?text=User';
+            document.getElementById('m-id').innerText = user?.id || "---";
+            if(callBtn) callBtn.classList.add('hidden');
+        }
+
         const tier = window.currentUser?.tier || "Free";
-        
-        document.getElementById('m-name').innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
-        document.getElementById('m-photo').src = user?.photo_url || 'https://placehold.co/100x100?text=User';
-        document.getElementById('m-id').innerText = user?.id || "---";
-        
         if(tierBadge) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            
-            // სტილი ტაირის მიხედვით
             tierBadge.className = "mt-1 px-3 py-1 rounded-full text-[10px] font-black inline-block ";
             if(tier === "Premium") tierBadge.className += "bg-amber-100 text-amber-600 border border-amber-200";
             else if(tier === "Pro") tierBadge.className += "bg-purple-100 text-purple-600 border border-purple-200";
