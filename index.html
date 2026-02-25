@@ -29,7 +29,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
         }
+        /* ტაბების მართვისთვის */
+        .tab-content-main { display: none; }
+        .tab-content-main.active { display: block; }
     </style>
 </head>
 <body class="pb-32 bg-slate-50 font-sans">
@@ -39,13 +45,16 @@
     </div>
 
     <div id="main-content" style="opacity: 0; transition: opacity 0.5s ease-in;">
-        <header class="pt-8 px-6 pb-2">
-            <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
-        </header>
         
-        <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
-    </div>
+        <div id="home-tab" class="tab-content-main active">
+            <header class="pt-8 px-6 pb-2">
+                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
+            </header>
+            <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
+        </div>
+
+        </div>
 
     <div id="details-page" class="details-page no-scrollbar">
         <div class="slider-container">
@@ -97,56 +106,62 @@
                 <div class="flex items-center gap-5">
                     <div class="relative flex-shrink-0">
                         <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
-                        
-                        <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">
-                            FREE
-                        </div>
-
+                        <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">FREE</div>
                         <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
 
                     <div class="flex flex-col justify-center h-24 py-0.5 overflow-hidden flex-1">
                         <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate mb-1">...</h2>
-                        
-                        <div id="m-id" class="inline-flex w-fit px-2 py-0.5 rounded-md bg-slate-50 text-slate-400 text-[9px] font-bold mb-2 tracking-tighter">
-                            ---
-                        </div>
-                        
-                        <div class="flex items-center gap-2">
+                        <div id="m-id-container"></div> <div class="flex items-center gap-2 mt-1">
                             <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
-                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">
-                                ---
-                            </span>
+                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">---</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20">
-                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-xl active:scale-90 transition-all cursor-pointer">
-                        <i class="fa-solid fa-phone text-blue-500 text-xs"></i>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-200 border-4 border-white active:scale-90 transition-all cursor-pointer">
-                        <i class="fa-solid fa-house text-white text-sm"></i>
-                    </div>
-                </div>
             </div>
 
             <div id="profile-history-block"></div>
-            
         </div>
     </div>
 
-    <nav id="bottom-nav">
-        <div class="nav-item active" onclick="location.reload()">
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-8 py-4 flex justify-between items-center z-[100]">
+        <div class="nav-item active flex flex-col items-center gap-1 active:scale-90 transition-all" onclick="handleNav('home-tab', this)">
             <i class="fa-solid fa-house text-xl"></i>
-            <span class="nav-label">მთავარი</span>
+            <span class="text-[10px] font-black uppercase tracking-tighter">მთავარი</span>
         </div>
-        <div class="nav-item" onclick="openProfile()">
+        <div class="nav-item flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50" onclick="handleNav('profile', this)">
             <i class="fa-solid fa-user text-xl"></i>
-            <span class="nav-label">პროფილი</span>
+            <span class="text-[10px] font-black uppercase tracking-tighter">პროფილი</span>
         </div>
     </nav>
 
+    <script>
+        // ნავიგაციის მართვის ფუნქცია პირდაპირ HTML-ში სისწრაფისთვის
+        function handleNav(type, el) {
+            // ყველა Overlay-ს დახურვა
+            document.getElementById('profile-page').classList.remove('active');
+            document.getElementById('details-page').classList.remove('active');
+            
+            // ნავიგაციის სტილების გასუფთავება
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.add('opacity-50'));
+            el.classList.remove('opacity-50');
+
+            if(type === 'profile') {
+                openProfile();
+            } else {
+                // აქ შეიძლება სხვა ტაბების გადართვა
+                document.querySelectorAll('.tab-content-main').forEach(tab => tab.classList.remove('active'));
+                document.getElementById(type).classList.add('active');
+            }
+            
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
