@@ -30,19 +30,15 @@ function fixImageUrl(url) {
     return url;
 }
 
-/** * აპლიკაციის საწყისი ინიციალიზაცია - შესწორებული ლოგიკა */
+/** * აპლიკაციის საწყისი ინიციალიზაცია */
 async function init() {
     tg.expand();
     tg.ready();
     
     try {
-        // 1. ჯერ ველოდებით მომხმარებლის სტატუსის დადასტურებას (Blocking)
         await registerUser();
-        
-        // 2. შემდეგ ვიწერთ ბაზას
         await fetchData();
         
-        // 3. მხოლოდ ყველაფრის ჩატვირთვის შემდეგ ვაქრობთ Splash Screen-ს
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
         if (splash) splash.style.display = 'none'; 
@@ -50,7 +46,6 @@ async function init() {
         
     } catch (e) {
         console.error("Initialization failed", e);
-        // შეცდომის შემთხვევაში მაინც ვაჩვენებთ კონტენტს, რომ აპლიკაცია არ გაიყინოს
         document.getElementById('splash-screen').style.display = 'none';
     }
 }
@@ -73,8 +68,6 @@ async function registerUser() {
 
 async function fetchData() {
     const container = document.getElementById('property-container');
-    
-    // ქეშის წაკითხვა სწრაფი რენდერისთვის
     const cachedData = localStorage.getItem('real_estate_cache');
     if (cachedData) {
         const parsed = JSON.parse(cachedData);
@@ -98,7 +91,6 @@ async function fetchData() {
 
         window.allListings = newListings;
         window.allMaklers = Array.isArray(newMaklers) ? newMaklers : [newMaklers];
-        
         renderProperties(window.allListings.slice(0, displayedItemsCount));
         
     } catch (e) {
@@ -107,16 +99,13 @@ async function fetchData() {
     }
 }
 
-/** * დამატებითი ელემენტების ჩატვირთვა სქროლისას */
 function loadMore() {
     if (displayedItemsCount >= window.allListings.length) return;
-    
     const nextBatch = window.allListings.slice(displayedItemsCount, displayedItemsCount + itemsPerLoad);
     displayedItemsCount += itemsPerLoad;
     renderProperties(nextBatch, true);
 }
 
-/** * განცხადებების რენდერი - ოპტიმიზირებული */
 function renderProperties(items, append = false) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
@@ -126,7 +115,6 @@ function renderProperties(items, append = false) {
             const rawImgUrl = item.MainPhoto || item.Photos || "";
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-            
             const imgPriority = (!append && index < 2) ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
 
             return `
@@ -282,6 +270,38 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
+/** * გადახდის ფუნქციები */
+function showBankDetails() {
+    const modal = document.getElementById('bank-modal');
+    if(modal) modal.classList.toggle('hidden');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+async function payWithStars() {
+    const user = tg.initDataUnsafe?.user;
+    if (!user) return;
+    tg.MainButton.setText("მუშავდება...");
+    tg.MainButton.show();
+    try {
+        const response = await fetch(`${API_URL}?action=createInvoice&chatId=${user.id}`);
+        const data = await response.json();
+        if (data.ok && data.invoiceLink) {
+            tg.openInvoice(data.invoiceLink, function(status) {
+                if (status === 'paid') {
+                    tg.showAlert("გილოცავთ! თქვენ გახდით Premium წევრი.");
+                    registerUser();
+                }
+                tg.MainButton.hide();
+            });
+        } else {
+            tg.showAlert("ინვოისის შექმნა ვერ მოხერხდა.");
+            tg.MainButton.hide();
+        }
+    } catch (e) {
+        tg.MainButton.hide();
+    }
+}
+
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -356,8 +376,36 @@ function openProfile(maklerId) {
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
+        
+        // Upgrade Section-ის ჩამატება მხოლოდ საკუთარ Free პროფილში
+        let upgradeHtml = "";
+        if (!maklerId && window.currentUser?.tier === "Free") {
+            upgradeHtml = `
+                <div class="mb-8 p-5 bg-gradient-to-br from-slate-800 to-slate-900 rounded-[30px] shadow-xl border border-slate-700 relative overflow-hidden">
+                    <h3 class="text-white font-black text-lg mb-1">გახდი Premium</h3>
+                    <p class="text-slate-400 text-[11px] mb-4">ჩამოტვირთე PDF განცხადებები შეუზღუდავად.</p>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="payWithStars()" class="w-full bg-blue-600 text-white py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition-all">
+                            <i class="fa-solid fa-star text-amber-400"></i> ყიდვა 500 ⭐-ად
+                        </button>
+                        <button onclick="showBankDetails()" class="w-full bg-slate-700 text-white py-3 rounded-2xl font-black text-[10px] uppercase active:scale-95 transition-all">
+                            აქტივაცია გადარიცხვით
+                        </button>
+                    </div>
+                </div>
+                <div id="bank-modal" class="hidden mb-6 p-5 bg-white rounded-[25px] border-2 border-dashed border-slate-200">
+                    <h4 class="text-slate-800 font-black text-sm mb-3">რეკვიზიტები:</h4>
+                    <p class="text-[10px] text-slate-500 mb-1 font-bold uppercase tracking-tighter">IBAN:</p>
+                    <p class="text-xs font-mono font-bold text-blue-600 mb-3 select-all">GE00TB0000000000000000</p>
+                    <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                        <p class="text-[9px] text-amber-800 leading-tight">დანიშნულება: <strong>ID ${user?.id}</strong></p>
+                    </div>
+                </div>`;
+        }
+
         historyBlock.innerHTML = `
-            <div class="-mt-4 px-1"> 
+            ${upgradeHtml}
+            <div class="px-1"> 
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">განცხადებები (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-3">
                     ${maklerListings.map(item => `
