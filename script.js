@@ -343,15 +343,21 @@ function updatePremiumUI(tier) {
     const proCard = document.getElementById('pro-upgrade-card');
     
     if (pCard && proCard) {
-        const currentTier = (tier || "FREE").toUpperCase();
+        // ვაქცევთ სტატუსს დიდ ასოებად და ვასუფთავებთ ზედმეტი სფეისებისგან
+        const currentTier = String(tier || "FREE").trim().toUpperCase();
         
-        if (currentTier === "PRO") {
+        console.log("Updating UI for Tier:", currentTier); // შემოწმებისთვის
+
+        if (currentTier === "PRO" || currentTier === "EXPERT") {
+            // PRO მომხმარებელს ვუმალავთ ორივე ბარათს
             pCard.classList.add('hidden');
             proCard.classList.add('hidden');
         } else if (currentTier === "PREMIUM") {
+            // პრემიუმს ვუმალავთ პრემიუმს და ვუტოვებთ მხოლოდ PRO-ს
             pCard.classList.add('hidden');
             proCard.classList.remove('hidden');
         } else {
+            // ყველა სხვა შემთხვევაში (FREE, ცარიელი და ა.შ.) ვუჩვენებთ ორივეს
             pCard.classList.remove('hidden');
             proCard.classList.remove('hidden');
         }
