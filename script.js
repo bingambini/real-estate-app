@@ -61,7 +61,6 @@ async function registerUser() {
             window.currentUser = status; 
             console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
             
-            // როლებზე დაფუძნებული შეტყობინება კონსოლში
             if (status.role === "Agent") {
                 console.log("Welcome Agent:", status.maklerId);
             } else if (status.role === "Owner") {
@@ -96,20 +95,16 @@ async function downloadProfessionalPDF(item) {
         tg.showAlert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
         return;
     }
-
     const btn = window.event ? window.event.currentTarget : null;
     const originalContent = btn ? btn.innerHTML : '';
-    
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         btn.disabled = true;
         btn.style.opacity = "0.7";
     }
-
     try {
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
-        
         if (pdfUrl && pdfUrl.startsWith("http")) {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
                 window.Telegram.WebApp.openLink(pdfUrl);
@@ -130,9 +125,6 @@ async function downloadProfessionalPDF(item) {
     }
 }
 
-/**
- * გაზიარება
- */
 function shareProperty(item) {
     const shareData = {
         title: `${item.Rooms} ოთახიანი ბინა`,
@@ -147,18 +139,13 @@ function shareProperty(item) {
     }
 }
 
-/**
- * ბარათების რენდერი
- */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
-    
     container.innerHTML = items.map(item => {
         try {
             const rawImgUrl = item.MainPhoto || item.Photos || "";
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
-            
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
             return `
             <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
@@ -185,25 +172,19 @@ function renderProperties(items) {
     }).join('');
 }
 
-/**
- * დეტალური გვერდი
- */
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => {});
-    
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
     setEl('det-title', `${item.Rooms || 0} ოთახიანი ${item.PropertyType || 'ბინა'}`);
     setEl('det-loc', `${item.City || ''}, ${item.District || ''}, ${item.Street || ''}`);
     setEl('det-price', `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`);
     setEl('det-id', item.ID);
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
-
     const contactTab = document.getElementById('tab-contact'); 
     if (contactTab) {
         let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
             ? (window.allMaklers.find(m => String(m.ID) === String(item.MaklerID)) || window.allMaklers[0]) 
             : null;
-        
         const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
         contactTab.innerHTML = `
             <div class="flex flex-col gap-5 py-2">
@@ -230,7 +211,6 @@ function openDetails(item) {
                 </div>
             </div>`;
     }
-
     const featList = document.getElementById('features-list');
     if(featList) {
         const allFields = [
@@ -249,19 +229,12 @@ function openDetails(item) {
                     <p class="text-xs font-black text-slate-700">${f.val}</p>
                 </div>`).join('');
     }
-
     const wrapper = document.getElementById('slider-wrapper');
     const dotsContainer = document.getElementById('slider-dots');
-    
     let allPhotos = [];
     if (item.MainPhoto) allPhotos.push(item.MainPhoto);
-    for (let k = 1; k <= 7; k++) {
-        if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]);
-    }
-    if (allPhotos.length === 0 && item.Photos) {
-        allPhotos = item.Photos.split(',').map(p => p.trim());
-    }
-
+    for (let k = 1; k <= 7; k++) { if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]); }
+    if (allPhotos.length === 0 && item.Photos) { allPhotos = item.Photos.split(',').map(p => p.trim()); }
     if (allPhotos.length > 0 && wrapper && dotsContainer) {
         wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
         dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
@@ -274,13 +247,16 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
+/**
+ * პროფილის გახსნა (მაკლერის ან საკუთარი)
+ */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
+    const profileCard = document.getElementById('user-profile-card');
     const headerTitle = document.getElementById('profile-header-title');
     const user = tg.initDataUnsafe?.user;
     
-    // აუცილებელი ელემენტები
     const nameEl = document.getElementById('m-name');
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
@@ -294,6 +270,9 @@ function openProfile(maklerId) {
         roleBadge.innerText = "AGENT";
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
+        if(profileCard) {
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500";
+        }
     } 
     // 2. საკუთარი პროფილი
     else {
@@ -314,14 +293,25 @@ function openProfile(maklerId) {
             idEl.innerText = user?.id || "---";
         }
 
-        // Tier ბეიჯის ლამაზი სტილი
-        if(tierBadge) {
+        // Tier ბეიჯის და ბარათის ვიზუალური მართვა
+        if(tierBadge && profileCard) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            tierBadge.className = "px-2 py-0.5 rounded-lg text-[10px] font-black inline-block ";
-            if(tier === "Premium") tierBadge.className += "bg-amber-100 text-amber-600 border border-amber-200";
-            else if(tier === "Pro") tierBadge.className += "bg-purple-100 text-purple-600 border border-purple-200";
-            else tierBadge.className += "bg-slate-100 text-slate-500 border border-slate-200";
+            
+            // საწყისი სტილები
+            tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase tracking-tighter z-10 ";
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 mb-6 transition-all duration-500 ";
+
+            if(tier === "Premium") {
+                tierBadge.className += "bg-amber-400 text-white";
+                profileCard.className += "border-amber-200 shadow-amber-50";
+            } else if(tier === "Pro") {
+                tierBadge.className += "bg-purple-500 text-white";
+                profileCard.className += "border-purple-200 shadow-purple-50";
+            } else {
+                tierBadge.className += "bg-slate-400 text-white";
+                profileCard.className += "border-slate-100 shadow-none";
+            }
         }
     }
     document.getElementById('profile-page')?.classList.add('active');
