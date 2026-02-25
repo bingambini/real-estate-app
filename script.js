@@ -59,15 +59,20 @@ async function registerUser() {
     }
 }
 
-/** * მონაცემების წამოღება */
+/** * მონაცემების წამოღება - ოპტიმიზირებული */
 async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        let mData = data.Makler || data.makler || [];
-        window.allMaklers = Array.isArray(mData) ? mData : [mData];
+        
+        // 1. პირველ რიგში ვტვირთავთ განცხადებებს და სასწრაფოდ ვხატავთ
         window.allListings = data.listings || data.Listings || [];
         renderProperties(window.allListings); 
+
+        // 2. მაკლერების მონაცემებს ვამუშავებთ შემდეგ, რადგან ისინი მხოლოდ დეტალების გვერდზე გვჭირდება
+        let mData = data.Makler || data.makler || [];
+        window.allMaklers = Array.isArray(mData) ? mData : [mData];
+        
     } catch (e) { 
         console.error("Error fetching data:", e);
         const container = document.getElementById('property-container');
@@ -124,18 +129,23 @@ function shareProperty(item) {
     }
 }
 
+/** * განცხადებების რენდერი პრიორიტეტული ჩატვირთვით */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
-    container.innerHTML = items.map(item => {
+    container.innerHTML = items.map((item, index) => {
         try {
             const rawImgUrl = item.MainPhoto || item.Photos || "";
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+            
+            // პირველი განცხადების ფოტოს ვანიჭებთ პრიორიტეტს
+            const imgPriority = index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
+
             return `
             <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
                 <div class="relative h-60 overflow-hidden">
-                    <img src="${firstImg}" class="w-full h-full object-cover" loading="lazy">
+                    <img src="${firstImg}" ${imgPriority} class="w-full h-full object-cover">
                     <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
                     <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-xl shadow-lg">
                         <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
