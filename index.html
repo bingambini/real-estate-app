@@ -153,8 +153,8 @@
     </nav>
 
     <script>
-        // Google Script API URL
-        const API_URL = "https://script.google.com/macros/s/AKfycbyY_V5WCg8M2BO6790GlBolhDiXwPDVSsG499l-Wk8BDj6SDp68XlVoQDChFFuEt3gCWg/exec";
+        // Google Script API URL - გამოყენებულია 'var' დუბლირების შეცდომის თავიდან ასაცილებლად
+        var API_URL = "https://script.google.com/macros/s/AKfycbyY_V5WCg8M2BO6790GlBolhDiXwPDVSsG499l-Wk8BDj6SDp68XlVoQDChFFuEt3gCWg/exec";
 
         function switchDetailsTab(tabId, el) {
             const parent = el.parentElement;
@@ -215,7 +215,7 @@
             }
         }
 
-        // UI-ს განახლების დამხმარე ფუნქცია (გამოიძახეთ script.js-დან)
+        // UI-ს განახლების დამხმარე ფუნქცია
         function updatePremiumUI(tier) {
             const card = document.getElementById('premium-upgrade-card');
             if (card) {
