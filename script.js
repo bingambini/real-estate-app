@@ -53,6 +53,12 @@ async function init() {
     tg.expand();
     tg.ready();
     
+    // მომენტალურად ვამოწმებთ ქეშირებულ თაიერს, რომ ბანერებმა არ იციმციმონ
+    const cachedTier = localStorage.getItem('user_tier_cache');
+    if (cachedTier && typeof updatePremiumUI === "function") {
+        updatePremiumUI(cachedTier);
+    }
+    
     const cachedData = localStorage.getItem('real_estate_cache');
     if (cachedData) {
         try {
@@ -83,6 +89,11 @@ async function registerUser() {
             const res = await fetch(regUrl);
             const status = await res.json();
             window.currentUser = status; 
+            
+            // ვინახავთ თაიერს ქეშში
+            if (status.tier) {
+                localStorage.setItem('user_tier_cache', status.tier);
+            }
             
             if (typeof updatePremiumUI === "function") {
                 updatePremiumUI(window.currentUser.tier);
