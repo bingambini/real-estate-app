@@ -268,74 +268,78 @@ function openProfile(maklerId) {
     
     let targetMakler = null;
 
-    // ვეძებთ მაკლერს ID-ით ან მიმდინარე მომხმარებლის მიხედვით
     if (isRequestingSpecific) {
         targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
     } else if (role === "Agent" && window.currentUser?.maklerId) {
         targetMakler = window.allMaklers.find(m => String(m.ID) === String(window.currentUser.maklerId));
     }
 
+    // 1. ძირითადი ტექსტური ინფორმაცია
     if (targetMakler) {
-        // 1. სახელი და ფოტო (Name, Photo სვეტებიდან)
         nameEl.innerText = targetMakler.Name || "აგენტი";
         photoEl.src = fixImageUrl(targetMakler.Photo);
-        
-        // 2. დეტალები (ID, Agency, Phone, Logo სვეტებიდან)
-        let infoHtml = `
-            <div class="flex flex-col gap-1.5">
-                <div class="flex items-center text-[10px] font-bold tracking-tight">
-                    <span class="text-slate-400"># ${targetMakler.ID}</span>
-                    <span class="text-slate-300 mx-2">|</span>
-                    <span class="text-blue-600 uppercase">${targetMakler.Agency || ''}</span>
-                </div>
-                
-                ${targetMakler.Phone ? `
-                <div class="text-slate-500 text-[11px] font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-phone text-blue-400/60 text-[10px]"></i> ${targetMakler.Phone}
-                </div>` : ''}
-
-                ${targetMakler.Logo ? `
-                <div class="mt-1 pt-1 border-t border-slate-50">
-                    <img src="${fixImageUrl(targetMakler.Logo)}" class="h-6 object-contain grayscale opacity-60 hover:grayscale-0 transition-all" alt="Agency Logo">
-                </div>` : ''}
+        idEl.innerHTML = `
+            <div class="flex items-center text-[10px] font-bold tracking-tight">
+                <span class="text-slate-400"># ${targetMakler.ID}</span>
+                <span class="text-slate-300 mx-2">|</span>
+                <span class="text-blue-600 uppercase">${targetMakler.Agency || ''}</span>
             </div>
         `;
-
-        idEl.innerHTML = infoHtml;
         roleBadge.innerText = "AGENT";
-        if(headerTitle) headerTitle.innerText = isRequestingSpecific ? "აგენტის პროფილი" : "ჩემი პროფილი";
-
     } else {
-        // სტანდარტული მომხმარებელი
         nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
         photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
         idEl.innerHTML = `<span class="text-slate-400 text-xs">ID: ${user?.id || '---'}</span>`;
         roleBadge.innerText = role.toUpperCase();
-        if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
     }
 
-    // ვიზუალური გაფორმება Tier-ის მიხედვით
+    // 2. ოვალური ბეიჯების მართვა (ლოგო და ტელეფონი)
+    // ჯერ ვშლით ძველ ბეიჯებს თუ არსებობს
+    const oldBadges = profileCard.querySelectorAll('.floating-badge');
+    oldBadges.forEach(b => b.remove());
+
+    if (targetMakler) {
+        // კონტეინერი ბეიჯებისთვის
+        const badgeContainer = document.createElement('div');
+        badgeContainer.className = "floating-badge absolute -bottom-4 right-6 flex gap-2 items-center z-20";
+        
+        // ტელეფონის ბეიჯი
+        if (targetMakler.Phone) {
+            const pBadge = document.createElement('a');
+            pBadge.href = `tel:${targetMakler.Phone}`;
+            pBadge.className = "bg-white shadow-lg border border-slate-100 px-3 py-2 rounded-full flex items-center gap-1.5 active:scale-90 transition-transform";
+            pBadge.innerHTML = `<i class="fa-solid fa-phone text-blue-500 text-[10px]"></i><span class="text-slate-700 font-black text-[11px]">${targetMakler.Phone}</span>`;
+            badgeContainer.appendChild(pBadge);
+        }
+
+        // ლოგოს ბეიჯი
+        if (targetMakler.Logo) {
+            const lBadge = document.createElement('div');
+            lBadge.className = "bg-white shadow-lg border border-slate-100 p-1.5 rounded-full w-10 h-10 flex items-center justify-center overflow-hidden";
+            lBadge.innerHTML = `<img src="${fixImageUrl(targetMakler.Logo)}" class="w-full h-full object-contain">`;
+            badgeContainer.appendChild(lBadge);
+        }
+
+        profileCard.appendChild(badgeContainer);
+    }
+
+    // 3. ვიზუალიზაცია (Tier & Header)
+    if(headerTitle) headerTitle.innerText = isRequestingSpecific ? "აგენტის პროფილი" : "ჩემი პროფილი";
+
     if(tierBadge && profileCard) {
-        if (isRequestingSpecific) {
-            tierBadge.classList.add('hidden');
-            profileCard.style.borderColor = "#f1f5f9";
-            profileCard.style.boxShadow = "none";
-        } else {
+        profileCard.classList.add('relative'); // აუცილებელია აბსოლუტური პოზიციონირებისთვის
+        if (!isRequestingSpecific) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            
-            if(tier === "Premium") {
-                profileCard.style.borderColor = "#fbbf24";
-                profileCard.style.backgroundColor = "#fffdf5";
-            } else if(tier === "Pro") {
-                profileCard.style.borderColor = "#a855f7";
-                profileCard.style.backgroundColor = "#faf5ff";
-            } else {
-                profileCard.style.borderColor = "#f1f5f9";
-                profileCard.style.backgroundColor = "#ffffff";
-            }
+            if(tier === "Premium") profileCard.style.borderColor = "#fbbf24";
+            else if(tier === "Pro") profileCard.style.borderColor = "#a855f7";
+            else profileCard.style.borderColor = "#f1f5f9";
+        } else {
+            tierBadge.classList.add('hidden');
+            profileCard.style.borderColor = "#f1f5f9";
         }
     }
+
     document.getElementById('profile-page')?.classList.add('active');
 }
 
