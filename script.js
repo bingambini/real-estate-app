@@ -198,11 +198,9 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა + STAGGER ანიმაცია */
+/** * პროფილის გახსნა + გაუმჯობესებული ფილტრი */
 function openProfile(maklerId) {
-    const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
-    const profileCard = document.getElementById('user-profile-card');
     const user = tg.initDataUnsafe?.user;
     
     const nameEl = document.getElementById('m-name');
@@ -211,33 +209,42 @@ function openProfile(maklerId) {
 
     const isRequestingSpecific = maklerId && maklerId !== "undefined";
     const role = window.currentUser?.role || "Client";
-    const tier = window.currentUser?.tier || "Free";
     let targetId = null;
 
     if (isRequestingSpecific) {
-        let targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
+        // სხვისი პროფილის ნახვა (მაკლერის)
+        let targetMakler = window.allMaklers.find(m => String(m.ID).trim() === String(maklerId).trim());
         if (targetMakler) {
             nameEl.innerText = targetMakler.Name;
             photoEl.src = fixImageUrl(targetMakler.Photo);
             idEl.innerHTML = `<span class="text-blue-600 font-bold uppercase text-[10px]">${targetMakler.Agency || 'AGENT'}</span>`;
-            targetId = maklerId;
+            targetId = String(maklerId).trim();
         }
     } else {
+        // პირადი პროფილის ნახვა
         nameEl.innerText = (user?.first_name || "მომხმარებელი");
         photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
         idEl.innerHTML = `<span class="text-slate-400 text-xs">ID: ${user?.id || '---'}</span>`;
+        
+        // თუ მაკლერია, ვიღებთ მის ID-ს ბაზიდან
+        if (role === "Agent" && window.currentUser?.maklerId) {
+            targetId = String(window.currentUser.maklerId).trim();
+        }
     }
 
     roleBadge.innerText = (isRequestingSpecific ? "AGENT" : role).toUpperCase();
 
-    // განცხადებების ისტორია STAGGER ეფექტით
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
-        const maklerListings = window.allListings?.filter(item => String(item.MaklerID) === String(targetId)) || [];
+        // ფილტრაცია MaklerID (AN სვეტი) მიხედვით
+        const maklerListings = window.allListings?.filter(item => {
+            const itemMaklerId = String(item.MaklerID || "").trim();
+            return itemMaklerId === targetId && targetId !== null;
+        }) || [];
         
         historyBlock.innerHTML = `
             <div class="mt-8">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია</h3>
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-3">
                     ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
