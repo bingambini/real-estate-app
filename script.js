@@ -1,11 +1,15 @@
 // ბაზის (Google Apps Script) ბმული
-const API_URL = "https://script.google.com/macros/s/AKfycbyY_V5WCg8M2BO6790GlBolhDiXwPDVSsG499l-Wk8BDj6SDp68XlVoQDChFFuEt3gCWg/exec";
+window.API_URL = "https://script.google.com/macros/s/AKfycbyY_V5WCg8M2BO6790GlBolhDiXwPDVSsG499l-Wk8BDj6SDp68XlVoQDChFFuEt3gCWg/exec";
+
 // Telegram WebApp ინსტანცია
-const tg = window.Telegram.WebApp;
+window.tg = window.Telegram.WebApp;
+
 // მაკლერების მონაცემების გლობალური მასივი
 window.allMaklers = []; 
+
 // მონაცემების გლობალური მასივი განცხადებებისთვის
 window.allListings = [];
+
 // მომხმარებლის მონაცემები
 window.currentUser = null;
 
