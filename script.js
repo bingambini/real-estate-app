@@ -293,12 +293,23 @@ function showBankDetails() {
 
 async function payWithStars() {
     const user = tg.initDataUnsafe?.user;
-    if (!user) return;
+    if (!user) {
+        tg.showAlert("მომხმარებლის მონაცემები ვერ მოიძებნა.");
+        return;
+    }
+
     tg.MainButton.setText("მუშავდება...");
     tg.MainButton.show();
+
     try {
-        const response = await fetch(`${API_URL}?action=createInvoice&chatId=${user.id}`);
+        // აქ ვიყენებთ window.API_URL-ს, რომელიც წინა ეტაპზე დავამატეთ
+        const response = await fetch(`${window.API_URL}?action=createInvoice&chatId=${user.id}`);
+        
+        // ვამოწმებთ, საერთოდ მოვიდა თუ არა პასუხი
+        if (!response.ok) throw new Error("Network response was not ok");
+
         const data = await response.json();
+        
         if (data.ok && data.invoiceLink) {
             tg.openInvoice(data.invoiceLink, function(status) {
                 if (status === 'paid') {
@@ -308,10 +319,13 @@ async function payWithStars() {
                 tg.MainButton.hide();
             });
         } else {
-            tg.showAlert("ინვოისის შექმნა ვერ მოხერხდა.");
+            // თუ სერვერმა ok: false დააბრუნა, გამოვიტანოთ მისი გამოგზავნილი შეცდომა
+            tg.showAlert("სერვერის შეცდომა: " + (data.error || "ინვოისი ვერ შეიქმნა"));
             tg.MainButton.hide();
         }
     } catch (e) {
+        console.error("Invoice Error:", e);
+        tg.showAlert("კავშირის შეცდომა. შეამოწმეთ ინტერნეტი ან სერვერის ლოგები.");
         tg.MainButton.hide();
     }
 }
