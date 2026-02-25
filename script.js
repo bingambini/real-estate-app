@@ -418,30 +418,48 @@ function openDetailsById(id) {
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
+/** * ტაბების გადართვა ოპტიმიზირებული ნავიგაციით */
 function switchTab(tabId, el) {
-    document.getElementById('profile-page')?.classList.remove('active');
-    document.getElementById('details-page')?.classList.remove('active');
+    // 1. თუ უკვე ამ ტაბზე ვართ, არაფერი გავაკეთოთ
+    if (el.classList.contains('active')) return;
 
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active');
-        b.style.opacity = "0.5"; 
-    });
+    // 2. დავხუროთ ყველა Overlay გვერდი
+    const detailsPage = document.getElementById('details-page');
+    const profilePage = document.getElementById('profile-page');
+    if (detailsPage) detailsPage.classList.remove('active');
+    if (profilePage) profilePage.classList.remove('active');
 
-    document.querySelectorAll('.tab-content').forEach(t => {
-        t.classList.remove('active');
-        t.style.display = 'none';
-    });
-
-    const targetTab = document.getElementById(tabId);
-    if (targetTab) {
-        targetTab.classList.add('active');
-        targetTab.style.display = 'block';
-        el.classList.add('active');
-        el.style.opacity = "1";
+    // 3. ტაბების ღილაკების ვიზუალური განახლება (უფრო სწრაფი სელექტორებით)
+    const allButtons = document.querySelectorAll('.tab-btn');
+    for (let btn of allButtons) {
+        btn.classList.remove('active');
+        btn.style.opacity = "0.5";
     }
-    
+
+    // 4. კონტენტის გადართვა
+    const allTabs = document.querySelectorAll('.tab-content');
+    for (let tab of allTabs) {
+        if (tab.id === tabId) {
+            tab.style.display = 'block';
+            tab.classList.add('active');
+        } else {
+            tab.style.display = 'none';
+            tab.classList.remove('active');
+        }
+    }
+
+    // 5. არჩეული ღილაკის გააქტიურება
+    el.classList.add('active');
+    el.style.opacity = "1";
+
+    // 6. Telegram ვიბრაცია (Haptic Feedback)
     if (window.Telegram?.WebApp?.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
+    }
+
+    // 7. თუ Home-ზე ვბრუნდებით, ავიდეთ ზევით
+    if (tabId === 'home-tab') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }
 }
 
