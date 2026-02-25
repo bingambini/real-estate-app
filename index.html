@@ -87,6 +87,18 @@
                     </div>
                     <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20"></div>
                 </div>
+
+                <div id="premium-upgrade-card" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[30px] p-6 shadow-xl mb-10 relative overflow-hidden hidden">
+                    <div class="relative z-10">
+                        <h3 class="text-white font-black text-lg mb-1">გახდი PREMIUM</h3>
+                        <p class="text-blue-100 text-[10px] mb-4 leading-relaxed opacity-80 uppercase tracking-wider">AI ანალიზი • PDF გენერაცია • VIP შეტყობინებები</p>
+                        <button onclick="upgradeToPremium()" id="premium-button" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                            ⭐ გააქტიურება (500 STARS)
+                        </button>
+                    </div>
+                    <i class="fa-solid fa-crown absolute -right-4 -bottom-4 text-white/10 text-8xl rotate-12"></i>
+                </div>
+
                 <div id="profile-history-block"></div>
             </div>
         </div>
@@ -141,6 +153,9 @@
     </nav>
 
     <script>
+        // Google Script API URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbyY_V5WCg8M2BO6790GlBolhDiXwPDVSsG499l-Wk8BDj6SDp68XlVoQDChFFuEt3gCWg/exec";
+
         function switchDetailsTab(tabId, el) {
             const parent = el.parentElement;
             parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -155,6 +170,60 @@
             if(target) {
                 target.style.display = 'block';
                 target.classList.add('active');
+            }
+        }
+
+        // Premium გადახდის ფუნქცია
+        async function upgradeToPremium() {
+            const tg = window.Telegram.WebApp;
+            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+
+            if (!userId) {
+                alert("გთხოვთ, გახსნათ ბოტიდან");
+                return;
+            }
+
+            const btn = document.getElementById('premium-button');
+            const originalText = btn.innerText;
+            btn.innerText = "მუშავდება...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}?action=createInvoice&chatId=${userId}`);
+                const data = await response.json();
+
+                if (data.ok && data.invoiceLink) {
+                    tg.openInvoice(data.invoiceLink, function(status) {
+                        if (status === 'paid') {
+                            tg.showAlert("გილოცავთ! Premium გააქტიურდა.");
+                            location.reload();
+                        } else {
+                            tg.showAlert("გადახდა ვერ მოხერხდა ან გაუქმდა.");
+                        }
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    });
+                } else {
+                    tg.showAlert("შეცდომა ინვოისის შექმნისას.");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                tg.showAlert("სერვერთან კავშირი ვერ დამყარდა.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // UI-ს განახლების დამხმარე ფუნქცია (გამოიძახეთ script.js-დან)
+        function updatePremiumUI(tier) {
+            const card = document.getElementById('premium-upgrade-card');
+            if (card) {
+                if (tier === 'Free' || tier === 'FREE') {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
             }
         }
     </script>
