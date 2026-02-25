@@ -250,6 +250,9 @@ function openDetails(item) {
 /**
  * პროფილის გახსნა (მაკლერის ან საკუთარი)
  */
+/**
+ * პროფილის გახსნა (მაკლერის ან საკუთარი)
+ */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -261,12 +264,18 @@ function openProfile(maklerId) {
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
 
-    // 1. სხვისი აგენტის ნახვა
+    // 1. სხვისი აგენტის ნახვა (განცხადებიდან გადასვლა)
     if (maklerId && maklerId !== "undefined") {
         const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         nameEl.innerText = m.Name || "აგენტი";
         photoEl.src = fixImageUrl(m.Photo);
         idEl.innerText = m.ID || "---";
+        
+        // სააგენტოს დამატება ID-სთან ერთად, თუ არსებობს
+        if (m.Agency) {
+            idEl.innerHTML = `${m.ID} <span class="text-slate-300 mx-1">|</span> <span class="text-blue-500">${m.Agency}</span>`;
+        }
+
         roleBadge.innerText = "AGENT";
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
@@ -274,7 +283,7 @@ function openProfile(maklerId) {
             profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500";
         }
     } 
-    // 2. საკუთარი პროფილი
+    // 2. საკუთარი პროფილი (NavBar-დან)
     else {
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
@@ -282,12 +291,28 @@ function openProfile(maklerId) {
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
         roleBadge.innerText = role.toUpperCase();
         
+        // თუ მომხმარებელი აგენტია, წამოვიღოთ მონაცემები Makler ტაბიდან
         if (role === "Agent" && window.currentUser?.maklerId) {
             const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
-            nameEl.innerText = m?.Name || user?.first_name || "აგენტი";
-            photoEl.src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
-            idEl.innerText = window.currentUser.maklerId;
-        } else {
+            
+            if (m) {
+                nameEl.innerText = m.Name || user?.first_name || "აგენტი";
+                photoEl.src = m.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
+                
+                // ID და სააგენტოს გაერთიანება
+                let infoHtml = m.ID;
+                if (m.Agency) infoHtml += ` <span class="text-slate-300 mx-1">|</span> <span class="text-blue-500">${m.Agency}</span>`;
+                idEl.innerHTML = infoHtml;
+                
+                console.log("Professional Profile Loaded:", m.Name, m.Agency);
+            } else {
+                nameEl.innerText = user?.first_name || "აგენტი";
+                photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
+                idEl.innerText = window.currentUser.maklerId;
+            }
+        } 
+        // თუ ჩვეულებრივი იუზერია
+        else {
             nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
             photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
             idEl.innerText = user?.id || "---";
@@ -298,7 +323,6 @@ function openProfile(maklerId) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
             
-            // საწყისი სტილები
             tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase tracking-tighter z-10 ";
             profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 mb-6 transition-all duration-500 ";
 
