@@ -99,7 +99,7 @@
                     <i class="fa-solid fa-crown absolute -right-4 -bottom-4 text-white/10 text-7xl rotate-12"></i>
                 </div>
 
-                <div id="pro-upgrade-card" class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[30px] p-6 shadow-2xl mb-8 relative overflow-hidden border border-blue-500/30">
+                <div id="pro-upgrade-card" class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[30px] p-6 shadow-2xl mb-8 relative overflow-hidden border border-blue-500/30 hidden">
                     <div class="relative z-10">
                         <div class="flex justify-between items-center mb-5">
                             <div>
@@ -210,14 +210,21 @@
         function updatePremiumUI(tier) {
             const pCard = document.getElementById('premium-upgrade-card');
             const proCard = document.getElementById('pro-upgrade-card');
+            
             if (pCard && proCard) {
-                if (tier === 'Pro' || tier === 'PRO') {
-                    pCard.classList.add('hidden');
-                    proCard.classList.add('hidden');
-                } else if (tier === 'Premium' || tier === 'PREMIUM') {
-                    pCard.classList.add('hidden');
+                const currentTier = (tier || "FREE").toUpperCase();
+                
+                // ჯერ ორივეს ვმალავთ, რომ ავიცილოთ არასწორი ჩვენება ჩატვირთვისას
+                pCard.classList.add('hidden');
+                proCard.classList.add('hidden');
+
+                if (currentTier === 'PRO') {
+                    // PRO მომხმარებელს არაფერი არ სჭირდება
+                } else if (currentTier === 'PREMIUM') {
+                    // პრემიუმს ვუჩვენებთ მხოლოდ PRO-ს
                     proCard.classList.remove('hidden');
                 } else {
+                    // FREE მომხმარებელს ვუჩვენებთ ორივეს
                     pCard.classList.remove('hidden');
                     proCard.classList.remove('hidden');
                 }
