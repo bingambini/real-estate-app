@@ -30,20 +30,29 @@ function fixImageUrl(url) {
     return url;
 }
 
-/** * აპლიკაციის საწყისი ინიციალიზაცია */
+/** * აპლიკაციის საწყისი ინიციალიზაცია - შესწორებული ლოგიკა */
 async function init() {
     tg.expand();
     tg.ready();
     
-    // ოპტიმიზაცია: პარალელური გაშვება
-    Promise.all([registerUser(), fetchData()]);
-    
-    setTimeout(() => { 
+    try {
+        // 1. ჯერ ველოდებით მომხმარებლის სტატუსის დადასტურებას (Blocking)
+        await registerUser();
+        
+        // 2. შემდეგ ვიწერთ ბაზას
+        await fetchData();
+        
+        // 3. მხოლოდ ყველაფრის ჩატვირთვის შემდეგ ვაქრობთ Splash Screen-ს
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
         if (splash) splash.style.display = 'none'; 
         if (content) content.style.opacity = '1'; 
-    }, 1000);
+        
+    } catch (e) {
+        console.error("Initialization failed", e);
+        // შეცდომის შემთხვევაში მაინც ვაჩვენებთ კონტენტს, რომ აპლიკაცია არ გაიყინოს
+        document.getElementById('splash-screen').style.display = 'none';
+    }
 }
 
 /** * მომხმარებლის რეგისტრაცია Google Sheets-ში */
@@ -65,16 +74,13 @@ async function registerUser() {
 async function fetchData() {
     const container = document.getElementById('property-container');
     
+    // ქეშის წაკითხვა სწრაფი რენდერისთვის
     const cachedData = localStorage.getItem('real_estate_cache');
     if (cachedData) {
         const parsed = JSON.parse(cachedData);
         window.allListings = parsed.listings;
         window.allMaklers = parsed.maklers;
         renderProperties(window.allListings.slice(0, displayedItemsCount));
-    } else {
-        container.innerHTML = Array(4).fill(0).map(() => `
-            <div class="animate-pulse bg-slate-200 rounded-[30px] h-64 mb-4"></div>
-        `).join('');
     }
 
     try {
@@ -97,7 +103,7 @@ async function fetchData() {
         
     } catch (e) {
         console.error("Fetch failed", e);
-        if (!cachedData) container.innerHTML = "შეცდომაა...";
+        if (!cachedData && container) container.innerHTML = "შეცდომაა...";
     }
 }
 
@@ -291,7 +297,6 @@ function openProfile(maklerId) {
     let m = null;
     let isAgentMode = false;
 
-    // თუ სხვა აგენტის პროფილს ვხსნით (მაგალითად განცხადებიდან)
     if (maklerId && maklerId !== "undefined") {
         m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         targetId = String(m.ID).trim();
@@ -301,11 +306,8 @@ function openProfile(maklerId) {
         isAgentMode = true;
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
-        
-        // თუ აგენტის გვერდია, გვერდი უნდა გამოჩნდეს (Overlay რეჟიმი)
         document.getElementById('profile-page')?.classList.add('active');
     } else {
-        // საკუთარი პროფილის რეჟიმი (ტაბის რეჟიმი)
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
@@ -371,7 +373,6 @@ function openProfile(maklerId) {
 function openDetailsById(id) {
     const item = window.allListings.find(l => String(l.ID) === String(id));
     if (item) { 
-        // თუ აგენტის პროფილი Overlay-დ იყო გახსნილი, ვხურავთ
         document.getElementById('profile-page')?.classList.remove('active');
         openDetails(item); 
     }
@@ -381,29 +382,19 @@ function closeDetails() { document.getElementById('details-page')?.classList.rem
 
 function switchTab(tabId, el) {
     closeDetails();
-
-    // ვმალავთ ტაბებს
     const pages = ['home-tab', 'profile-tab-content'];
     pages.forEach(id => {
         const pg = document.getElementById(id);
-        if (pg) {
-            pg.classList.remove('active');
-            pg.style.display = 'none';
-        }
+        if (pg) { pg.classList.remove('active'); pg.style.display = 'none'; }
     });
 
-    // ვაჩენთ არჩეულს
     const target = document.getElementById(tabId);
     if (target) {
         target.style.display = 'block';
         setTimeout(() => target.classList.add('active'), 10);
-        
-        if (tabId === 'profile-tab-content') {
-            openProfile(); 
-        }
+        if (tabId === 'profile-tab-content') { openProfile(); }
     }
 
-    // ნავიგაციის ვიზუალი
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.add('opacity-50');
         item.classList.remove('active');
@@ -418,7 +409,6 @@ function switchTab(tabId, el) {
 }
 
 function closeProfile() {
-    // ეს ფუნქცია გამოიყენება მხოლოდ აგენტის Overlay პროფილის დასახურავად
     document.getElementById('profile-page')?.classList.remove('active');
 }
 
