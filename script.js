@@ -419,48 +419,59 @@ function closeProfile() { document.getElementById('profile-page')?.classList.rem
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 /** * ტაბების გადართვა ოპტიმიზირებული ნავიგაციით */
+/** * ტაბების გადართვა - საბოლოო სტაბილური ვერსია */
 function switchTab(tabId, el) {
-    // 1. თუ უკვე ამ ტაბზე ვართ, არაფერი გავაკეთოთ
-    if (el.classList.contains('active')) return;
+    // 1. დავხუროთ ყველა "ზედაპირული" გვერდი (Overlay)
+    document.getElementById('profile-page')?.classList.remove('active');
+    document.getElementById('details-page')?.classList.remove('active');
 
-    // 2. დავხუროთ ყველა Overlay გვერდი
-    const detailsPage = document.getElementById('details-page');
-    const profilePage = document.getElementById('profile-page');
-    if (detailsPage) detailsPage.classList.remove('active');
-    if (profilePage) profilePage.classList.remove('active');
+    // 2. მოვძებნოთ ყველა მთავარი ტაბი და დავმალოთ
+    const allTabs = document.querySelectorAll('.tab-content-main');
+    allTabs.forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
 
-    // 3. ტაბების ღილაკების ვიზუალური განახლება (უფრო სწრაფი სელექტორებით)
-    const allButtons = document.querySelectorAll('.tab-btn');
-    for (let btn of allButtons) {
-        btn.classList.remove('active');
-        btn.style.opacity = "0.5";
+    // 3. გამოვაჩინოთ არჩეული ტაბი
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.style.display = 'block';
+        setTimeout(() => targetTab.classList.add('active'), 10);
     }
 
-    // 4. კონტენტის გადართვა
-    const allTabs = document.querySelectorAll('.tab-content');
-    for (let tab of allTabs) {
-        if (tab.id === tabId) {
-            tab.style.display = 'block';
-            tab.classList.add('active');
-        } else {
-            tab.style.display = 'none';
-            tab.classList.remove('active');
-        }
+    // 4. ნავიგაციის ღილაკების სტილების განახლება
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.add('opacity-50');
+        item.classList.remove('active');
+    });
+
+    if (el) {
+        el.classList.remove('opacity-50');
+        el.classList.add('active');
     }
 
-    // 5. არჩეული ღილაკის გააქტიურება
-    el.classList.add('active');
-    el.style.opacity = "1";
-
-    // 6. Telegram ვიბრაცია (Haptic Feedback)
+    // 5. ვიბრაცია
     if (window.Telegram?.WebApp?.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
+    
+    // 6. ავიდეთ სქროლით ზევით
+    window.scrollTo({ top: 0, behavior: 'instant' });
+}
 
-    // 7. თუ Home-ზე ვბრუნდებით, ავიდეთ ზევით
-    if (tabId === 'home-tab') {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+/** * პროფილის გახსნა ნავიგაციიდან */
+function openProfileFromNav(el) {
+    // ჯერ გავასუფთავოთ ნავიგაციის სტილი
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.add('opacity-50');
+        item.classList.remove('active');
+    });
+    // გავააქტიუროთ პროფილის ღილაკი
+    el.classList.remove('opacity-50');
+    el.classList.add('active');
+    
+    // გამოვიძახოთ არსებული openProfile ფუნქცია
+    openProfile();
 }
 
 init();
