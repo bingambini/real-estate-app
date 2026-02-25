@@ -277,7 +277,7 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * გადახდის ფუნქცია */
+/** * გადახდის ფუნქცია (PREMIUM) */
 async function payWithStars() {
     const user = tg.initDataUnsafe?.user;
     if (!user) return;
@@ -286,7 +286,7 @@ async function payWithStars() {
     tg.MainButton.show();
     
     try {
-        const response = await fetch(`${window.API_URL}?action=createInvoice&chatId=${user.id}`);
+        const response = await fetch(`${window.API_URL}?action=createInvoice&chatId=${user.id}&tier=PREMIUM`);
         const data = await response.json();
         
         if (data.ok && data.result) {
@@ -304,6 +304,57 @@ async function payWithStars() {
     } catch (e) {
         console.error("Payment error:", e);
         tg.MainButton.hide();
+    }
+}
+
+/** * გადახდის ფუნქცია (PRO) */
+async function payWithStarsPro() {
+    const user = tg.initDataUnsafe?.user;
+    if (!user) return;
+    
+    tg.MainButton.setText("მუშავდება...");
+    tg.MainButton.show();
+    
+    try {
+        const response = await fetch(`${window.API_URL}?action=createInvoice&chatId=${user.id}&tier=PRO`);
+        const data = await response.json();
+        
+        if (data.ok && data.result) {
+            tg.openInvoice(data.result, function(status) {
+                if (status === 'paid') {
+                    tg.showAlert("გილოცავთ! თქვენ გახდით PRO წევრი.");
+                    registerUser();
+                }
+                tg.MainButton.hide();
+            });
+        } else {
+            tg.showAlert("ინვოისის ბმული ვერ მოიძებნა.");
+            tg.MainButton.hide();
+        }
+    } catch (e) {
+        console.error("Payment error:", e);
+        tg.MainButton.hide();
+    }
+}
+
+/** * UI განახლება სტატუსის მიხედვით */
+function updatePremiumUI(tier) {
+    const pCard = document.getElementById('premium-upgrade-card');
+    const proCard = document.getElementById('pro-upgrade-card');
+    
+    if (pCard && proCard) {
+        const currentTier = (tier || "FREE").toUpperCase();
+        
+        if (currentTier === "PRO") {
+            pCard.classList.add('hidden');
+            proCard.classList.add('hidden');
+        } else if (currentTier === "PREMIUM") {
+            pCard.classList.add('hidden');
+            proCard.classList.remove('hidden');
+        } else {
+            pCard.classList.remove('hidden');
+            proCard.classList.remove('hidden');
+        }
     }
 }
 
@@ -340,7 +391,7 @@ function openProfile(maklerId) {
         document.getElementById('profile-page')?.classList.add('active');
     } else {
         const role = window.currentUser?.role || "Client";
-        const tier = window.currentUser?.tier || "Free";
+        const tier = (window.currentUser?.tier || "Free").toUpperCase();
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
         if(roleBadge) roleBadge.innerText = role.toUpperCase();
         
@@ -358,11 +409,25 @@ function openProfile(maklerId) {
 
         if(tierBadge && profileCard) {
             tierBadge.classList.remove('hidden');
-            tierBadge.innerText = tier.toUpperCase();
+            tierBadge.innerText = tier;
             tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase z-10 ";
-            if(tier === "Premium") { tierBadge.className += "bg-amber-400 text-white"; profileCard.style.borderColor = "#fbbf24"; }
-            else { tierBadge.className += "bg-slate-400 text-white"; profileCard.style.borderColor = "#e2e8f0"; }
+            
+            if(tier === "PRO") { 
+                tierBadge.className += "bg-slate-900 text-blue-400 border-blue-500/50"; 
+                profileCard.style.borderColor = "#3b82f6"; 
+            }
+            else if(tier === "PREMIUM") { 
+                tierBadge.className += "bg-amber-400 text-white"; 
+                profileCard.style.borderColor = "#fbbf24"; 
+            }
+            else { 
+                tierBadge.className += "bg-slate-400 text-white"; 
+                profileCard.style.borderColor = "#e2e8f0"; 
+            }
         }
+        
+        // ბარათების ხილვადობის განახლება
+        updatePremiumUI(tier);
     }
 
     const infoContainer = nameEl.parentElement;
