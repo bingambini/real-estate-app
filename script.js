@@ -241,7 +241,7 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა - დახვეწილი დიზაინით და ზუსტი დაშორებებით */
+/** * პროფილის გახსნა - ოპტიმიზირებული ID-ით და ბეიჯების ლოგიკით */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -251,11 +251,11 @@ function openProfile(maklerId) {
     
     const nameEl = document.getElementById('m-name');
     const photoEl = document.getElementById('m-photo');
-    const idEl = document.getElementById('m-id'); // ეს ახლა ფოტოზე ბეიჯად გამოჩნდება
-
     const floatingBadges = profileCard.querySelector('.absolute.-bottom-4');
+    
     let targetId = null;
     let m = null;
+    let isAgentMode = false;
 
     // 1. მონაცემების იდენტიფიკაცია
     if (maklerId && maklerId !== "undefined") {
@@ -264,6 +264,7 @@ function openProfile(maklerId) {
         nameEl.innerText = m.Name || "აგენტი";
         photoEl.src = fixImageUrl(m.Photo);
         roleBadge.innerText = "AGENT";
+        isAgentMode = true;
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
     } else {
@@ -277,61 +278,66 @@ function openProfile(maklerId) {
             targetId = String(window.currentUser.maklerId).trim();
             nameEl.innerText = m?.Name || user?.first_name || "აგენტი";
             photoEl.src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
+            isAgentMode = true;
         } else {
             nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
             photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
-            targetId = user?.id;
+            targetId = user?.id || "---";
+            isAgentMode = false;
         }
 
+        // Tier styling (Premium/Pro/Free)
         if(tierBadge && profileCard) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase tracking-tighter z-10 ";
-            if(tier === "Premium") { tierBadge.className += "bg-amber-400 text-white"; profileCard.style.borderColor = "#fde68a"; }
-            else if(tier === "Pro") { tierBadge.className += "bg-purple-500 text-white"; profileCard.style.borderColor = "#ddd6fe"; }
-            else { tierBadge.className += "bg-slate-400 text-white"; profileCard.style.borderColor = "#f1f5f9"; }
+            tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase z-10 ";
+            if(tier === "Premium") { tierBadge.className += "bg-amber-400 text-white"; profileCard.style.borderColor = "#fbbf24"; }
+            else if(tier === "Pro") { tierBadge.className += "bg-purple-500 text-white"; profileCard.style.borderColor = "#a855f7"; }
+            else { tierBadge.className += "bg-slate-400 text-white"; profileCard.style.borderColor = "#e2e8f0"; }
         }
     }
 
-    // 2. ტექსტური ბლოკის გასწორება (სახელი, სააგენტო, სტატუსი - თანაბარი დაშორებით)
-    // ვშლით ძველ სააგენტოს და სტატუსის კონტეინერს რომ თავიდან ავაწყოთ
+    // 2. ტექსტური ბლოკი: ID, Agency და Status (თანაბარი დაშორებით)
+    // ვასუფთავებთ ძველ დამატებულ ელემენტებს
     const infoContainer = nameEl.parentElement;
-    infoContainer.className = "flex flex-col gap-2"; // gap-2 უზრუნველყოფს თანაბარ დაშორებას
+    infoContainer.className = "flex flex-col gap-1.5 pt-1"; 
     
-    // სააგენტოს დამატება
-    const existingAgency = document.getElementById('m-agency-display');
-    if(existingAgency) existingAgency.remove();
+    document.getElementById('m-id-display')?.remove();
+    document.getElementById('m-agency-display')?.remove();
+
+    // ID ბეიჯი სახელის ქვევით
+    const idHtml = `<div id="m-id-display" class="w-fit bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-[8px] font-black text-slate-500 uppercase">ID: ${targetId}</div>`;
+    nameEl.insertAdjacentHTML('afterend', idHtml);
+
+    // Agency (მხოლოდ თუ აგენტია)
     if(m?.Agency) {
-        const agencyHtml = `<p id="m-agency-display" class="text-[11px] font-bold text-slate-400 uppercase tracking-tighter leading-none">${m.Agency}</p>`;
-        nameEl.insertAdjacentHTML('afterend', agencyHtml);
+        const agencyHtml = `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">${m.Agency}</p>`;
+        document.getElementById('m-id-display').insertAdjacentHTML('afterend', agencyHtml);
     }
 
-    // 3. მაკლერის ID ბეიჯი ფოტოზე (ცენტრში ქვემოთ)
-    const existingIdBadge = photoEl.parentElement.querySelector('.id-badge-photo');
-    if(existingIdBadge) existingIdBadge.remove();
-    const idBadgeHtml = `<div class="id-badge-photo absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-100 px-2 py-0.5 rounded-md border border-white shadow-sm text-[8px] font-black text-slate-400">ID: ${targetId || '---'}</div>`;
-    photoEl.parentElement.classList.add('relative');
-    photoEl.parentElement.insertAdjacentHTML('beforeend', idBadgeHtml);
-
-    // 4. მცურავი ბეიჯები გამოკვეთილი კონტურით
-    if(floatingBadges && m) {
-        floatingBadges.innerHTML = `
-            <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-xl border-2 border-blue-100 active:scale-90 transition-all">
-                <i class="fa-solid fa-phone text-blue-600 text-xs"></i>
-            </a>
-            <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-blue-50 active:scale-90 transition-all">
-                <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
-            </div>
-        `;
+    // 3. მცურავი ბეიჯების კონტროლი
+    if(floatingBadges) {
+        if(isAgentMode && m) {
+            floatingBadges.innerHTML = `
+                <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-xl border-2 border-blue-50 active:scale-90 transition-all">
+                    <i class="fa-solid fa-phone text-blue-600 text-xs"></i>
+                </a>
+                <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-blue-50 active:scale-90 transition-all">
+                    <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
+                </div>
+            `;
+        } else {
+            floatingBadges.innerHTML = ""; // კლიენტისთვის ვასუფთავებთ
+        }
     }
 
-    // 5. ისტორიის ბარათები (3 ერთ ხაზზე)
+    // 4. ისტორიის ბარათები (3 ერთ ხაზზე)
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
         
         historyBlock.innerHTML = `
-            <div class="mt-8 px-1">
+            <div class="mt-8">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">განცხადებები (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-2">
                     ${maklerListings.map((item) => {
@@ -340,21 +346,14 @@ function openProfile(maklerId) {
                             <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all flex flex-col h-full">
                                 <div class="h-20 w-full relative">
                                     <img src="${img}" class="w-full h-full object-cover">
-                                    <div class="absolute top-1 left-1 bg-white/90 px-1.5 py-0.5 rounded-md text-[6px] font-black text-slate-800 uppercase shadow-sm">
-                                        ${item.DealType || 'იყიდება'}
-                                    </div>
+                                    <div class="absolute top-1 left-1 bg-white/90 px-1 py-0.5 rounded text-[6px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
                                 </div>
-                                <div class="p-2 flex flex-col justify-between flex-grow">
+                                <div class="p-1.5 flex flex-col justify-between flex-grow">
                                     <div>
-                                        <p class="text-[8px] font-black text-slate-800 truncate leading-tight">${item.District || item.City || 'ლოკაცია'}</p>
-                                        <div class="flex items-center gap-1 mt-1">
-                                            <i class="fa-solid fa-vector-square text-blue-500 text-[6px]"></i>
-                                            <span class="text-[8px] font-extrabold text-slate-400">${item.TotalArea || 0} მ²</span>
-                                        </div>
+                                        <p class="text-[7px] font-black text-slate-800 truncate leading-tight">${item.District || item.City}</p>
+                                        <p class="text-[7px] font-bold text-slate-400 mt-0.5">${item.TotalArea || 0} მ²</p>
                                     </div>
-                                    <p class="text-[9px] font-black text-blue-600 mt-1">
-                                        ${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}
-                                    </p>
+                                    <p class="text-[8px] font-black text-blue-600 mt-1">${formatPrice(item.TotalPrice)}${item.Currency === 'USD' ? '$' : '₾'}</p>
                                 </div>
                             </div>`;
                     }).join('') || `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები არ არის</p>`}
