@@ -60,6 +60,11 @@ async function registerUser() {
             const status = await res.json();
             window.currentUser = status; 
             console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
+            
+            // UI-ს განახლება Premium სტატუსის მიხედვით, თუ ფუნქცია არსებობს index.html-ში
+            if (typeof updatePremiumUI === "function") {
+                updatePremiumUI(window.currentUser.tier);
+            }
         } catch (e) {
             console.error("User registration failed", e);
         }
