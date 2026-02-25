@@ -93,7 +93,7 @@
         </div>
 
         <div class="p-6">
-            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500">
+            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500 relative">
                 <div class="flex items-center gap-5">
                     <div class="relative flex-shrink-0">
                         <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
@@ -108,9 +108,7 @@
                     <div class="flex flex-col justify-center h-24 py-1 overflow-hidden flex-1">
                         <div class="mb-2">
                             <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate">...</h2>
-                            <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-                                <i class="fa-solid fa-hashtag text-[8px]"></i> <span id="m-id" class="text-slate-600 font-extrabold">---</span>
-                            </p>
+                            <div id="m-id" class="mt-0.5">---</div>
                         </div>
                         
                         <div class="flex items-center gap-2 mt-auto">
@@ -123,23 +121,8 @@
                 </div>
             </div>
 
-            <div class="space-y-3">
-                <a id="m-call" href="#" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-100 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hidden">
-                    <i class="fa-solid fa-phone"></i> დარეკვა
-                </a>
-                
-                <div class="bg-white p-5 rounded-[25px] border border-slate-100">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">ანგარიშის მართვა</p>
-                    <div class="flex flex-col gap-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-600">სისტემური სტატუსი</span>
-                            <span class="text-green-500 text-[10px] font-black uppercase flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> აქტიური
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="profile-history-block"></div>
+            
         </div>
     </div>
 
