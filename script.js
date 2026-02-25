@@ -2,22 +2,19 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbycf2AZcQKWimJU-vPNDUejjJ3LIbM0QLDudXN3jnmilJbTynf8fvYwrkT-3aJaH-Ieww/exec";
 // Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
-// მაკლერების მონაცემების გლობალური მასივი
+// მონაცემების გლობალური მასივები
 window.allMaklers = []; 
+window.allListings = []; // დავამატეთ ყველა განცხადების შესანახად
 // მომხმარებლის მონაცემები
 window.currentUser = null;
 
-/**
- * ფასის ფორმატირება
- */
+/** * ფასის ფორმატირება */
 function formatPrice(price) {
     if (!price) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-/**
- * ფოტოს ლინკის გასწორება (Drive-ის თამბნეილისთვის)
- */
+/** * ფოტოს ლინკის გასწორება */
 function fixImageUrl(url) {
     if (!url || !url.includes("drive.google.com")) return url || 'https://placehold.co/400x300?text=No+Image';
     const parts = url.split(/\/view|\?id=|d\//);
@@ -28,14 +25,11 @@ function fixImageUrl(url) {
     return url;
 }
 
-/**
- * აპლიკაციის საწყისი ინიციალიზაცია
- */
+/** * აპლიკაციის საწყისი ინიციალიზაცია */
 async function init() {
     tg.expand();
     tg.ready();
     
-    // 1. მომხმარებლის რეგისტრაცია/შემოწმება ბაზაში
     await registerUser();
     
     setTimeout(() => { 
@@ -48,9 +42,7 @@ async function init() {
     await fetchData();
 }
 
-/**
- * მომხმარებლის რეგისტრაცია Google Sheets-ში
- */
+/** * მომხმარებლის რეგისტრაცია */
 async function registerUser() {
     const user = tg.initDataUnsafe?.user;
     if (user) {
@@ -59,30 +51,23 @@ async function registerUser() {
             const res = await fetch(regUrl);
             const status = await res.json();
             window.currentUser = status; 
-            console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
-            
-            if (status.role === "Agent") {
-                console.log("Welcome Agent:", status.maklerId);
-            } else if (status.role === "Owner") {
-                console.log("System Administrator Access Granted");
-            }
         } catch (e) {
             console.error("User registration failed", e);
         }
     }
 }
 
-/**
- * მონაცემების წამოღება
- */
+/** * მონაცემების წამოღება */
 async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
+        
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
-        const listings = data.listings || data.Listings || [];
-        renderProperties(listings); 
+        
+        window.allListings = data.listings || data.Listings || []; // ვინახავთ გლობალურად
+        renderProperties(window.allListings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
         const container = document.getElementById('property-container');
@@ -90,6 +75,7 @@ async function fetchData() {
     }
 }
 
+/** * PDF ჩამოტვირთვა */
 async function downloadProfessionalPDF(item) {
     if (window.currentUser && window.currentUser.tier === "Free") {
         tg.showAlert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
@@ -100,31 +86,26 @@ async function downloadProfessionalPDF(item) {
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         btn.disabled = true;
-        btn.style.opacity = "0.7";
     }
     try {
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-                window.Telegram.WebApp.openLink(pdfUrl);
-            } else {
-                window.open(pdfUrl, '_blank');
-            }
+            tg.openLink(pdfUrl);
         } else {
             alert("სერვერის შეცდომა: " + pdfUrl);
         }
     } catch (err) {
-        alert("კავშირის შეცდომა სერვერთან.");
+        alert("კავშირის შეცდომა.");
     } finally {
         if (btn) {
             btn.innerHTML = originalContent;
             btn.disabled = false;
-            btn.style.opacity = "1";
         }
     }
 }
 
+/** * გაზიარება */
 function shareProperty(item) {
     const shareData = {
         title: `${item.Rooms} ოთახიანი ბინა`,
@@ -139,6 +120,7 @@ function shareProperty(item) {
     }
 }
 
+/** * მთავარი გვერდის რენდერი */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
@@ -172,6 +154,7 @@ function renderProperties(items) {
     }).join('');
 }
 
+/** * დეტალების გვერდის გახსნა */
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => {});
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
@@ -180,6 +163,7 @@ function openDetails(item) {
     setEl('det-price', `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`);
     setEl('det-id', item.ID);
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
+
     const contactTab = document.getElementById('tab-contact'); 
     if (contactTab) {
         let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
@@ -211,156 +195,67 @@ function openDetails(item) {
                 </div>
             </div>`;
     }
-    const featList = document.getElementById('features-list');
-    if(featList) {
-        const allFields = [
-            { label: "ქალაქი", val: item.City },
-            { label: "რაიონი", val: item.District },
-            { label: "ფართი", val: item.TotalArea ? item.TotalArea + " მ²" : null },
-            { label: "ოთახები", val: item.Rooms },
-            { label: "სართული", val: item.Floor ? `${item.Floor}/${item.TotalFloors || '?'}` : null },
-            { label: "მდგომარეობა", val: item.Condition }
-        ];
-        featList.innerHTML = allFields
-            .filter(f => f.val && f.val !== "0" && f.val !== "")
-            .map(f => `
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                    <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
-                    <p class="text-xs font-black text-slate-700">${f.val}</p>
-                </div>`).join('');
-    }
-    const wrapper = document.getElementById('slider-wrapper');
-    const dotsContainer = document.getElementById('slider-dots');
-    let allPhotos = [];
-    if (item.MainPhoto) allPhotos.push(item.MainPhoto);
-    for (let k = 1; k <= 7; k++) { if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]); }
-    if (allPhotos.length === 0 && item.Photos) { allPhotos = item.Photos.split(',').map(p => p.trim()); }
-    if (allPhotos.length > 0 && wrapper && dotsContainer) {
-        wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
-        dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
-        wrapper.onscroll = () => {
-            const scrollIndex = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
-            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === scrollIndex));
-        };
-        wrapper.scrollLeft = 0;
-    }
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/**
-/**
- * პროფილის გახსნა და მაკლერის განცხადებების ჩვენება
- */
+/** * პროფილის გახსნა + STAGGER ანიმაცია */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
     const profileCard = document.getElementById('user-profile-card');
-    const headerTitle = document.getElementById('profile-header-title');
     const user = tg.initDataUnsafe?.user;
     
     const nameEl = document.getElementById('m-name');
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
 
-    // 1. იდენტიფიკაცია
     const isRequestingSpecific = maklerId && maklerId !== "undefined";
     const role = window.currentUser?.role || "Client";
     const tier = window.currentUser?.tier || "Free";
-    let targetMakler = null;
     let targetId = null;
 
     if (isRequestingSpecific) {
-        targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
-        targetId = maklerId;
-    } else if (role === "Agent" && window.currentUser?.maklerId) {
-        targetMakler = window.allMaklers.find(m => String(m.ID) === String(window.currentUser.maklerId));
-        targetId = window.currentUser.maklerId;
-    }
-
-    // 2. პროფილის ზედა ნაწილის შევსება
-    if (targetMakler) {
-        nameEl.innerText = targetMakler.Name || "აგენტი";
-        photoEl.src = fixImageUrl(targetMakler.Photo);
-        idEl.innerHTML = `
-            <div class="flex items-center text-[10px] font-bold tracking-tight">
-                <span class="text-slate-400"># ${targetMakler.ID}</span>
-                <span class="text-slate-300 mx-2">|</span>
-                <span class="text-blue-600 uppercase">${targetMakler.Agency || ''}</span>
-            </div>`;
-        roleBadge.innerText = "AGENT";
+        let targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
+        if (targetMakler) {
+            nameEl.innerText = targetMakler.Name;
+            photoEl.src = fixImageUrl(targetMakler.Photo);
+            idEl.innerHTML = `<span class="text-blue-600 font-bold uppercase text-[10px]">${targetMakler.Agency || 'AGENT'}</span>`;
+            targetId = maklerId;
+        }
     } else {
-        nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
+        nameEl.innerText = (user?.first_name || "მომხმარებელი");
         photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
         idEl.innerHTML = `<span class="text-slate-400 text-xs">ID: ${user?.id || '---'}</span>`;
-        roleBadge.innerText = role.toUpperCase();
     }
 
-    // 3. მცურავი ბეიჯების (Logo & Phone) დამატება
-    const oldBadges = profileCard.querySelectorAll('.floating-badge-container');
-    oldBadges.forEach(b => b.remove());
+    roleBadge.innerText = (isRequestingSpecific ? "AGENT" : role).toUpperCase();
 
-    if (targetMakler) {
-        const badgeContainer = document.createElement('div');
-        badgeContainer.className = "floating-badge-container absolute -bottom-5 right-6 flex gap-3 z-30";
-        if (targetMakler.Phone) {
-            badgeContainer.innerHTML += `
-                <a href="tel:${targetMakler.Phone}" class="w-11 h-11 bg-blue-600 shadow-xl shadow-blue-200 rounded-full flex items-center justify-center border-4 border-white active:scale-90 transition-all">
-                    <i class="fa-solid fa-phone text-white text-sm"></i>
-                </a>`;
-        }
-        if (targetMakler.Logo) {
-            badgeContainer.innerHTML += `
-                <div class="w-11 h-11 bg-white shadow-xl shadow-slate-200 rounded-full flex items-center justify-center overflow-hidden border-4 border-white">
-                    <img src="${fixImageUrl(targetMakler.Logo)}" class="w-full h-full object-contain p-1">
-                </div>`;
-        }
-        profileCard.appendChild(badgeContainer);
-    }
-
-    // 4. "ანგარიშის მართვის" ჩანაცვლება განცხადებების ისტორიით
-    const historyBlock = document.getElementById('profile-history-block'); // დარწმუნდი რომ ეს ID გაქვს HTML-ში
-    if (historyBlock && targetId) {
-        // ვფილტრავთ განცხადებებს ამ მაკლერისთვის
+    // განცხადებების ისტორია STAGGER ეფექტით
+    const historyBlock = document.getElementById('profile-history-block');
+    if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID) === String(targetId)) || [];
         
         historyBlock.innerHTML = `
             <div class="mt-8">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია</h3>
                 <div class="grid grid-cols-3 gap-3">
-                    ${maklerListings.length > 0 ? maklerListings.map(item => {
+                    ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
                         return `
-                            <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all">
+                            <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' 
+                                 class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all history-stagger"
+                                 style="animation-delay: ${index * 0.1}s">
                                 <img src="${img}" class="w-full h-full object-cover">
                             </div>`;
-                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები ვერ მოიძებნა</p>`}
+                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები არ არის</p>`}
                 </div>
             </div>`;
     }
 
-    // Tier სტილები (უცვლელი)
-    if(tierBadge && profileCard) {
-        profileCard.classList.add('relative');
-        if (!isRequestingSpecific) {
-            tierBadge.classList.remove('hidden');
-            tierBadge.innerText = tier.toUpperCase();
-            profileCard.style.borderColor = (tier === "Premium") ? "#fbbf24" : (tier === "Pro" ? "#a855f7" : "#f1f5f9");
-        } else {
-            tierBadge.classList.add('hidden');
-            profileCard.style.borderColor = "#f1f5f9";
-        }
-    }
     document.getElementById('profile-page')?.classList.add('active');
 }
 
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
-
-function switchTab(tabId, el) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId)?.classList.add('active');
-    el.classList.add('active');
-}
 
 init();
