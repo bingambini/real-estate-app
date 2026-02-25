@@ -223,3 +223,21 @@ body {
     background: white;
     visibility: hidden;
 }
+
+/* Profile Overhanging Badges Styling */
+#user-profile-card {
+    overflow: visible !important;
+}
+
+#user-profile-card .absolute.-bottom-4 div {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#user-profile-card .absolute.-bottom-4 .bg-blue-600 {
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+}
+
+#user-profile-card .absolute.-bottom-4 div:active {
+    transform: scale(0.9);
+}
