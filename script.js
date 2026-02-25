@@ -9,6 +9,10 @@ window.allListings = [];
 // მომხმარებლის მონაცემები
 window.currentUser = null;
 
+// პაგინაციის პარამეტრები (ახალი)
+let displayedItemsCount = 10;
+const itemsPerLoad = 10;
+
 /** * ფასის ფორმატირება */
 function formatPrice(price) {
     if (!price) return "0";
@@ -31,16 +35,15 @@ async function init() {
     tg.expand();
     tg.ready();
     
-    await registerUser();
+    // ოპტიმიზაცია: პარალელური გაშვება
+    Promise.all([registerUser(), fetchData()]);
     
     setTimeout(() => { 
         const splash = document.getElementById('splash-screen');
         const content = document.getElementById('main-content');
         if (splash) splash.classList.add('hidden-splash'); 
         if (content) content.style.opacity = '1'; 
-    }, 2000);
-    
-    await fetchData();
+    }, 1000); // დავაკელით დრო 1 წამამდე
 }
 
 /** * მომხმარებლის რეგისტრაცია Google Sheets-ში */
@@ -59,24 +62,109 @@ async function registerUser() {
     }
 }
 
-/** * მონაცემების წამოღება - ოპტიმიზირებული */
 async function fetchData() {
+    const container = document.getElementById('property-container');
+    
+    const cachedData = localStorage.getItem('real_estate_cache');
+    if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        window.allListings = parsed.listings;
+        window.allMaklers = parsed.maklers;
+        // ვხატავთ მხოლოდ პირველ 10-ს
+        renderProperties(window.allListings.slice(0, displayedItemsCount));
+        console.log("Loaded from Cache");
+    } else {
+        container.innerHTML = Array(4).fill(0).map(() => `
+            <div class="animate-pulse bg-slate-200 rounded-[30px] h-64 mb-4"></div>
+        `).join('');
+    }
+
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        window.allListings = data.listings || data.Listings || [];
-        renderProperties(window.allListings); 
+        const newListings = data.listings || data.Listings || [];
+        const newMaklers = data.Makler || data.makler || [];
 
-        let mData = data.Makler || data.makler || [];
-        window.allMaklers = Array.isArray(mData) ? mData : [mData];
+        localStorage.setItem('real_estate_cache', JSON.stringify({
+            listings: newListings,
+            maklers: newMaklers,
+            time: Date.now()
+        }));
+
+        window.allListings = newListings;
+        window.allMaklers = Array.isArray(newMaklers) ? newMaklers : [newMaklers];
         
-    } catch (e) { 
-        console.error("Error fetching data:", e);
-        const container = document.getElementById('property-container');
-        if (container) container.innerHTML = "<p class='text-center text-red-500'>მონაცემების ჩატვირთვა ვერ მოხერხდა</p>";
+        // განახლება ახალი მონაცემებით (პირველი 10)
+        renderProperties(window.allListings.slice(0, displayedItemsCount));
+        
+    } catch (e) {
+        console.error("Fetch failed", e);
+        if (!cachedData) container.innerHTML = "შეცდომაა...";
     }
 }
+
+/** * დამატებითი ელემენტების ჩატვირთვა სქროლისას */
+function loadMore() {
+    if (displayedItemsCount >= window.allListings.length) return;
+    
+    const nextBatch = window.allListings.slice(displayedItemsCount, displayedItemsCount + itemsPerLoad);
+    displayedItemsCount += itemsPerLoad;
+    renderProperties(nextBatch, true); // true ნიშნავს მიმატებას (append)
+}
+
+/** * განცხადებების რენდერი - ოპტიმიზირებული */
+function renderProperties(items, append = false) {
+    const container = document.getElementById('property-container');
+    if (!container || !Array.isArray(items)) return;
+
+    const html = items.map((item, index) => {
+        try {
+            const rawImgUrl = item.MainPhoto || item.Photos || "";
+            const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
+            const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+            
+            // Lazy loading ლოგიკა: მხოლოდ პირველი 2 იტვირთება აგრესიულად
+            const imgPriority = (!append && index < 2) ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
+
+            return `
+            <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4 relative">
+                <div class="relative h-60 overflow-hidden">
+                    <img src="${firstImg}" ${imgPriority} class="w-full h-full object-cover">
+                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] font-black text-slate-800 uppercase shadow-sm z-10">${item.DealType || 'იყიდება'}</div>
+                    <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-2xl shadow-lg z-10">
+                        <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
+                    </div>
+                </div>
+                <div class="px-5 pt-3 pb-3">
+                    <h4 class="font-black text-slate-800 text-base leading-tight truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
+                    <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot text-blue-500/70"></i> ${item.District || ''}, ${item.City || ''}
+                    </p>
+                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span></div>
+                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span></div>
+                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span></div>
+                    </div>
+                </div>
+            </div>`;
+        } catch (err) { return ""; }
+    }).join('');
+
+    if (append) {
+        container.insertAdjacentHTML('beforeend', html);
+    } else {
+        container.innerHTML = html;
+        // ვამატებთ სქროლის მოსმენას მხოლოდ პირველი რენდერისას
+        window.onscroll = () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                loadMore();
+            }
+        };
+    }
+}
+
+// --- დანარჩენი ფუნქციები (openDetails, downloadProfessionalPDF, shareProperty, openProfile და ა.შ.) უცვლელია ---
 
 async function downloadProfessionalPDF(item) {
     if (window.currentUser && window.currentUser.tier === "Free") {
@@ -125,42 +213,6 @@ function shareProperty(item) {
         navigator.clipboard.writeText(window.location.href);
         alert("ბმული დაკოპირებულია!");
     }
-}
-
-/** * განცხადებების რენდერი - ბანერების აღდგენით */
-function renderProperties(items) {
-    const container = document.getElementById('property-container');
-    if (!container || !Array.isArray(items)) return;
-    container.innerHTML = items.map((item, index) => {
-        try {
-            const rawImgUrl = item.MainPhoto || item.Photos || "";
-            const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
-            const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-            const imgPriority = index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
-
-            return `
-            <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4 relative">
-                <div class="relative h-60 overflow-hidden">
-                    <img src="${firstImg}" ${imgPriority} class="w-full h-full object-cover">
-                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] font-black text-slate-800 uppercase shadow-sm z-10">${item.DealType || 'იყიდება'}</div>
-                    <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-2xl shadow-lg z-10">
-                        <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
-                    </div>
-                </div>
-                <div class="px-5 pt-3 pb-3">
-                    <h4 class="font-black text-slate-800 text-base leading-tight truncate">${item.Street || item.PropertyType || 'ბინა'}</h4>
-                    <p class="text-slate-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot text-blue-500/70"></i> ${item.District || ''}, ${item.City || ''}
-                    </p>
-                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-vector-square text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.TotalArea || 0} მ²</span></div>
-                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-bed text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Rooms || 0} ოთ.</span></div>
-                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-blue-500 text-[9px]"></i><span class="text-[11px] font-extrabold text-slate-600">${item.Floor || 0}/${item.TotalFloors || '?'} ს.</span></div>
-                    </div>
-                </div>
-            </div>`;
-        } catch (err) { return ""; }
-    }).join('');
 }
 
 function openDetails(item) {
@@ -238,7 +290,6 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა - გასუფთავებული და დახვეწილი ვიზუალით */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -356,12 +407,11 @@ function openProfile(maklerId) {
     document.getElementById('profile-page')?.classList.add('active');
 }
 
-/** * განცხადების გახსნა ID-ით (და პროფილის დახურვა) */
 function openDetailsById(id) {
     const item = window.allListings.find(l => String(l.ID) === String(id));
     if (item) {
-        closeProfile(); // ხურავს პროფილს
-        openDetails(item); // ხსნის დეტალებს
+        closeProfile(); 
+        openDetails(item); 
     }
 }
 
@@ -369,24 +419,19 @@ function closeProfile() { document.getElementById('profile-page')?.classList.rem
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 function switchTab(tabId, el) {
-    // 1. პირველ რიგში ვხურავთ ყველა "Overlay" გვერდს (დეტალები, პროფილი)
-    // რომ ნავიგაციაზე დაჭერისას მთავარ გვერდზე დავბრუნდეთ
     document.getElementById('profile-page')?.classList.remove('active');
     document.getElementById('details-page')?.classList.remove('active');
 
-    // 2. ვასუფთავებთ აქტიურ ტაბებს ნავიგაციაში
     document.querySelectorAll('.tab-btn').forEach(b => {
         b.classList.remove('active');
-        b.style.opacity = "0.5"; // არააქტიური ტაბის ეფექტი
+        b.style.opacity = "0.5"; 
     });
 
-    // 3. ვმალავთ ყველა კონტენტს (home, search, favorites და ა.შ.)
     document.querySelectorAll('.tab-content').forEach(t => {
         t.classList.remove('active');
         t.style.display = 'none';
     });
 
-    // 4. ვააქტიურებთ არჩეულ ტაბს
     const targetTab = document.getElementById(tabId);
     if (targetTab) {
         targetTab.classList.add('active');
@@ -395,7 +440,6 @@ function switchTab(tabId, el) {
         el.style.opacity = "1";
     }
     
-    // 5. Telegram-ის ვიბრაცია უკუკავშირისთვის
     if (window.Telegram?.WebApp?.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
