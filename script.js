@@ -15,8 +15,10 @@ const itemsPerLoad = 10;
 
 /** * ფასის ფორმატირება */
 function formatPrice(price) {
-    if (!price) return "0";
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    if (price === undefined || price === null || price === "") return "0";
+    // ვშლით ზედმეტ სიმბოლოებს თუ სტრინგია და ვაქცევთ რიცხვად
+    const num = parseFloat(price.toString().replace(/\s/g, ''));
+    return isNaN(num) ? "0" : num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 /** * ფოტოს ლინკის გასწორება (Drive-ის თამბნეილისთვის) */
@@ -46,7 +48,8 @@ async function init() {
         
     } catch (e) {
         console.error("Initialization failed", e);
-        document.getElementById('splash-screen').style.display = 'none';
+        const splash = document.getElementById('splash-screen');
+        if (splash) splash.style.display = 'none';
     }
 }
 
@@ -61,7 +64,6 @@ async function registerUser() {
             window.currentUser = status; 
             console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
             
-            // UI-ს განახლება Premium სტატუსის მიხედვით, თუ ფუნქცია არსებობს index.html-ში
             if (typeof updatePremiumUI === "function") {
                 updatePremiumUI(window.currentUser.tier);
             }
@@ -74,10 +76,11 @@ async function registerUser() {
 async function fetchData() {
     const container = document.getElementById('property-container');
     const cachedData = localStorage.getItem('real_estate_cache');
+    
     if (cachedData) {
         const parsed = JSON.parse(cachedData);
-        window.allListings = parsed.listings;
-        window.allMaklers = parsed.maklers;
+        window.allListings = parsed.listings || [];
+        window.allMaklers = parsed.maklers || [];
         renderProperties(window.allListings.slice(0, displayedItemsCount));
     }
 
@@ -100,7 +103,7 @@ async function fetchData() {
         
     } catch (e) {
         console.error("Fetch failed", e);
-        if (!cachedData && container) container.innerHTML = "შეცდომაა...";
+        if (!cachedData && container) container.innerHTML = '<p class="text-center py-10 text-slate-400">მონაცემების ჩატვირთვა ვერ მოხერხდა</p>';
     }
 }
 
@@ -175,10 +178,10 @@ async function downloadProfessionalPDF(item) {
         if (pdfUrl && pdfUrl.startsWith("http")) {
             tg.openLink(pdfUrl);
         } else {
-            alert("სერვერის შეცდომა");
+            tg.showAlert("სერვერის შეცდომა: PDF ვერ გენერირდა");
         }
     } catch (err) {
-        alert("შეცდომა");
+        tg.showAlert("შეცდომა კავშირისას");
     } finally {
         if (btn) {
             btn.innerHTML = originalContent;
@@ -197,7 +200,8 @@ function shareProperty(item) {
         navigator.share(shareData).catch(console.error);
     } else {
         navigator.clipboard.writeText(window.location.href);
-        alert("ბმული დაკოპირებულია!");
+        tg.showScanQrPopup({ text: "ბმული დაკოპირებულია!" });
+        setTimeout(() => tg.closeScanQrPopup(), 2000);
     }
 }
 
@@ -263,6 +267,7 @@ function openDetails(item) {
     if (item.MainPhoto) allPhotos.push(item.MainPhoto);
     for (let k = 1; k <= 7; k++) { if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]); }
     if (allPhotos.length === 0 && item.Photos) { allPhotos = item.Photos.split(',').map(p => p.trim()); }
+    
     if (allPhotos.length > 0 && wrapper && dotsContainer) {
         wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
         dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
@@ -324,10 +329,10 @@ function openProfile(maklerId) {
 
     if (maklerId && maklerId !== "undefined") {
         m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
-        targetId = String(m.ID).trim();
-        nameEl.innerText = m.Name || "აგენტი";
-        photoEl.src = fixImageUrl(m.Photo);
-        roleBadge.innerText = "AGENT";
+        targetId = String(m?.ID || "").trim();
+        nameEl.innerText = m?.Name || "აგენტი";
+        photoEl.src = fixImageUrl(m?.Photo);
+        if(roleBadge) roleBadge.innerText = "AGENT";
         isAgentMode = true;
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
@@ -336,7 +341,7 @@ function openProfile(maklerId) {
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
-        roleBadge.innerText = role.toUpperCase();
+        if(roleBadge) roleBadge.innerText = role.toUpperCase();
         
         if (role === "Agent" && window.currentUser?.maklerId) {
             m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
@@ -365,7 +370,7 @@ function openProfile(maklerId) {
     nameEl.insertAdjacentHTML('afterend', `<div id="m-id-display" class="w-fit bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-[8px] font-black text-slate-400 uppercase">ID: ${targetId}</div>`);
 
     if(m?.Agency) {
-        document.getElementById('m-id-display').insertAdjacentHTML('afterend', `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none">${m.Agency}</p>`);
+        document.getElementById('m-id-display').insertAdjacentHTML('afterend', `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mt-1">${m.Agency}</p>`);
     }
 
     if(floatingBadges) {
@@ -382,7 +387,6 @@ function openProfile(maklerId) {
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
         
-        // Upgrade Section-ის ჩამატება მხოლოდ საკუთარ Free პროფილში
         let upgradeHtml = "";
         if (!maklerId && window.currentUser?.tier === "Free") {
             upgradeHtml = `
@@ -438,7 +442,10 @@ function switchTab(tabId, el) {
     const pages = ['home-tab', 'profile-tab-content'];
     pages.forEach(id => {
         const pg = document.getElementById(id);
-        if (pg) { pg.classList.remove('active'); pg.style.display = 'none'; }
+        if (pg) { 
+            pg.classList.remove('active'); 
+            pg.style.display = 'none'; 
+        }
     });
 
     const target = document.getElementById(tabId);
