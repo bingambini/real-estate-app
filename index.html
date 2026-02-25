@@ -54,7 +54,7 @@
             <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
         </div>
 
-        </div>
+    </div>
 
     <div id="details-page" class="details-page no-scrollbar">
         <div class="slider-container">
@@ -77,18 +77,18 @@
             </div>
 
             <div class="flex justify-between mb-6 border-b border-slate-50">
-                <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
-                <div onclick="switchTab('tab-features', this)" class="tab-btn">დეტალები</div>
-                <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
+                <div onclick="switchDetailsTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
+                <div onclick="switchDetailsTab('tab-features', this)" class="tab-btn">დეტალები</div>
+                <div onclick="switchDetailsTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
             </div>
 
             <div id="tab-desc" class="tab-content active text-slate-500 text-[15px] leading-relaxed pb-10"></div>
             
-            <div id="tab-features" class="tab-content text-slate-500 pb-10">
+            <div id="tab-features" class="tab-content hidden text-slate-500 pb-10">
                 <div class="grid grid-cols-2 gap-4" id="features-list"></div>
             </div>
             
-            <div id="tab-contact" class="tab-content pb-10 -mt-4"></div>
+            <div id="tab-contact" class="tab-content hidden pb-10 -mt-4"></div>
         </div>
     </div>
 
@@ -112,54 +112,53 @@
 
                     <div class="flex flex-col justify-center h-24 py-0.5 overflow-hidden flex-1">
                         <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate mb-1">...</h2>
-                        <div id="m-id-container"></div> <div class="flex items-center gap-2 mt-1">
+                        <div id="m-id-container"></div> 
+                        <div class="flex items-center gap-2 mt-1">
                             <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
                             <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">---</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20">
-                    </div>
+                <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20"></div>
             </div>
-
             <div id="profile-history-block"></div>
         </div>
     </div>
 
     <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-8 py-4 flex justify-between items-center z-[100]">
-        <div class="nav-item active flex flex-col items-center gap-1 active:scale-90 transition-all" onclick="handleNav('home-tab', this)">
+        <div class="nav-item tab-btn active flex flex-col items-center gap-1 active:scale-90 transition-all" onclick="switchTab('home-tab', this)">
             <i class="fa-solid fa-house text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">მთავარი</span>
         </div>
-        <div class="nav-item flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50" onclick="handleNav('profile', this)">
+        <div class="nav-item tab-btn flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50" onclick="openProfile(); updateNav(this);">
             <i class="fa-solid fa-user text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">პროფილი</span>
         </div>
     </nav>
 
     <script>
-        // ნავიგაციის მართვის ფუნქცია პირდაპირ HTML-ში სისწრაფისთვის
-        function handleNav(type, el) {
-            // ყველა Overlay-ს დახურვა
-            document.getElementById('profile-page').classList.remove('active');
-            document.getElementById('details-page').classList.remove('active');
-            
-            // ნავიგაციის სტილების გასუფთავება
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.add('opacity-50'));
+        // დამხმარე ფუნქცია ნავიგაციის ღილაკების ვიზუალისთვის
+        function updateNav(el) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.add('opacity-50');
+                item.classList.remove('active');
+            });
             el.classList.remove('opacity-50');
-
-            if(type === 'profile') {
-                openProfile();
-            } else {
-                // აქ შეიძლება სხვა ტაბების გადართვა
-                document.querySelectorAll('.tab-content-main').forEach(tab => tab.classList.remove('active'));
-                document.getElementById(type).classList.add('active');
-            }
-            
+            el.classList.add('active');
             if (window.Telegram?.WebApp?.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
             }
+        }
+
+        // დეტალების გვერდის შიდა ტაბების გადამრთველი
+        function switchDetailsTab(tabId, el) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            
+            const container = el.closest('#details-page');
+            container.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
         }
     </script>
     <script src="script.js"></script>
