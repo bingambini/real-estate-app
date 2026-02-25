@@ -88,18 +88,51 @@
 
                 <div id="premium-upgrade-card" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[30px] p-6 shadow-xl mb-10 relative overflow-hidden hidden">
                     <div class="relative z-10">
-                        <h3 class="text-white font-black text-lg mb-1">გახდი PREMIUM</h3>
-                        <p class="text-blue-100 text-[10px] mb-4 leading-relaxed opacity-80 uppercase tracking-wider">PDF გენერაცია • VIP შეტყობინებები</p>
+                        <h3 class="text-white font-black text-xl mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-crown text-yellow-400"></i> გახდი PREMIUM
+                        </h3>
+                        
+                        <ul class="space-y-4 mb-6">
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-file-pdf text-blue-200 mt-1 text-sm"></i>
+                                <div>
+                                    <p class="text-white text-[11px] font-bold uppercase tracking-wide">PDF გენერაცია</p>
+                                    <p class="text-blue-100 text-[9px] opacity-70 leading-tight">გადააქციე განცხადება დოკუმენტად ერთი დაჭერით</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-bolt text-blue-200 mt-1 text-sm"></i>
+                                <div>
+                                    <p class="text-white text-[11px] font-bold uppercase tracking-wide">VIP წვდომა</p>
+                                    <p class="text-blue-100 text-[9px] opacity-70 leading-tight">ნახე ახალი ბინები სხვებზე 30 წუთით ადრე</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-robot text-blue-200 mt-1 text-sm"></i>
+                                <div>
+                                    <p class="text-white text-[11px] font-bold uppercase tracking-wide">AI ანალიზი</p>
+                                    <p class="text-blue-100 text-[9px] opacity-70 leading-tight">შეამოწმე ფასის რეალურობა ხელოვნური ინტელექტით</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-chart-line text-blue-200 mt-1 text-sm"></i>
+                                <div>
+                                    <p class="text-white text-[11px] font-bold uppercase tracking-wide">ფასების ისტორია</p>
+                                    <p class="text-blue-100 text-[9px] opacity-70 leading-tight">აკონტროლე როგორ იცვლებოდა ფასი დროთა განმავლობაში</p>
+                                </div>
+                            </li>
+                        </ul>
+
                         <div class="flex flex-col gap-2">
-                            <button onclick="payWithStars()" id="premium-button" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                            <button onclick="payWithStars()" id="premium-button" class="bg-white text-blue-600 px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                                 ⭐ გააქტიურება (500 STARS)
                             </button>
-                            <button onclick="showBankDetails()" class="bg-blue-800/40 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest border border-white/10 active:scale-95 transition-all">
+                            <button onclick="showBankDetails()" class="bg-blue-800/30 text-white/90 px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest border border-white/10 active:scale-95 transition-all">
                                 საბანკო გადარიცხვა
                             </button>
                         </div>
                     </div>
-                    <i class="fa-solid fa-crown absolute -right-4 -bottom-4 text-white/10 text-8xl rotate-12"></i>
+                    <i class="fa-solid fa-crown absolute -right-6 -bottom-6 text-white/10 text-[120px] rotate-12"></i>
                 </div>
 
                 <div id="bank-modal" class="hidden mb-10 p-5 bg-white rounded-[30px] border-2 border-dashed border-slate-200">
@@ -176,7 +209,6 @@
             }
         }
 
-        // UI-ს განახლების ფუნქცია - გამოიძახება script.js-დან
         function updatePremiumUI(tier) {
             const card = document.getElementById('premium-upgrade-card');
             if (card) {
