@@ -1,170 +1,289 @@
 <!DOCTYPE html>
+
 <html lang="ka">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Real Estate App v2.0</title>
+
     
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     
+
     <link rel="stylesheet" href="style.css">
+
     <style>
+
         #tab-desc {
+
             max-height: 300px;
+
             overflow-y: auto;
+
             scrollbar-width: thin;
+
             -webkit-overflow-scrolling: touch;
+
         }
+
         #tab-desc::-webkit-scrollbar {
+
             width: 4px;
+
         }
+
         #tab-desc::-webkit-scrollbar-thumb {
+
             background: #e2e8f0;
+
             border-radius: 10px;
+
         }
+
         #splash-screen {
+
             background-color: #ffffff;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
         }
 
-        /* ახალი ანიმაციები */
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); transform: scale(1); }
-            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); transform: scale(1.05); }
-        }
-
-        .animate-profile-card {
-            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .online-pulse {
-            animation: pulseGlow 2s infinite ease-in-out;
-        }
-
-        /* ისტორიის ბლოკების დაგვიანებული გამოჩენა */
-        .history-stagger {
-            opacity: 0;
-            animation: slideUpFade 0.5s ease-out forwards;
-        }
     </style>
+
 </head>
+
 <body class="pb-32 bg-slate-50 font-sans">
 
+
+
     <div id="splash-screen">
+
         <img src="https://github.com/bingambini/real-estate-app/blob/main/splash.jpg?raw=true" class="w-full h-full object-cover">
+
     </div>
+
+
 
     <div id="main-content" style="opacity: 0; transition: opacity 0.5s ease-in;">
+
         <header class="pt-8 px-6 pb-2">
+
             <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mb-1">უძრავი ქონება</p>
+
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
+
         </header>
+
         
+
         <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
+
     </div>
+
+
 
     <div id="details-page" class="details-page no-scrollbar">
+
         <div class="slider-container">
+
             <div id="slider-wrapper" class="slider-wrapper"></div>
+
             <div id="slider-dots" class="slider-dots"></div>
+
             <div class="info-badge">ID: <span id="det-id">---</span></div>
+
             <button onclick="closeDetails()" class="absolute top-6 left-6 bg-white/95 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-20 active:scale-90 transition-all">
+
                 <i class="fa-solid fa-arrow-left text-slate-800"></i>
+
             </button>
+
         </div>
+
+
 
         <div class="px-7 pt-7 bg-white -mt-10 rounded-t-[40px] relative min-h-[65vh] z-20 shadow-2xl">
+
             <div class="mb-4">
+
                 <h1 id="det-title" class="text-xl font-black text-[#1e293b] leading-tight">...</h1>
+
                 <p id="det-loc" class="text-slate-400 font-bold text-[11px] mt-1 uppercase tracking-widest"></p>
+
             </div>
+
+
 
             <div class="flex items-center justify-between mb-8">
+
                 <span id="det-price" class="text-2xl font-black text-blue-600">0 ₾</span>
+
             </div>
+
+
 
             <div class="flex justify-between mb-6 border-b border-slate-50">
+
                 <div onclick="switchTab('tab-desc', this)" class="tab-btn active">აღწერა</div>
+
                 <div onclick="switchTab('tab-features', this)" class="tab-btn">დეტალები</div>
+
                 <div onclick="switchTab('tab-contact', this)" class="tab-btn">კონტაქტი</div>
+
             </div>
+
+
 
             <div id="tab-desc" class="tab-content active text-slate-500 text-[15px] leading-relaxed pb-10"></div>
+
             
+
             <div id="tab-features" class="tab-content text-slate-500 pb-10">
+
                 <div class="grid grid-cols-2 gap-4" id="features-list"></div>
+
             </div>
+
             
+
             <div id="tab-contact" class="tab-content pb-10 -mt-4"></div>
+
         </div>
+
     </div>
+
+
 
     <div id="profile-page" class="details-page no-scrollbar bg-slate-50">
+
         <div class="px-6 py-6 flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
+
             <button onclick="closeProfile()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-800 active:scale-90 transition-all">
+
                 <i class="fa-solid fa-chevron-left"></i>
+
             </button>
+
             <h3 id="profile-header-title" class="font-black text-slate-800 uppercase tracking-widest text-xs">პროფილი</h3>
+
             <div class="w-10"></div>
+
         </div>
+
+
 
         <div class="p-6">
-            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 relative animate-profile-card">
+
+            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500 relative">
+
                 <div class="flex items-center gap-5">
+
                     <div class="relative flex-shrink-0">
+
                         <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
+
                         
+
                         <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">
+
                             FREE
+
                         </div>
 
-                        <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm online-pulse"></div>
+
+
+                        <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
+
                     </div>
 
-                    <div class="flex flex-col justify-center h-24 gap-1.5 overflow-hidden flex-1">
+
+
+                    <div class="flex flex-col justify-between h-24 py-0.5 overflow-hidden flex-1">
+
                         <div>
-                            <h2 id="m-name" class="text-sm font-black text-slate-800 leading-tight truncate">...</h2>
+
+                            <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate">...</h2>
+
                         </div>
+
                         
-                        <div id="m-id" class="flex items-center leading-none">
+
+                        <div id="m-id" class="flex items-center">
+
                             ---
+
                         </div>
+
                         
+
                         <div class="flex items-center gap-2">
+
                             <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
-                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100 leading-none">
+
+                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">
+
                                 ---
+
                             </span>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
 
+
+
             <div id="profile-history-block"></div>
+
             
+
         </div>
+
     </div>
 
+
+
     <nav id="bottom-nav">
+
         <div class="nav-item active" onclick="location.reload()">
+
             <i class="fa-solid fa-house text-xl"></i>
+
             <span class="nav-label">მთავარი</span>
+
         </div>
+
         <div class="nav-item" onclick="openProfile()">
+
             <i class="fa-solid fa-user text-xl"></i>
+
             <span class="nav-label">პროფილი</span>
+
         </div>
+
     </nav>
 
+
+
     <script src="script.js"></script>
+
 </body>
+
 </html>
