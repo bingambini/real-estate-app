@@ -241,7 +241,7 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა (მაკლერის ან საკუთარი) */
+/** * პროფილის გახსნა - განახლებული Agency-თ და ინფორმაციული ბარათებით */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -253,93 +253,84 @@ function openProfile(maklerId) {
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
 
-    // ბეიჯების კონტეინერი (მარჯვენა ქვედა კუთხე)
     const floatingBadges = profileCard.querySelector('.absolute.-bottom-4');
     let targetId = null;
 
+    // 1. მონაცემების მომზადება
+    let m = null;
     if (maklerId && maklerId !== "undefined") {
-        const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
-        
+        m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
+        targetId = String(m.ID).trim();
         nameEl.innerText = m.Name || "აგენტი";
         photoEl.src = fixImageUrl(m.Photo);
         idEl.innerText = m.ID || "---";
         roleBadge.innerText = "AGENT";
-        targetId = String(m.ID).trim();
-        
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
-        
-        // მაკლერის შემთხვევაში: მარცხნივ ტელეფონი, მარჯვნივ მაკლერის Logo სვეტიდან
-        if(floatingBadges) {
-            floatingBadges.innerHTML = `
-                <a href="tel:${m.Phone || ''}" class="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-xl active:scale-90 transition-all cursor-pointer">
-                    <i class="fa-solid fa-phone text-blue-500 text-xs"></i>
-                </a>
-                <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-white active:scale-90 transition-all cursor-pointer">
-                    <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
-                </div>
-            `;
-        }
-    } 
-    else {
-        // საკუთარი პროფილის ლოგიკა
+    } else {
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
-        
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
         roleBadge.innerText = role.toUpperCase();
         
         if (role === "Agent" && window.currentUser?.maklerId) {
-            const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
+            m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
+            targetId = String(window.currentUser.maklerId).trim();
             nameEl.innerText = m?.Name || user?.first_name || "აგენტი";
             photoEl.src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
             idEl.innerText = window.currentUser.maklerId;
-            targetId = String(window.currentUser.maklerId).trim();
-            
-            // თუ მომხმარებელი თავად აგენტია, თავისივე ლოგო გამოჩნდეს
-            if(floatingBadges && m) {
-                floatingBadges.innerHTML = `
-                    <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-white active:scale-90 transition-all">
-                        <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
-                    </div>
-                `;
-            }
         } else {
-            // ჩვეულებრივი მომხმარებელი (კლიენტი)
             nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
             photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
             idEl.innerText = user?.id || "---";
-            if(floatingBadges) floatingBadges.innerHTML = ""; // კლიენტს არ სჭირდება მცურავი ბეიჯები
         }
-
-        if(tierBadge && profileCard) {
-            tierBadge.classList.remove('hidden');
-            tierBadge.innerText = tier.toUpperCase();
-            // აქ რჩება შენი ფერების ლოგიკა (Premium/Pro/Free)...
-        }
+        // Tier styling... (Free/Premium/Pro)
     }
 
-    // განცხადებების ისტორიის რენდერი...
+    // 2. Agency-ს ჩამატება სახელსა და სტატუსს შორის
+    const agencyHtml = m?.Agency ? `<p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">${m.Agency}</p>` : '';
+    nameEl.insertAdjacentHTML('afterend', agencyHtml);
+
+    // 3. მცურავი ბეიჯები (ტელეფონი + ლოგო)
+    if(floatingBadges && m) {
+        floatingBadges.innerHTML = `
+            <a href="tel:${m.Phone || ''}" class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-xl border-4 border-white active:scale-90 transition-all">
+                <i class="fa-solid fa-phone text-blue-600 text-sm"></i>
+            </a>
+            <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-white active:scale-90 transition-all">
+                <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
+            </div>
+        `;
+    }
+
+    // 4. ისტორიის ბარათები (ლოკაცია, ფართი, ფასი)
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
-        const maklerListings = window.allListings?.filter(item => {
-            const itemMaklerId = String(item.MaklerID || "").trim();
-            return itemMaklerId === targetId && targetId !== null;
-        }) || [];
+        const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === targetId) || [];
         
         historyBlock.innerHTML = `
             <div class="mt-8">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებები (${maklerListings.length})</h3>
-                <div class="grid grid-cols-3 gap-3">
-                    ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
-                        const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
+                <div class="grid grid-cols-2 gap-4">
+                    ${maklerListings.map((item, index) => {
+                        const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/200x200?text=Home';
                         return `
-                            <div onclick='openDetailsById("${item.ID}")' 
-                                 class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all history-stagger cursor-pointer"
-                                 style="animation-delay: ${index * 0.1}s">
-                                <img src="${img}" class="w-full h-full object-cover">
+                            <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all cursor-pointer">
+                                <div class="h-32 w-full relative">
+                                    <img src="${img}" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-blue-600 px-2 py-1 rounded-lg text-[10px] font-black text-white shadow-lg">
+                                        ${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <p class="text-[9px] font-black text-slate-800 truncate">${item.District || item.City || 'ლოკაცია'}</p>
+                                    <div class="flex items-center gap-1 mt-1">
+                                        <i class="fa-solid fa-vector-square text-blue-500 text-[8px]"></i>
+                                        <span class="text-[10px] font-extrabold text-slate-500">${item.TotalArea || 0} მ²</span>
+                                    </div>
+                                </div>
                             </div>`;
-                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold tracking-tight">განცხადებები არ მოიძებნა</p>`}
+                    }).join('')}
                 </div>
             </div>`;
     }
