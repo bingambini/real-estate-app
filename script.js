@@ -285,12 +285,13 @@ function openProfile(maklerId) {
     
     const nameEl = document.getElementById('m-name');
     const photoEl = document.getElementById('m-photo');
-    const floatingBadges = profileCard.querySelector('.absolute.-bottom-4');
+    const floatingBadges = profileCard?.querySelector('.absolute.-bottom-4');
     
     let targetId = null;
     let m = null;
     let isAgentMode = false;
 
+    // თუ სხვა აგენტის პროფილს ვხსნით (მაგალითად განცხადებიდან)
     if (maklerId && maklerId !== "undefined") {
         m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         targetId = String(m.ID).trim();
@@ -300,7 +301,11 @@ function openProfile(maklerId) {
         isAgentMode = true;
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
+        
+        // თუ აგენტის გვერდია, გვერდი უნდა გამოჩნდეს (Overlay რეჟიმი)
+        document.getElementById('profile-page')?.classList.add('active');
     } else {
+        // საკუთარი პროფილის რეჟიმი (ტაბის რეჟიმი)
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
         if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
@@ -329,19 +334,21 @@ function openProfile(maklerId) {
     }
 
     const infoContainer = nameEl.parentElement;
-    Array.from(infoContainer.children).forEach(child => { if(child.id !== 'm-name') child.remove(); });
+    Array.from(infoContainer.children).forEach(child => { if(child.id !== 'm-name' && !child.classList.contains('flex')) child.remove(); });
     nameEl.insertAdjacentHTML('afterend', `<div id="m-id-display" class="w-fit bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-[8px] font-black text-slate-400 uppercase">ID: ${targetId}</div>`);
 
     if(m?.Agency) {
         document.getElementById('m-id-display').insertAdjacentHTML('afterend', `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none">${m.Agency}</p>`);
     }
 
-    if(floatingBadges && isAgentMode && m) {
-        floatingBadges.innerHTML = `
-            <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-[0_10px_25px_-5px_rgba(59,130,246,0.3)] border-2 border-blue-50 active:scale-90 transition-all"><i class="fa-solid fa-phone text-blue-600 text-xs"></i></a>
-            <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] border-4 border-blue-50"><img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover"></div>`;
-    } else if (floatingBadges) {
-        floatingBadges.innerHTML = "";
+    if(floatingBadges) {
+        if(isAgentMode && m) {
+            floatingBadges.innerHTML = `
+                <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-[0_10px_25px_-5px_rgba(59,130,246,0.3)] border-2 border-blue-50 active:scale-90 transition-all"><i class="fa-solid fa-phone text-blue-600 text-xs"></i></a>
+                <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] border-4 border-blue-50"><img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover"></div>`;
+        } else {
+            floatingBadges.innerHTML = "";
+        }
     }
 
     const historyBlock = document.getElementById('profile-history-block');
@@ -355,40 +362,28 @@ function openProfile(maklerId) {
                         <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-50 shadow-sm active:scale-95 transition-all cursor-pointer">
                             <div class="h-20 w-full"><img src="${item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/150x150'}" class="w-full h-full object-cover"></div>
                             <div class="p-1.5"><p class="text-[7px] font-black text-slate-800 truncate">${item.District || item.City}</p></div>
-                        </div>`).join('') || '<p class="col-span-3 text-center text-slate-300 py-10">ცარიელია</p>'}
+                        </div>`).join('') || '<p class="col-span-3 text-center text-slate-300 py-10 text-[10px]">ცარიელია</p>'}
                 </div>
             </div>`;
     }
-    document.getElementById('profile-page')?.classList.add('active');
 }
 
 function openDetailsById(id) {
     const item = window.allListings.find(l => String(l.ID) === String(id));
-    if (item) { closeProfile(); openDetails(item); }
-}
-
-/** * პროფილის დახურვისას ნავიგაციის გასწორება */
-function closeProfile() { 
-    document.getElementById('profile-page')?.classList.remove('active'); 
-    // ნავიგაციაში "Home" ტაბის გააქტიურება
-    const navHome = document.querySelector('.nav-item:first-child');
-    const navProfile = document.querySelector('.nav-item:last-child');
-    if(navHome && navProfile) {
-        navProfile.classList.add('opacity-50');
-        navProfile.classList.remove('active');
-        navHome.classList.remove('opacity-50');
-        navHome.classList.add('active');
+    if (item) { 
+        // თუ აგენტის პროფილი Overlay-დ იყო გახსნილი, ვხურავთ
+        document.getElementById('profile-page')?.classList.remove('active');
+        openDetails(item); 
     }
 }
 
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 function switchTab(tabId, el) {
-    // 1. ყოველთვის ვხურავთ დეტალების ფანჯარას, თუ ღიაა
     closeDetails();
 
-    // 2. ვმალავთ ყველა ძირითად გვერდს
-    const pages = ['home-tab', 'profile-page'];
+    // ვმალავთ ტაბებს
+    const pages = ['home-tab', 'profile-tab-content'];
     pages.forEach(id => {
         const pg = document.getElementById(id);
         if (pg) {
@@ -397,19 +392,18 @@ function switchTab(tabId, el) {
         }
     });
 
-    // 3. ვაჩენთ არჩეულ გვერდს
+    // ვაჩენთ არჩეულს
     const target = document.getElementById(tabId);
     if (target) {
         target.style.display = 'block';
         setTimeout(() => target.classList.add('active'), 10);
         
-        // თუ პროფილი ავირჩიეთ, მისი მონაცემებიც განვაახლოთ
-        if (tabId === 'profile-page') {
+        if (tabId === 'profile-tab-content') {
             openProfile(); 
         }
     }
 
-    // 4. ნავიგაციის ღილაკების ვიზუალი
+    // ნავიგაციის ვიზუალი
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.add('opacity-50');
         item.classList.remove('active');
@@ -423,11 +417,9 @@ function switchTab(tabId, el) {
     window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// პროფილის დახურვის ფუნქცია (X ღილაკისთვის)
 function closeProfile() {
-    // უბრალოდ გადავდივართ მთავარ ტაბზე და ვააქტიურებთ პირველ ღილაკს ნავიგაციაში
-    const homeBtn = document.querySelector('.nav-item:first-child');
-    switchTab('home-tab', homeBtn);
+    // ეს ფუნქცია გამოიყენება მხოლოდ აგენტის Overlay პროფილის დასახურავად
+    document.getElementById('profile-page')?.classList.remove('active');
 }
 
 init();
