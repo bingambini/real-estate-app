@@ -65,11 +65,9 @@ async function fetchData() {
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        // 1. პირველ რიგში ვტვირთავთ განცხადებებს და სასწრაფოდ ვხატავთ
         window.allListings = data.listings || data.Listings || [];
         renderProperties(window.allListings); 
 
-        // 2. მაკლერების მონაცემებს ვამუშავებთ შემდეგ, რადგან ისინი მხოლოდ დეტალების გვერდზე გვჭირდება
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
         
@@ -138,7 +136,6 @@ function renderProperties(items) {
             const rawImgUrl = item.MainPhoto || item.Photos || "";
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-            
             const imgPriority = index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
 
             return `
@@ -257,7 +254,6 @@ function openProfile(maklerId) {
     let m = null;
     let isAgentMode = false;
 
-    // 1. მონაცემების იდენტიფიკაცია
     if (maklerId && maklerId !== "undefined") {
         m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         targetId = String(m.ID).trim();
@@ -286,7 +282,6 @@ function openProfile(maklerId) {
             isAgentMode = false;
         }
 
-        // Tier styling (Premium/Pro/Free)
         if(tierBadge && profileCard) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
@@ -297,26 +292,21 @@ function openProfile(maklerId) {
         }
     }
 
-    // 2. ტექსტური ბლოკის გასუფთავება ("---" მოცილება)
     const infoContainer = nameEl.parentElement;
     infoContainer.className = "flex flex-col gap-1.5 pt-1"; 
     
-    // ვასუფთავებთ აბსოლუტურად ყველაფერს სახელის გარდა, რომ ნარჩენები არ დარჩეს
     Array.from(infoContainer.children).forEach(child => {
         if(child.id !== 'm-name') child.remove();
     });
 
-    // ID ბეიჯის ჩამატება
     const idHtml = `<div id="m-id-display" class="w-fit bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-[8px] font-black text-slate-400 uppercase">ID: ${targetId}</div>`;
     nameEl.insertAdjacentHTML('afterend', idHtml);
 
-    // Agency-ს ჩამატება (მხოლოდ თუ არსებობს)
     if(m?.Agency) {
         const agencyHtml = `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none">${m.Agency}</p>`;
         document.getElementById('m-id-display').insertAdjacentHTML('afterend', agencyHtml);
     }
 
-    // 3. მცურავი ბეიჯების ლოგიკა (მხოლოდ აგენტისთვის)
     if(floatingBadges) {
         if(isAgentMode && m) {
             floatingBadges.innerHTML = `
@@ -332,18 +322,18 @@ function openProfile(maklerId) {
         }
     }
 
-    // 4. ისტორიის ბარათები (აწეული და ლამაზი ჩრდილებით)
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
         
         historyBlock.innerHTML = `
-            <div class="-mt-4 px-1"> <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">განცხადებები (${maklerListings.length})</h3>
+            <div class="-mt-4 px-1"> 
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">განცხადებები (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-3">
                     ${maklerListings.map((item) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/150x150?text=Home';
                         return `
-                            <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-50 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.08)] active:scale-95 active:shadow-none transition-all flex flex-col h-full">
+                            <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-50 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.08)] active:scale-95 active:shadow-none transition-all flex flex-col h-full cursor-pointer">
                                 <div class="h-20 w-full relative">
                                     <img src="${img}" class="w-full h-full object-cover">
                                     <div class="absolute top-1 left-1 bg-white/90 backdrop-blur-sm px-1 py-0.5 rounded text-[6px] font-black text-slate-800 uppercase shadow-sm">
@@ -366,10 +356,13 @@ function openProfile(maklerId) {
     document.getElementById('profile-page')?.classList.add('active');
 }
 
-/** * განცხადების გახსნა ID-ით (აპლიკაციიდან გამოუსვლელად) */
+/** * განცხადების გახსნა ID-ით (და პროფილის დახურვა) */
 function openDetailsById(id) {
     const item = window.allListings.find(l => String(l.ID) === String(id));
-    if (item) openDetails(item);
+    if (item) {
+        closeProfile(); // ხურავს პროფილს
+        openDetails(item); // ხსნის დეტალებს
+    }
 }
 
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
