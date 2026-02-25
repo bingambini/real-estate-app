@@ -1,10 +1,11 @@
 // ბაზის (Google Apps Script) ბმული
-const API_URL = "https://script.google.com/macros/s/AKfycbycf2AZcQKWimJU-vPNDUejjJ3LIbM0QLDudXN3jnmilJbTynf8fvYwrkT-3aJaH-Ieww/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyI6Ltb6UKQPJOTucSqzGwF_6GmtW9j0DveaYMzhBplFWbNkeu96GAyq1mwuMxnz6jwHA/exec";
 // Telegram WebApp ინსტანცია
 const tg = window.Telegram.WebApp;
-// მონაცემების გლობალური მასივები
+// მაკლერების მონაცემების გლობალური მასივი
 window.allMaklers = []; 
-window.allListings = []; // დავამატეთ ყველა განცხადების შესანახად
+// მონაცემების გლობალური მასივი განცხადებებისთვის
+window.allListings = [];
 // მომხმარებლის მონაცემები
 window.currentUser = null;
 
@@ -14,7 +15,7 @@ function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-/** * ფოტოს ლინკის გასწორება */
+/** * ფოტოს ლინკის გასწორება (Drive-ის თამბნეილისთვის) */
 function fixImageUrl(url) {
     if (!url || !url.includes("drive.google.com")) return url || 'https://placehold.co/400x300?text=No+Image';
     const parts = url.split(/\/view|\?id=|d\//);
@@ -42,7 +43,7 @@ async function init() {
     await fetchData();
 }
 
-/** * მომხმარებლის რეგისტრაცია */
+/** * მომხმარებლის რეგისტრაცია Google Sheets-ში */
 async function registerUser() {
     const user = tg.initDataUnsafe?.user;
     if (user) {
@@ -51,6 +52,7 @@ async function registerUser() {
             const res = await fetch(regUrl);
             const status = await res.json();
             window.currentUser = status; 
+            console.log("User Loaded:", window.currentUser.role, window.currentUser.tier);
         } catch (e) {
             console.error("User registration failed", e);
         }
@@ -62,11 +64,9 @@ async function fetchData() {
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
-        
-        window.allListings = data.listings || data.Listings || []; // ვინახავთ გლობალურად
+        window.allListings = data.listings || data.Listings || [];
         renderProperties(window.allListings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
@@ -75,7 +75,6 @@ async function fetchData() {
     }
 }
 
-/** * PDF ჩამოტვირთვა */
 async function downloadProfessionalPDF(item) {
     if (window.currentUser && window.currentUser.tier === "Free") {
         tg.showAlert("PDF-ის ჩამოტვირთვა ხელმისაწვდომია მხოლოდ Premium წევრებისთვის.");
@@ -86,26 +85,31 @@ async function downloadProfessionalPDF(item) {
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         btn.disabled = true;
+        btn.style.opacity = "0.7";
     }
     try {
         const response = await fetch(`${API_URL}?action=pdf&id=${item.ID}`);
         const pdfUrl = await response.text(); 
         if (pdfUrl && pdfUrl.startsWith("http")) {
-            tg.openLink(pdfUrl);
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                window.Telegram.WebApp.openLink(pdfUrl);
+            } else {
+                window.open(pdfUrl, '_blank');
+            }
         } else {
             alert("სერვერის შეცდომა: " + pdfUrl);
         }
     } catch (err) {
-        alert("კავშირის შეცდომა.");
+        alert("კავშირის შეცდომა სერვერთან.");
     } finally {
         if (btn) {
             btn.innerHTML = originalContent;
             btn.disabled = false;
+            btn.style.opacity = "1";
         }
     }
 }
 
-/** * გაზიარება */
 function shareProperty(item) {
     const shareData = {
         title: `${item.Rooms} ოთახიანი ბინა`,
@@ -120,7 +124,6 @@ function shareProperty(item) {
     }
 }
 
-/** * მთავარი გვერდის რენდერი */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
@@ -154,7 +157,6 @@ function renderProperties(items) {
     }).join('');
 }
 
-/** * დეტალების გვერდის გახსნა */
 function openDetails(item) {
     if (item.ID) fetch(`${API_URL}?viewId=${item.ID}`).catch(e => {});
     const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
@@ -163,7 +165,6 @@ function openDetails(item) {
     setEl('det-price', `${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}`);
     setEl('det-id', item.ID);
     setEl('tab-desc', item.Description || "აღწერა არ არის მითითებული");
-
     const contactTab = document.getElementById('tab-contact'); 
     if (contactTab) {
         let currentMakler = (window.allMaklers && window.allMaklers.length > 0) 
@@ -195,51 +196,113 @@ function openDetails(item) {
                 </div>
             </div>`;
     }
+    const featList = document.getElementById('features-list');
+    if(featList) {
+        const allFields = [
+            { label: "ქალაქი", val: item.City },
+            { label: "რაიონი", val: item.District },
+            { label: "ფართი", val: item.TotalArea ? item.TotalArea + " მ²" : null },
+            { label: "ოთახები", val: item.Rooms },
+            { label: "სართული", val: item.Floor ? `${item.Floor}/${item.TotalFloors || '?'}` : null },
+            { label: "მდგომარეობა", val: item.Condition }
+        ];
+        featList.innerHTML = allFields
+            .filter(f => f.val && f.val !== "0" && f.val !== "")
+            .map(f => `
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                    <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
+                    <p class="text-xs font-black text-slate-700">${f.val}</p>
+                </div>`).join('');
+    }
+    const wrapper = document.getElementById('slider-wrapper');
+    const dotsContainer = document.getElementById('slider-dots');
+    let allPhotos = [];
+    if (item.MainPhoto) allPhotos.push(item.MainPhoto);
+    for (let k = 1; k <= 7; k++) { if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]); }
+    if (allPhotos.length === 0 && item.Photos) { allPhotos = item.Photos.split(',').map(p => p.trim()); }
+    if (allPhotos.length > 0 && wrapper && dotsContainer) {
+        wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
+        dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
+        wrapper.onscroll = () => {
+            const scrollIndex = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === scrollIndex));
+        };
+        wrapper.scrollLeft = 0;
+    }
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა + STAGGER ანიმაცია */
+/** * პროფილის გახსნა (მაკლერის ან საკუთარი) */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
     const profileCard = document.getElementById('user-profile-card');
+    const headerTitle = document.getElementById('profile-header-title');
     const user = tg.initDataUnsafe?.user;
     
     const nameEl = document.getElementById('m-name');
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
 
-    const isRequestingSpecific = maklerId && maklerId !== "undefined";
-    const role = window.currentUser?.role || "Client";
-    const tier = window.currentUser?.tier || "Free";
-    
     let targetId = null;
 
-    if (isRequestingSpecific) {
-        let targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
-        if (targetMakler) {
-            nameEl.innerText = targetMakler.Name;
-            photoEl.src = fixImageUrl(targetMakler.Photo);
-            idEl.innerHTML = `<span class="text-blue-600 font-bold uppercase text-[10px]">${targetMakler.Agency || 'AGENT'}</span>`;
-            targetId = String(maklerId).trim();
+    // 1. სხვისი აგენტის ნახვა
+    if (maklerId && maklerId !== "undefined") {
+        const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
+        nameEl.innerText = m.Name || "აგენტი";
+        photoEl.src = fixImageUrl(m.Photo);
+        idEl.innerText = m.ID || "---";
+        roleBadge.innerText = "AGENT";
+        targetId = String(m.ID).trim();
+        if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
+        if(tierBadge) tierBadge.classList.add('hidden');
+        if(profileCard) {
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500";
         }
-    } else {
-        nameEl.innerText = (user?.first_name || "მომხმარებელი");
-        photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
-        idEl.innerHTML = `<span class="text-slate-400 text-xs">ID: ${user?.id || '---'}</span>`;
+    } 
+    // 2. საკუთარი პროფილი
+    else {
+        const role = window.currentUser?.role || "Client";
+        const tier = window.currentUser?.tier || "Free";
         
-        // თუ მაკლერი ხარ, ვიღებთ შენს ID-ს (მაგ. M1) window.currentUser-დან
+        if(headerTitle) headerTitle.innerText = "ჩემი პროფილი";
+        roleBadge.innerText = role.toUpperCase();
+        
         if (role === "Agent" && window.currentUser?.maklerId) {
+            const m = window.allMaklers.find(makler => String(makler.ID) === String(window.currentUser.maklerId));
+            nameEl.innerText = m?.Name || user?.first_name || "აგენტი";
+            photoEl.src = m?.Photo ? fixImageUrl(m.Photo) : (user?.photo_url || 'https://placehold.co/100x100?text=User');
+            idEl.innerText = window.currentUser.maklerId;
             targetId = String(window.currentUser.maklerId).trim();
+        } else {
+            nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
+            photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
+            idEl.innerText = user?.id || "---";
+        }
+
+        // Tier ბეიჯის და ბარათის ვიზუალური მართვა
+        if(tierBadge && profileCard) {
+            tierBadge.classList.remove('hidden');
+            tierBadge.innerText = tier.toUpperCase();
+            tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase tracking-tighter z-10 ";
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 mb-6 transition-all duration-500 ";
+
+            if(tier === "Premium") {
+                tierBadge.className += "bg-amber-400 text-white";
+                profileCard.className += "border-amber-200 shadow-amber-50";
+            } else if(tier === "Pro") {
+                tierBadge.className += "bg-purple-500 text-white";
+                profileCard.className += "border-purple-200 shadow-purple-50";
+            } else {
+                tierBadge.className += "bg-slate-400 text-white";
+                profileCard.className += "border-slate-100 shadow-none";
+            }
         }
     }
-
-    roleBadge.innerText = (isRequestingSpecific ? "AGENT" : role).toUpperCase();
 
     // განცხადებების ისტორია
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
-        // ვფილტრავთ MaklerID სვეტის მიხედვით
         const maklerListings = window.allListings?.filter(item => {
             const itemMaklerId = String(item.MaklerID || "").trim();
             return itemMaklerId === targetId && targetId !== null;
@@ -247,7 +310,7 @@ function openProfile(maklerId) {
         
         historyBlock.innerHTML = `
             <div class="mt-8">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია (${maklerListings.length})</h3>
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებები (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-3">
                     ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
@@ -257,7 +320,7 @@ function openProfile(maklerId) {
                                  style="animation-delay: ${index * 0.1}s">
                                 <img src="${img}" class="w-full h-full object-cover">
                             </div>`;
-                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები ვერ მოიძებნა</p>`}
+                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold tracking-tight">განცხადებები არ მოიძებნა</p>`}
                 </div>
             </div>`;
     }
@@ -267,5 +330,12 @@ function openProfile(maklerId) {
 
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
+
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId)?.classList.add('active');
+    el.classList.add('active');
+}
 
 init();
