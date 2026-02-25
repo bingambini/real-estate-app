@@ -4,7 +4,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbycf2AZcQKWimJU-vPNDUej
 const tg = window.Telegram.WebApp;
 // მონაცემების გლობალური მასივები
 window.allMaklers = []; 
-window.allListings = []; // დავამატეთ ყველა განცხადების შესანახად
+window.allListings = []; 
 // მომხმარებლის მონაცემები
 window.currentUser = null;
 
@@ -66,7 +66,7 @@ async function fetchData() {
         let mData = data.Makler || data.makler || [];
         window.allMaklers = Array.isArray(mData) ? mData : [mData];
         
-        window.allListings = data.listings || data.Listings || []; // ვინახავთ გლობალურად
+        window.allListings = data.listings || data.Listings || []; 
         renderProperties(window.allListings); 
     } catch (e) { 
         console.error("Error fetching data:", e);
@@ -195,12 +195,50 @@ function openDetails(item) {
                 </div>
             </div>`;
     }
+    
+    const featList = document.getElementById('features-list');
+    if(featList) {
+        const allFields = [
+            { label: "ქალაქი", val: item.City },
+            { label: "რაიონი", val: item.District },
+            { label: "ფართი", val: item.TotalArea ? item.TotalArea + " მ²" : null },
+            { label: "ოთახები", val: item.Rooms },
+            { label: "სართული", val: item.Floor ? `${item.Floor}/${item.TotalFloors || '?'}` : null },
+            { label: "მდგომარეობა", val: item.Condition }
+        ];
+        featList.innerHTML = allFields
+            .filter(f => f.val && f.val !== "0" && f.val !== "")
+            .map(f => `
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                    <p class="text-[9px] uppercase font-bold text-slate-400 mb-1">${f.label}</p>
+                    <p class="text-xs font-black text-slate-700">${f.val}</p>
+                </div>`).join('');
+    }
+
+    const wrapper = document.getElementById('slider-wrapper');
+    const dotsContainer = document.getElementById('slider-dots');
+    let allPhotos = [];
+    if (item.MainPhoto) allPhotos.push(item.MainPhoto);
+    for (let k = 1; k <= 7; k++) { if (item[`Photo${k}`]) allPhotos.push(item[`Photo${k}`]); }
+    if (allPhotos.length === 0 && item.Photos) { allPhotos = item.Photos.split(',').map(p => p.trim()); }
+    if (allPhotos.length > 0 && wrapper && dotsContainer) {
+        wrapper.innerHTML = allPhotos.map(url => `<div class="slide relative h-full w-full flex-shrink-0"><img src="${fixImageUrl(url)}" class="w-full h-full object-cover"></div>`).join('');
+        dotsContainer.innerHTML = allPhotos.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
+        wrapper.onscroll = () => {
+            const scrollIndex = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === scrollIndex));
+        };
+        wrapper.scrollLeft = 0;
+    }
+
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა + გაუმჯობესებული ფილტრი */
+/** * პროფილის გახსნა */
 function openProfile(maklerId) {
+    const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
+    const profileCard = document.getElementById('user-profile-card');
     const user = tg.initDataUnsafe?.user;
     
     const nameEl = document.getElementById('m-name');
@@ -209,24 +247,31 @@ function openProfile(maklerId) {
 
     const isRequestingSpecific = maklerId && maklerId !== "undefined";
     const role = window.currentUser?.role || "Client";
+    const tier = window.currentUser?.tier || "Free";
     let targetId = null;
 
     if (isRequestingSpecific) {
-        // სხვისი პროფილის ნახვა (მაკლერის)
         let targetMakler = window.allMaklers.find(m => String(m.ID).trim() === String(maklerId).trim());
         if (targetMakler) {
             nameEl.innerText = targetMakler.Name;
             photoEl.src = fixImageUrl(targetMakler.Photo);
             idEl.innerHTML = `<span class="text-blue-600 font-bold uppercase text-[10px]">${targetMakler.Agency || 'AGENT'}</span>`;
             targetId = String(maklerId).trim();
+            
+            // მცურავი ბეიჯები მაკლერისთვის
+            const oldBadges = profileCard.querySelectorAll('.floating-badge-container');
+            oldBadges.forEach(b => b.remove());
+            const badgeContainer = document.createElement('div');
+            badgeContainer.className = "floating-badge-container absolute -bottom-5 right-6 flex gap-3 z-30";
+            if (targetMakler.Phone) {
+                badgeContainer.innerHTML += `<a href="tel:${targetMakler.Phone}" class="w-11 h-11 bg-blue-600 shadow-xl rounded-full flex items-center justify-center border-4 border-white"><i class="fa-solid fa-phone text-white text-sm"></i></a>`;
+            }
+            profileCard.appendChild(badgeContainer);
         }
     } else {
-        // პირადი პროფილის ნახვა
         nameEl.innerText = (user?.first_name || "მომხმარებელი");
         photoEl.src = user?.photo_url || 'https://placehold.co/100x100?text=User';
         idEl.innerHTML = `<span class="text-slate-400 text-xs">ID: ${user?.id || '---'}</span>`;
-        
-        // თუ მაკლერია, ვიღებთ მის ID-ს ბაზიდან
         if (role === "Agent" && window.currentUser?.maklerId) {
             targetId = String(window.currentUser.maklerId).trim();
         }
@@ -234,27 +279,20 @@ function openProfile(maklerId) {
 
     roleBadge.innerText = (isRequestingSpecific ? "AGENT" : role).toUpperCase();
 
+    // ისტორიის რენდერი
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
-        // ფილტრაცია MaklerID (AN სვეტი) მიხედვით
-        const maklerListings = window.allListings?.filter(item => {
-            const itemMaklerId = String(item.MaklerID || "").trim();
-            return itemMaklerId === targetId && targetId !== null;
-        }) || [];
-        
+        const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === targetId && targetId !== null) || [];
         historyBlock.innerHTML = `
             <div class="mt-8">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია (${maklerListings.length})</h3>
                 <div class="grid grid-cols-3 gap-3">
-                    ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
-                        const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
-                        return `
-                            <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' 
-                                 class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all history-stagger"
-                                 style="animation-delay: ${index * 0.1}s">
-                                <img src="${img}" class="w-full h-full object-cover">
-                            </div>`;
-                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები არ არის</p>`}
+                    ${maklerListings.map((item, index) => `
+                        <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' 
+                             class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm history-stagger"
+                             style="animation-delay: ${index * 0.1}s">
+                            <img src="${item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home'}" class="w-full h-full object-cover">
+                        </div>`).join('') || '<p class="col-span-3 text-center text-slate-300 py-10">განცხადებები არ არის</p>'}
                 </div>
             </div>`;
     }
@@ -264,5 +302,12 @@ function openProfile(maklerId) {
 
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
+
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId)?.classList.add('active');
+    el.classList.add('active');
+}
 
 init();
