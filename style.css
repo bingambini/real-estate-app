@@ -9,6 +9,11 @@ body {
     overflow-x: hidden; 
 }
 
+/* ბანერების ციმციმის საწინააღმდეგო წესი */
+#premium-upgrade-card, #pro-upgrade-card {
+    display: none;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Splash Screen */
