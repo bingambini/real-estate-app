@@ -139,7 +139,6 @@ function renderProperties(items) {
             const firstImg = rawImgUrl ? fixImageUrl(rawImgUrl.split(',')[0].trim()) : 'https://placehold.co/400x300?text=No+Image';
             const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
             
-            // პირველი განცხადების ფოტოს ვანიჭებთ პრიორიტეტს
             const imgPriority = index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
 
             return `
@@ -256,7 +255,6 @@ function openProfile(maklerId) {
 
     let targetId = null;
 
-    // 1. სხვისი აგენტის ნახვა
     if (maklerId && maklerId !== "undefined") {
         const m = window.allMaklers.find(makler => String(makler.ID) === String(maklerId)) || window.allMaklers[0];
         nameEl.innerText = m.Name || "აგენტი";
@@ -270,7 +268,6 @@ function openProfile(maklerId) {
             profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500 relative";
         }
     } 
-    // 2. საკუთარი პროფილი
     else {
         const role = window.currentUser?.role || "Client";
         const tier = window.currentUser?.tier || "Free";
@@ -290,7 +287,6 @@ function openProfile(maklerId) {
             idEl.innerText = user?.id || "---";
         }
 
-        // Tier ბეიჯის და ბარათის ვიზუალური მართვა
         if(tierBadge && profileCard) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
@@ -310,7 +306,6 @@ function openProfile(maklerId) {
         }
     }
 
-    // განცხადებების ისტორია
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => {
@@ -325,8 +320,8 @@ function openProfile(maklerId) {
                     ${maklerListings.length > 0 ? maklerListings.map((item, index) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
                         return `
-                            <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' 
-                                 class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all history-stagger"
+                            <div onclick='openDetailsById("${item.ID}")' 
+                                 class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all history-stagger cursor-pointer"
                                  style="animation-delay: ${index * 0.1}s">
                                 <img src="${img}" class="w-full h-full object-cover">
                             </div>`;
@@ -336,6 +331,12 @@ function openProfile(maklerId) {
     }
 
     document.getElementById('profile-page')?.classList.add('active');
+}
+
+/** * განცხადების გახსნა ID-ით (აპლიკაციიდან გამოუსვლელად) */
+function openDetailsById(id) {
+    const item = window.allListings.find(l => String(l.ID) === String(id));
+    if (item) openDetails(item);
 }
 
 function closeProfile() { document.getElementById('profile-page')?.classList.remove('active'); }
