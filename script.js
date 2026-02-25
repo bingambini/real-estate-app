@@ -369,10 +369,36 @@ function closeProfile() { document.getElementById('profile-page')?.classList.rem
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 function switchTab(tabId, el) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId)?.classList.add('active');
-    el.classList.add('active');
+    // 1. პირველ რიგში ვხურავთ ყველა "Overlay" გვერდს (დეტალები, პროფილი)
+    // რომ ნავიგაციაზე დაჭერისას მთავარ გვერდზე დავბრუნდეთ
+    document.getElementById('profile-page')?.classList.remove('active');
+    document.getElementById('details-page')?.classList.remove('active');
+
+    // 2. ვასუფთავებთ აქტიურ ტაბებს ნავიგაციაში
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.opacity = "0.5"; // არააქტიური ტაბის ეფექტი
+    });
+
+    // 3. ვმალავთ ყველა კონტენტს (home, search, favorites და ა.შ.)
+    document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.remove('active');
+        t.style.display = 'none';
+    });
+
+    // 4. ვააქტიურებთ არჩეულ ტაბს
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.add('active');
+        targetTab.style.display = 'block';
+        el.classList.add('active');
+        el.style.opacity = "1";
+    }
+    
+    // 5. Telegram-ის ვიბრაცია უკუკავშირისთვის
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
 }
 
 init();
