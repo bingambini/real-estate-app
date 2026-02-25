@@ -384,26 +384,36 @@ function closeProfile() {
 function closeDetails() { document.getElementById('details-page')?.classList.remove('active'); }
 
 function switchTab(tabId, el) {
-    document.getElementById('profile-page')?.classList.remove('active');
-    document.getElementById('details-page')?.classList.remove('active');
+    // 1. ყოველთვის ვხურავთ დეტალების ფანჯარას, თუ ღიაა
+    closeDetails();
 
-    const allTabs = document.querySelectorAll('.tab-content-main');
-    allTabs.forEach(tab => {
-        tab.classList.remove('active');
-        tab.style.display = 'none';
+    // 2. ვმალავთ ყველა ძირითად გვერდს
+    const pages = ['home-tab', 'profile-page'];
+    pages.forEach(id => {
+        const pg = document.getElementById(id);
+        if (pg) {
+            pg.classList.remove('active');
+            pg.style.display = 'none';
+        }
     });
 
-    const targetTab = document.getElementById(tabId);
-    if (targetTab) {
-        targetTab.style.display = 'block';
-        setTimeout(() => targetTab.classList.add('active'), 10);
+    // 3. ვაჩენთ არჩეულ გვერდს
+    const target = document.getElementById(tabId);
+    if (target) {
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('active'), 10);
+        
+        // თუ პროფილი ავირჩიეთ, მისი მონაცემებიც განვაახლოთ
+        if (tabId === 'profile-page') {
+            openProfile(); 
+        }
     }
 
+    // 4. ნავიგაციის ღილაკების ვიზუალი
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.add('opacity-50');
         item.classList.remove('active');
     });
-
     if (el) {
         el.classList.remove('opacity-50');
         el.classList.add('active');
@@ -413,14 +423,11 @@ function switchTab(tabId, el) {
     window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function openProfileFromNav(el) {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.add('opacity-50');
-        item.classList.remove('active');
-    });
-    el.classList.remove('opacity-50');
-    el.classList.add('active');
-    openProfile();
+// პროფილის დახურვის ფუნქცია (X ღილაკისთვის)
+function closeProfile() {
+    // უბრალოდ გადავდივართ მთავარ ტაბზე და ვააქტიურებთ პირველ ღილაკს ნავიგაციაში
+    const homeBtn = document.querySelector('.nav-item:first-child');
+    switchTab('home-tab', homeBtn);
 }
 
 init();
