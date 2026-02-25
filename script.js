@@ -241,7 +241,7 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * პროფილის გახსნა - ოპტიმიზირებული ID-ით და ბეიჯების ლოგიკით */
+/** * პროფილის გახსნა - გასუფთავებული და დახვეწილი ვიზუალით */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -297,63 +297,65 @@ function openProfile(maklerId) {
         }
     }
 
-    // 2. ტექსტური ბლოკი: ID, Agency და Status (თანაბარი დაშორებით)
-    // ვასუფთავებთ ძველ დამატებულ ელემენტებს
+    // 2. ტექსტური ბლოკის გასუფთავება ("---" მოცილება)
     const infoContainer = nameEl.parentElement;
     infoContainer.className = "flex flex-col gap-1.5 pt-1"; 
     
-    document.getElementById('m-id-display')?.remove();
-    document.getElementById('m-agency-display')?.remove();
+    // ვასუფთავებთ აბსოლუტურად ყველაფერს სახელის გარდა, რომ ნარჩენები არ დარჩეს
+    Array.from(infoContainer.children).forEach(child => {
+        if(child.id !== 'm-name') child.remove();
+    });
 
-    // ID ბეიჯი სახელის ქვევით
-    const idHtml = `<div id="m-id-display" class="w-fit bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-[8px] font-black text-slate-500 uppercase">ID: ${targetId}</div>`;
+    // ID ბეიჯის ჩამატება
+    const idHtml = `<div id="m-id-display" class="w-fit bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 text-[8px] font-black text-slate-400 uppercase">ID: ${targetId}</div>`;
     nameEl.insertAdjacentHTML('afterend', idHtml);
 
-    // Agency (მხოლოდ თუ აგენტია)
+    // Agency-ს ჩამატება (მხოლოდ თუ არსებობს)
     if(m?.Agency) {
-        const agencyHtml = `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">${m.Agency}</p>`;
+        const agencyHtml = `<p id="m-agency-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none">${m.Agency}</p>`;
         document.getElementById('m-id-display').insertAdjacentHTML('afterend', agencyHtml);
     }
 
-    // 3. მცურავი ბეიჯების კონტროლი
+    // 3. მცურავი ბეიჯების ლოგიკა (მხოლოდ აგენტისთვის)
     if(floatingBadges) {
         if(isAgentMode && m) {
             floatingBadges.innerHTML = `
-                <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-xl border-2 border-blue-50 active:scale-90 transition-all">
+                <a href="tel:${m.Phone || ''}" class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-[0_10px_25px_-5px_rgba(59,130,246,0.3)] border-2 border-blue-50 active:scale-90 transition-all">
                     <i class="fa-solid fa-phone text-blue-600 text-xs"></i>
                 </a>
-                <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-xl border-4 border-blue-50 active:scale-90 transition-all">
+                <div class="w-12 h-12 rounded-full bg-white overflow-hidden shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] border-4 border-blue-50 active:scale-90 transition-all">
                     <img src="${fixImageUrl(m.Logo)}" class="w-full h-full object-cover">
                 </div>
             `;
         } else {
-            floatingBadges.innerHTML = ""; // კლიენტისთვის ვასუფთავებთ
+            floatingBadges.innerHTML = ""; 
         }
     }
 
-    // 4. ისტორიის ბარათები (3 ერთ ხაზზე)
+    // 4. ისტორიის ბარათები (აწეული და ლამაზი ჩრდილებით)
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
         
         historyBlock.innerHTML = `
-            <div class="mt-8">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">განცხადებები (${maklerListings.length})</h3>
-                <div class="grid grid-cols-3 gap-2">
+            <div class="-mt-4 px-1"> <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">განცხადებები (${maklerListings.length})</h3>
+                <div class="grid grid-cols-3 gap-3">
                     ${maklerListings.map((item) => {
                         const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/150x150?text=Home';
                         return `
-                            <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all flex flex-col h-full">
+                            <div onclick='openDetailsById("${item.ID}")' class="bg-white rounded-[18px] overflow-hidden border border-slate-50 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.08)] active:scale-95 active:shadow-none transition-all flex flex-col h-full">
                                 <div class="h-20 w-full relative">
                                     <img src="${img}" class="w-full h-full object-cover">
-                                    <div class="absolute top-1 left-1 bg-white/90 px-1 py-0.5 rounded text-[6px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
+                                    <div class="absolute top-1 left-1 bg-white/90 backdrop-blur-sm px-1 py-0.5 rounded text-[6px] font-black text-slate-800 uppercase shadow-sm">
+                                        ${item.DealType || 'იყიდება'}
+                                    </div>
                                 </div>
                                 <div class="p-1.5 flex flex-col justify-between flex-grow">
-                                    <div>
-                                        <p class="text-[7px] font-black text-slate-800 truncate leading-tight">${item.District || item.City}</p>
-                                        <p class="text-[7px] font-bold text-slate-400 mt-0.5">${item.TotalArea || 0} მ²</p>
+                                    <p class="text-[7px] font-black text-slate-800 truncate mb-0.5">${item.District || item.City}</p>
+                                    <div class="flex items-center justify-between mt-auto">
+                                        <span class="text-[7px] font-extrabold text-slate-400">${item.TotalArea || 0} მ²</span>
+                                        <p class="text-[8px] font-black text-blue-600">${formatPrice(item.TotalPrice)}${item.Currency === 'USD' ? '$' : '₾'}</p>
                                     </div>
-                                    <p class="text-[8px] font-black text-blue-600 mt-1">${formatPrice(item.TotalPrice)}${item.Currency === 'USD' ? '$' : '₾'}</p>
                                 </div>
                             </div>`;
                     }).join('') || `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები არ არის</p>`}
