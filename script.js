@@ -129,7 +129,7 @@ function shareProperty(item) {
     }
 }
 
-/** * განცხადებების რენდერი პრიორიტეტული ჩატვირთვით */
+/** * განცხადებების რენდერი - ბანერების აღდგენით */
 function renderProperties(items) {
     const container = document.getElementById('property-container');
     if (!container || !Array.isArray(items)) return;
@@ -143,11 +143,11 @@ function renderProperties(items) {
             const imgPriority = index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
 
             return `
-            <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4">
+            <div onclick='openDetails(${itemJson})' class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-slate-100 active:scale-[0.98] transition-all mb-4 relative">
                 <div class="relative h-60 overflow-hidden">
                     <img src="${firstImg}" ${imgPriority} class="w-full h-full object-cover">
-                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-800 uppercase shadow-sm">${item.DealType || 'იყიდება'}</div>
-                    <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-xl shadow-lg">
+                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] font-black text-slate-800 uppercase shadow-sm z-10">${item.DealType || 'იყიდება'}</div>
+                    <div class="absolute bottom-3 left-3 bg-blue-600 px-4 py-2 rounded-2xl shadow-lg z-10">
                         <p class="text-white font-black text-base leading-none">${formatPrice(item.TotalPrice)} ${item.Currency === 'USD' ? '$' : '₾'}</p>
                     </div>
                 </div>
@@ -267,7 +267,7 @@ function openProfile(maklerId) {
         if(headerTitle) headerTitle.innerText = "აგენტის პროფილი";
         if(tierBadge) tierBadge.classList.add('hidden');
         if(profileCard) {
-            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500";
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-6 transition-all duration-500 relative";
         }
     } 
     // 2. საკუთარი პროფილი
@@ -295,7 +295,7 @@ function openProfile(maklerId) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
             tierBadge.className = "absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white uppercase tracking-tighter z-10 ";
-            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 mb-6 transition-all duration-500 ";
+            profileCard.className = "bg-white rounded-[30px] p-5 shadow-sm border-2 mb-6 transition-all duration-500 relative ";
 
             if(tier === "Premium") {
                 tierBadge.className += "bg-amber-400 text-white";
