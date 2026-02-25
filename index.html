@@ -126,39 +126,33 @@
     </div>
 
     <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-8 py-4 flex justify-between items-center z-[100]">
-        <div class="nav-item tab-btn active flex flex-col items-center gap-1 active:scale-90 transition-all" onclick="switchTab('home-tab', this)">
+        <div class="nav-item active flex flex-col items-center gap-1 active:scale-90 transition-all cursor-pointer" onclick="switchTab('home-tab', this)">
             <i class="fa-solid fa-house text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">მთავარი</span>
         </div>
-        <div class="nav-item tab-btn flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50" onclick="openProfile(); updateNav(this);">
+        <div class="nav-item flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50 cursor-pointer" onclick="openProfileFromNav(this)">
             <i class="fa-solid fa-user text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">პროფილი</span>
         </div>
     </nav>
 
     <script>
-        // დამხმარე ფუნქცია ნავიგაციის ღილაკების ვიზუალისთვის
-        function updateNav(el) {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.add('opacity-50');
-                item.classList.remove('active');
-            });
-            el.classList.remove('opacity-50');
-            el.classList.add('active');
-            if (window.Telegram?.WebApp?.HapticFeedback) {
-                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-            }
-        }
-
-        // დეტალების გვერდის შიდა ტაბების გადამრთველი
+        // დეტალების გვერდის შიდა ტაბების გადამრთველი (მხოლოდ დეტალებისთვის)
         function switchDetailsTab(tabId, el) {
             const parent = el.parentElement;
             parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             
             const container = el.closest('#details-page');
-            container.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
+            container.querySelectorAll('.tab-content').forEach(t => {
+                t.style.display = 'none';
+                t.classList.remove('active');
+            });
+            const target = document.getElementById(tabId);
+            if(target) {
+                target.style.display = 'block';
+                target.classList.add('active');
+            }
         }
     </script>
     <script src="script.js"></script>
