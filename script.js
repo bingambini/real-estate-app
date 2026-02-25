@@ -249,7 +249,7 @@ function openDetails(item) {
 
 /**
 /**
- * პროფილის გახსნა (მაკლერის ან საკუთარი)
+ * პროფილის გახსნა და მაკლერის განცხადებების ჩვენება
  */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
@@ -262,19 +262,22 @@ function openProfile(maklerId) {
     const photoEl = document.getElementById('m-photo');
     const idEl = document.getElementById('m-id');
 
+    // 1. იდენტიფიკაცია
     const isRequestingSpecific = maklerId && maklerId !== "undefined";
     const role = window.currentUser?.role || "Client";
     const tier = window.currentUser?.tier || "Free";
-    
     let targetMakler = null;
+    let targetId = null;
 
     if (isRequestingSpecific) {
         targetMakler = window.allMaklers.find(m => String(m.ID) === String(maklerId));
+        targetId = maklerId;
     } else if (role === "Agent" && window.currentUser?.maklerId) {
         targetMakler = window.allMaklers.find(m => String(m.ID) === String(window.currentUser.maklerId));
+        targetId = window.currentUser.maklerId;
     }
 
-    // 1. ძირითადი ტექსტური ინფორმაცია
+    // 2. პროფილის ზედა ნაწილის შევსება
     if (targetMakler) {
         nameEl.innerText = targetMakler.Name || "აგენტი";
         photoEl.src = fixImageUrl(targetMakler.Photo);
@@ -283,8 +286,7 @@ function openProfile(maklerId) {
                 <span class="text-slate-400"># ${targetMakler.ID}</span>
                 <span class="text-slate-300 mx-2">|</span>
                 <span class="text-blue-600 uppercase">${targetMakler.Agency || ''}</span>
-            </div>
-        `;
+            </div>`;
         roleBadge.innerText = "AGENT";
     } else {
         nameEl.innerText = (user?.first_name || "მომხმარებელი") + " " + (user?.last_name || "");
@@ -293,53 +295,61 @@ function openProfile(maklerId) {
         roleBadge.innerText = role.toUpperCase();
     }
 
-    // 2. ოვალური ბეიჯების მართვა (ლოგო და ტელეფონი)
-    // ჯერ ვშლით ძველ ბეიჯებს თუ არსებობს
-    const oldBadges = profileCard.querySelectorAll('.floating-badge');
+    // 3. მცურავი ბეიჯების (Logo & Phone) დამატება
+    const oldBadges = profileCard.querySelectorAll('.floating-badge-container');
     oldBadges.forEach(b => b.remove());
 
     if (targetMakler) {
-        // კონტეინერი ბეიჯებისთვის
         const badgeContainer = document.createElement('div');
-        badgeContainer.className = "floating-badge absolute -bottom-4 right-6 flex gap-2 items-center z-20";
-        
-        // ტელეფონის ბეიჯი
+        badgeContainer.className = "floating-badge-container absolute -bottom-5 right-6 flex gap-3 z-30";
         if (targetMakler.Phone) {
-            const pBadge = document.createElement('a');
-            pBadge.href = `tel:${targetMakler.Phone}`;
-            pBadge.className = "bg-white shadow-lg border border-slate-100 px-3 py-2 rounded-full flex items-center gap-1.5 active:scale-90 transition-transform";
-            pBadge.innerHTML = `<i class="fa-solid fa-phone text-blue-500 text-[10px]"></i><span class="text-slate-700 font-black text-[11px]">${targetMakler.Phone}</span>`;
-            badgeContainer.appendChild(pBadge);
+            badgeContainer.innerHTML += `
+                <a href="tel:${targetMakler.Phone}" class="w-11 h-11 bg-blue-600 shadow-xl shadow-blue-200 rounded-full flex items-center justify-center border-4 border-white active:scale-90 transition-all">
+                    <i class="fa-solid fa-phone text-white text-sm"></i>
+                </a>`;
         }
-
-        // ლოგოს ბეიჯი
         if (targetMakler.Logo) {
-            const lBadge = document.createElement('div');
-            lBadge.className = "bg-white shadow-lg border border-slate-100 p-1.5 rounded-full w-10 h-10 flex items-center justify-center overflow-hidden";
-            lBadge.innerHTML = `<img src="${fixImageUrl(targetMakler.Logo)}" class="w-full h-full object-contain">`;
-            badgeContainer.appendChild(lBadge);
+            badgeContainer.innerHTML += `
+                <div class="w-11 h-11 bg-white shadow-xl shadow-slate-200 rounded-full flex items-center justify-center overflow-hidden border-4 border-white">
+                    <img src="${fixImageUrl(targetMakler.Logo)}" class="w-full h-full object-contain p-1">
+                </div>`;
         }
-
         profileCard.appendChild(badgeContainer);
     }
 
-    // 3. ვიზუალიზაცია (Tier & Header)
-    if(headerTitle) headerTitle.innerText = isRequestingSpecific ? "აგენტის პროფილი" : "ჩემი პროფილი";
+    // 4. "ანგარიშის მართვის" ჩანაცვლება განცხადებების ისტორიით
+    const historyBlock = document.getElementById('profile-history-block'); // დარწმუნდი რომ ეს ID გაქვს HTML-ში
+    if (historyBlock && targetId) {
+        // ვფილტრავთ განცხადებებს ამ მაკლერისთვის
+        const maklerListings = window.allListings?.filter(item => String(item.MaklerID) === String(targetId)) || [];
+        
+        historyBlock.innerHTML = `
+            <div class="mt-8">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">განცხადებების ისტორია</h3>
+                <div class="grid grid-cols-3 gap-3">
+                    ${maklerListings.length > 0 ? maklerListings.map(item => {
+                        const img = item.MainPhoto ? fixImageUrl(item.MainPhoto) : 'https://placehold.co/100x100?text=Home';
+                        return `
+                            <div onclick='openDetails(${JSON.stringify(item).replace(/'/g, "&apos;")})' class="aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm active:scale-95 transition-all">
+                                <img src="${img}" class="w-full h-full object-cover">
+                            </div>`;
+                    }).join('') : `<p class="col-span-3 text-center text-slate-300 text-[10px] py-10 font-bold">განცხადებები ვერ მოიძებნა</p>`}
+                </div>
+            </div>`;
+    }
 
+    // Tier სტილები (უცვლელი)
     if(tierBadge && profileCard) {
-        profileCard.classList.add('relative'); // აუცილებელია აბსოლუტური პოზიციონირებისთვის
+        profileCard.classList.add('relative');
         if (!isRequestingSpecific) {
             tierBadge.classList.remove('hidden');
             tierBadge.innerText = tier.toUpperCase();
-            if(tier === "Premium") profileCard.style.borderColor = "#fbbf24";
-            else if(tier === "Pro") profileCard.style.borderColor = "#a855f7";
-            else profileCard.style.borderColor = "#f1f5f9";
+            profileCard.style.borderColor = (tier === "Premium") ? "#fbbf24" : (tier === "Pro" ? "#a855f7" : "#f1f5f9");
         } else {
             tierBadge.classList.add('hidden');
             profileCard.style.borderColor = "#f1f5f9";
         }
     }
-
     document.getElementById('profile-page')?.classList.add('active');
 }
 
