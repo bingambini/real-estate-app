@@ -36,6 +36,12 @@
         /* ტაბების მართვისთვის */
         .tab-content-main { display: none; }
         .tab-content-main.active { display: block; }
+        
+        /* პროფილის ტაბის სპეციფიკური სტილი, როცა ის ტაბად მუშაობს */
+        #profile-tab-content {
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
     </style>
 </head>
 <body class="pb-32 bg-slate-50 font-sans">
@@ -52,6 +58,37 @@
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">იპოვე შენი სახლი</h1>
             </header>
             <div id="property-container" class="px-6 mt-6 grid grid-cols-1 gap-6"></div>
+        </div>
+
+        <div id="profile-tab-content" class="tab-content-main bg-slate-50">
+            <div class="px-6 py-6 flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
+                <div class="w-10"></div>
+                <h3 id="profile-header-title" class="font-black text-slate-800 uppercase tracking-widest text-xs">პროფილი</h3>
+                <div class="w-10"></div>
+            </div>
+
+            <div class="p-6">
+                <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-10 transition-all duration-500 relative">
+                    <div class="flex items-center gap-5">
+                        <div class="relative flex-shrink-0">
+                            <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
+                            <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">FREE</div>
+                            <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
+                        </div>
+
+                        <div class="flex flex-col justify-center h-24 py-0.5 overflow-hidden flex-1">
+                            <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate mb-1">...</h2>
+                            <div id="m-id-container"></div> 
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
+                                <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">---</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20"></div>
+                </div>
+                <div id="profile-history-block"></div>
+            </div>
         </div>
 
     </div>
@@ -92,52 +129,18 @@
         </div>
     </div>
 
-    <div id="profile-page" class="details-page no-scrollbar bg-slate-50">
-        <div class="px-6 py-6 flex items-center justify-between bg-white shadow-sm sticky top-0 z-50">
-            <button onclick="closeProfile()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-800 active:scale-90 transition-all">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <h3 id="profile-header-title" class="font-black text-slate-800 uppercase tracking-widest text-xs">პროფილი</h3>
-            <div class="w-10"></div>
-        </div>
-
-        <div class="p-6">
-            <div id="user-profile-card" class="bg-white rounded-[30px] p-5 shadow-sm border-2 border-slate-100 mb-10 transition-all duration-500 relative">
-                <div class="flex items-center gap-5">
-                    <div class="relative flex-shrink-0">
-                        <img id="m-photo" src="" class="w-24 h-24 rounded-[22px] object-cover border-2 border-white shadow-sm">
-                        <div id="user-tier-badge" class="absolute -top-2 -right-2 px-2 py-1 rounded-lg text-[8px] font-black shadow-lg border-2 border-white hidden uppercase tracking-tighter z-10">FREE</div>
-                        <div class="absolute -bottom-1 -left-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-
-                    <div class="flex flex-col justify-center h-24 py-0.5 overflow-hidden flex-1">
-                        <h2 id="m-name" class="text-base font-black text-slate-800 leading-tight truncate mb-1">...</h2>
-                        <div id="m-id-container"></div> 
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">სტატუსი:</span>
-                            <span id="user-role-badge" class="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[9px] font-black uppercase border border-slate-100">---</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute -bottom-4 -right-2 flex items-center gap-2 z-20"></div>
-            </div>
-            <div id="profile-history-block"></div>
-        </div>
-    </div>
-
     <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-8 py-4 flex justify-between items-center z-[100]">
         <div class="nav-item active flex flex-col items-center gap-1 active:scale-90 transition-all cursor-pointer" onclick="switchTab('home-tab', this)">
             <i class="fa-solid fa-house text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">მთავარი</span>
         </div>
-        <div class="nav-item flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50 cursor-pointer" onclick="openProfileFromNav(this)">
+        <div class="nav-item flex flex-col items-center gap-1 active:scale-90 transition-all opacity-50 cursor-pointer" onclick="switchTab('profile-tab-content', this); openProfile();">
             <i class="fa-solid fa-user text-xl"></i>
             <span class="text-[10px] font-black uppercase tracking-tighter">პროფილი</span>
         </div>
     </nav>
 
     <script>
-        // დეტალების გვერდის შიდა ტაბების გადამრთველი (მხოლოდ დეტალებისთვის)
         function switchDetailsTab(tabId, el) {
             const parent = el.parentElement;
             parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
