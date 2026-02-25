@@ -35,24 +35,44 @@ function fixImageUrl(url) {
     return url;
 }
 
+/** * Splash Screen-ის გათიშვა */
+function hideSplash() {
+    const splash = document.getElementById('splash-screen');
+    const content = document.getElementById('main-content');
+    if (splash && splash.style.display !== 'none') {
+        splash.style.opacity = '0';
+        setTimeout(() => {
+            splash.style.display = 'none';
+            if (content) content.style.opacity = '1';
+        }, 400);
+    }
+}
+
 /** * აპლიკაციის საწყისი ინიციალიზაცია */
 async function init() {
     tg.expand();
     tg.ready();
     
+    // 1. ჯერ ვცდილობთ ქეშიდან ჩატვირთვას, რომ Splash მალე გაქრეს
+    const cachedData = localStorage.getItem('real_estate_cache');
+    if (cachedData) {
+        try {
+            const parsed = JSON.parse(cachedData);
+            window.allListings = parsed.listings || [];
+            window.allMaklers = parsed.maklers || [];
+            renderProperties(window.allListings.slice(0, displayedItemsCount));
+            hideSplash(); // თუ ქეში გვაქვს, მაშინვე ვაჩვენებთ კონტენტს
+        } catch(e) { console.error("Cache parse error", e); }
+    }
+    
+    // 2. პარალელურად ვიწყებთ სერვერიდან ახალი მონაცემების წამოღებას
     try {
         await registerUser();
         await fetchData();
-        
-        const splash = document.getElementById('splash-screen');
-        const content = document.getElementById('main-content');
-        if (splash) splash.style.display = 'none'; 
-        if (content) content.style.opacity = '1'; 
-        
+        hideSplash(); // როცა ახალი მონაცემებიც მოვა, კიდევ ერთხელ ვრწმუნდებით რომ Splash გაქრა
     } catch (e) {
         console.error("Initialization failed", e);
-        const splash = document.getElementById('splash-screen');
-        if (splash) splash.style.display = 'none';
+        hideSplash();
     }
 }
 
@@ -77,15 +97,7 @@ async function registerUser() {
 
 async function fetchData() {
     const container = document.getElementById('property-container');
-    const cachedData = localStorage.getItem('real_estate_cache');
     
-    if (cachedData) {
-        const parsed = JSON.parse(cachedData);
-        window.allListings = parsed.listings || [];
-        window.allMaklers = parsed.maklers || [];
-        renderProperties(window.allListings.slice(0, displayedItemsCount));
-    }
-
     try {
         const res = await fetch(window.API_URL);
         const data = await res.json();
@@ -93,6 +105,7 @@ async function fetchData() {
         const newListings = data.listings || data.Listings || [];
         const newMaklers = data.Makler || data.makler || [];
 
+        // ვინახავთ ახალ მონაცემებს ქეშში
         localStorage.setItem('real_estate_cache', JSON.stringify({
             listings: newListings,
             maklers: newMaklers,
@@ -101,11 +114,15 @@ async function fetchData() {
 
         window.allListings = newListings;
         window.allMaklers = Array.isArray(newMaklers) ? newMaklers : [newMaklers];
+        
+        // ვაახლებთ ეკრანს ახალი მონაცემებით
         renderProperties(window.allListings.slice(0, displayedItemsCount));
         
     } catch (e) {
         console.error("Fetch failed", e);
-        if (!cachedData && container) container.innerHTML = '<p class="text-center py-10 text-slate-400">მონაცემების ჩატვირთვა ვერ მოხერხდა</p>';
+        if (!localStorage.getItem('real_estate_cache') && container) {
+            container.innerHTML = '<p class="text-center py-10 text-slate-400">მონაცემების ჩატვირთვა ვერ მოხერხდა</p>';
+        }
     }
 }
 
@@ -260,7 +277,7 @@ function openDetails(item) {
     document.getElementById('details-page')?.classList.add('active');
 }
 
-/** * გადახდის ფუნქცია - დაფიქსირებულია data.result */
+/** * გადახდის ფუნქცია */
 async function payWithStars() {
     const user = tg.initDataUnsafe?.user;
     if (!user) return;
@@ -295,7 +312,7 @@ function showBankDetails() {
     if(modal) modal.classList.toggle('hidden');
 }
 
-/** * პროფილის გახსნა - დუბლირება გასწორებულია */
+/** * პროფილის გახსნა */
 function openProfile(maklerId) {
     const tierBadge = document.getElementById('user-tier-badge');
     const roleBadge = document.getElementById('user-role-badge');
@@ -369,8 +386,6 @@ function openProfile(maklerId) {
     const historyBlock = document.getElementById('profile-history-block');
     if (historyBlock) {
         const maklerListings = window.allListings?.filter(item => String(item.MaklerID || "").trim() === String(targetId)) || [];
-        
-        // აქ აღარ ვამატებთ upgradeHtml-ს დინამიურად, რადგან ის უკვე HTML-ში გაქვს.
         historyBlock.innerHTML = `
             <div class="px-1"> 
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">განცხადებები (${maklerListings.length})</h3>
